@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="testapp" InternalType="Console">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+    <Plugin Name="CMakePlugin">
+      <![CDATA[[{
+  "name": "Debug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }]]]>
+    </Plugin>
+  </Plugins>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="Camera.cpp"/>
+    <File Name="CapsuleCollider.cpp"/>
+    <File Name="CharacterController.cpp"/>
+    <File Name="Component.cpp"/>
+    <File Name="ConvexHullCollider.cpp"/>
+    <File Name="Cube.cpp"/>
+    <File Name="CylinderCollider.cpp"/>
+    <File Name="FontRenderer.cpp"/>
+    <File Name="FontShader.cpp"/>
+    <File Name="GBuffer.cpp"/>
+    <File Name="GLBuffer.cpp"/>
+    <File Name="GLWindow.cpp"/>
+    <File Name="Lights.cpp"/>
+    <File Name="LitShader.cpp"/>
+    <File Name="main.cpp"/>
+    <File Name="Material.cpp"/>
+    <File Name="matrix.cpp"/>
+    <File Name="Memory.cpp"/>
+    <File Name="MeshRenderer.cpp"/>
+    <File Name="Model.cpp"/>
+    <File Name="PhysicsCollider.cpp"/>
+    <File Name="PhysicsDebugDraw.cpp"/>
+    <File Name="PhysicsWorld.cpp"/>
+    <File Name="PlaneCollider.cpp"/>
+    <File Name="Quad.cpp"/>
+    <File Name="quaternion.cpp"/>
+    <File Name="Renderer.cpp"/>
+    <File Name="Room.cpp"/>
+    <File Name="Scene.cpp"/>
+    <File Name="Shader.cpp"/>
+    <File Name="ShadowMapShader.cpp"/>
+    <File Name="SkyboxRenderer.cpp"/>
+    <File Name="SkyboxShader.cpp"/>
+    <File Name="Sphere.cpp"/>
+    <File Name="SphereCollider.cpp"/>
+    <File Name="testapp.mk"/>
+    <File Name="testapp.project"/>
+    <File Name="testapp.txt"/>
+    <File Name="Texture.cpp"/>
+    <File Name="Transform.cpp"/>
+    <File Name="Triangle.cpp"/>
+    <File Name="DefaultScript.cpp"/>
+    <File Name="BoxCollider.cpp"/>
+    <File Name="include/jasper/CapsuleCollider.cpp"/>
+    <File Name="GameObject.cpp"/>
+    <File Name="RotateLightScript.cpp"/>
+    <File Name="LauncherScript.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="include">
+    <VirtualDirectory Name="jasper">
+      <File Name="include/jasper/BasicShader.h"/>
+      <File Name="include/jasper/BoxCollider.h"/>
+      <File Name="include/jasper/CapsuleCollider.h"/>
+      <File Name="include/jasper/CharacterController.h"/>
+      <File Name="include/jasper/Common.h"/>
+      <File Name="include/jasper/Component.h"/>
+      <File Name="include/jasper/ConvexHullCollider.h"/>
+      <File Name="include/jasper/Cube.h"/>
+      <File Name="include/jasper/CylinderCollider.h"/>
+      <File Name="include/jasper/Event.h"/>
+      <File Name="include/jasper/FontRenderer.h"/>
+      <File Name="include/jasper/GBuffer.h"/>
+      <File Name="include/jasper/GLBuffer.h"/>
+      <File Name="include/jasper/GLError.h"/>
+      <File Name="include/jasper/GLWindow.h"/>
+      <File Name="include/jasper/Lights.h"/>
+      <File Name="include/jasper/LitShader.h"/>
+      <File Name="include/jasper/Material.h"/>
+      <File Name="include/jasper/MathTest.h"/>
+      <File Name="include/jasper/matrix.h"/>
+      <File Name="include/jasper/Memory.h"/>
+      <File Name="include/jasper/Mesh.h"/>
+      <File Name="include/jasper/MeshRenderer.h"/>
+      <File Name="include/jasper/Model.h"/>
+      <File Name="include/jasper/PhysicsDebugDraw.h"/>
+      <File Name="include/jasper/PhysicsWorld.h"/>
+      <File Name="include/jasper/PlaneCollider.h"/>
+      <File Name="include/jasper/Quad.h"/>
+      <File Name="include/jasper/quaternion.h"/>
+      <File Name="include/jasper/Renderer.h"/>
+      <File Name="include/jasper/ResourceManager.h"/>
+      <File Name="include/jasper/Room.h"/>
+      <File Name="include/jasper/Shader.h"/>
+      <File Name="include/jasper/ShadowMapShader.h"/>
+      <File Name="include/jasper/SkyboxRenderer.h"/>
+      <File Name="include/jasper/SkyboxShader.h"/>
+      <File Name="include/jasper/Sphere.h"/>
+      <File Name="include/jasper/SphereCollider.h"/>
+      <File Name="include/jasper/stb_easy_font.h"/>
+      <File Name="include/jasper/stb_image.h"/>
+      <File Name="include/jasper/stb_rect_pack.h"/>
+      <File Name="include/jasper/stb_truetype.h"/>
+      <File Name="include/jasper/Texture.h"/>
+      <File Name="include/jasper/TextureShader.h"/>
+      <File Name="include/jasper/Transform.h"/>
+      <File Name="include/jasper/Triangle.h"/>
+      <File Name="include/jasper/vector.h"/>
+      <File Name="include/jasper/GameObject.h"/>
+      <File Name="include/jasper/FontShader.h"/>
+      <File Name="include/jasper/Camera.h"/>
+      <File Name="include/jasper/PhysicsCollider.h"/>
+      <File Name="include/jasper/Scene.h"/>
+      <File Name="include/jasper/Scriptable.h"/>
+      <File Name="Mesh.cpp"/>
+      <File Name="BasicShader.cpp"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="clang( tags/RELEASE_380/final )" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-Wmain;-g;-O0;-std=c++14;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+        <IncludePath Value="./include/"/>
+        <IncludePath Value="./include/jasper/"/>
+        <IncludePath Value="/usr/include/bullet/"/>
+      </Compiler>
+      <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;" Required="yes">
+        <LibraryPath Value="/usr/local/lib/"/>
+      </Linker>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths>/usr/bin</DebuggerSearchPaths>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="clang( tags/RELEASE_380/final )" DebuggerType="LLDB Debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O2;-Wall" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+        <Preprocessor Value="NDEBUG"/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>
