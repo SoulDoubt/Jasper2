@@ -174,11 +174,12 @@ void GLWindow::SetupGL()
 
 }
 
-void ResizeWindow(int w, int h){
-    printf("Window resized\n");
-    printf("Width: %d, Height: %d \n", w, h);
+void ResizeWindow(int w, int h, Scene* scene){
+    //printf("Window resized\n");
+    //printf("Width: %d, Height: %d \n", w, h);
     glViewport(0, 0, w, h);
     
+    scene->Resize(w, h);
     
 }
 
@@ -194,7 +195,7 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime) {
         if (evt.window.event == SDL_WINDOWEVENT_RESIZED){
             int width = evt.window.data1;
             int height = evt.window.data2;
-            ResizeWindow(width, height);
+            ResizeWindow(width, height, scene);
         }
         break;
 	case SDL_KEYDOWN:

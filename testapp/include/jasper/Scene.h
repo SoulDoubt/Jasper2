@@ -24,6 +24,8 @@ class Scene
 public:	
 	explicit Scene(int width, int height);
 	~Scene();	
+    
+    void Resize(int width, int height);
 
 	Matrix4& ProjectionMatrix() {
 		return m_projectionMatrix;

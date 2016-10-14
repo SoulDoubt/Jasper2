@@ -37,6 +37,23 @@ Scene::~Scene()
     m_scripts.clear();
 }
 
+void Scene::Resize(int width, int height){
+    
+    printf("Resizing scene... %d x %d\n", width, height);
+    m_windowWidth = width;
+    m_windowHeight = height;
+    
+    auto pm = Matrix4();
+	auto om = Matrix4();
+
+	float aspectRatio = (float)m_windowWidth / (float)m_windowHeight;
+	
+	pm.CreatePerspectiveProjection(80.0f, aspectRatio, 0.1f, 1000.0f);
+	om.CreateOrthographicProjection(0.0f, m_windowWidth, m_windowHeight, 0.0f, 1.0f, -1.0f);
+	m_projectionMatrix = pm;
+	m_orthoMatrix = om;
+}
+
 void Scene::Initialize() {
 	
 	m_rootNode = make_unique<GameObject>("Root_Node");
@@ -47,16 +64,17 @@ void Scene::Initialize() {
 	
 
 	m_renderer = make_unique<Renderer>(this);
-		
-	auto pm = Matrix4();
-	auto om = Matrix4();
 
-	float aspectRatio = (float)m_windowWidth / (float)m_windowHeight;
-	
-	pm.CreatePerspectiveProjection(80.0f, aspectRatio, 0.1f, 1000.0f);
-	om.CreateOrthographicProjection(0.0f, m_windowWidth, m_windowHeight, 0.0f, 1.0f, -1.0f);
-	m_projectionMatrix = pm;
-	m_orthoMatrix = om;
+    Resize(m_windowWidth, m_windowHeight);
+//	auto pm = Matrix4();
+//	auto om = Matrix4();
+//
+//	float aspectRatio = (float)m_windowWidth / (float)m_windowHeight;
+//	
+//	pm.CreatePerspectiveProjection(80.0f, aspectRatio, 0.1f, 1000.0f);
+//	om.CreateOrthographicProjection(0.0f, m_windowWidth, m_windowHeight, 0.0f, 1.0f, -1.0f);
+//	m_projectionMatrix = pm;
+//	m_orthoMatrix = om;
 
 	auto debugShader = m_shaderManager.CreateInstance<BasicShader>();
 	m_physicsWorld->debugDrawer->debugShader = debugShader;
@@ -156,7 +174,10 @@ void Scene::Initialize() {
     launcher->GetLocalTransform().Translate(0.f, 10.f, 10.f);
     launcher->AttachNewComponent<LauncherScript>("Launcher_script");
     
-	
+    auto launcher2 = m_rootNode->AttachNewChild<GameObject>("Launcher2");
+    launcher2->GetLocalTransform().Translate(10.f, 2.f, 5.f);
+    launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
+    
 	//
 //	auto teapot = m_rootNode->AttachNewChild<Model>("teapot", "./models/teapot/teapot.obj", defaultShader, true, m_physicsWorld.get());
 //	teapot->GetLocalTransform().Translate({ 0.0f, 20.0f, 0.0f });
