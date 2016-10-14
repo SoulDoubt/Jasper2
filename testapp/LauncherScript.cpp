@@ -4,6 +4,8 @@
 #include "SphereCollider.h"
 #include "BoxCollider.h"
 #include "Scene.h"
+#include "Material.h"
+#include "Mesh.h"
 #include "Model.h"
 #include "Sphere.h"
 #include "Cube.h"
@@ -71,10 +73,10 @@ void LauncherScript::LaunchSphere(){
     auto pw = scene->GetPhysicsWorld();
     auto transform = gameObject->GetWorldTransform();
     auto rootNode = gameObject->GetScene()->GetRootNode();
-    auto mat = scene->GetMaterialByName("red_material");
+    auto mat = scene->GetMaterialCache().GetResourceByName("red_material");
     auto sphere = rootNode->AttachNewChild<GameObject>("Sphere");
     Mesh* mesh = nullptr;
-    if ((mesh = scene->GetMeshByName("launch_sphere")) == nullptr){
+    if ((mesh = scene->GetMeshCache().GetResourceByName("launch_sphere")) == nullptr){
         // need to create the mesh instance
         mesh = scene->CreateMesh<Sphere>(0.5f);
         mesh->SetName("launch_sphere");
@@ -104,10 +106,10 @@ void LauncherScript::LaunchCube(){
     auto pw = scene->GetPhysicsWorld();
     auto transform = gameObject->GetWorldTransform();
     auto rootNode = gameObject->GetScene()->GetRootNode();
-    auto mat = scene->GetMaterialByName("red_material");
+    auto mat = scene->GetMaterialCache().GetResourceByName("red_material");
     auto sphere = rootNode->AttachNewChild<GameObject>("cube");
     Mesh* mesh = nullptr;
-    if ((mesh = scene->GetMeshByName("launch_cube")) == nullptr){
+    if ((mesh = scene->GetMeshCache().GetResourceByName("launch_cube")) == nullptr){
         // need to create the mesh instance
         mesh = scene->CreateMesh<Cube>(Vector3(0.5f, 0.5f, 0.5f));
         mesh->SetName("launch_cube");

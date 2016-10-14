@@ -107,7 +107,7 @@ void Scene::Initialize() {
 	string negy = "../textures/darkskies/darkskies_dn.tga";
 	string posz = "../textures/darkskies/darkskies_rt.tga";
 	string negz = "../textures/darkskies/darkskies_bk.tga";
-	skyboxMaterial->SetCubemapTextures(posx, negx, posy, negy, posz, negz);	
+	skyboxMaterial->SetCubemapTextures(posx, negz, posy, negy, posz, negx);	
 	skybox->AttachNewComponent<SkyboxRenderer>(skyboxMesh, skyboxMaterial);
 	
 	// create the Basic Shader Instance to render most objects
@@ -242,6 +242,7 @@ void Scene::Initialize() {
 	dlight->Diffuseintensity = 0.99f;
 
     auto redMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "red_material");
+    redMaterial->Specular = {1.2f, 1.2f, 1.2f};
     redMaterial->SetTextureDiffuse("../textures/red.png");
     
 
@@ -275,29 +276,6 @@ GameObject* Scene::GetGameObjectByName(string name)
 	return nullptr;
 }
 
-Material* Scene::GetMaterialByName(const std::string& name){
-    auto found = find_if(begin(m_materialManager.GetCache()), end(m_materialManager.GetCache()), 
-        [&name](const std::unique_ptr<Material>& mat){
-            return mat->GetName() == name;
-        }
-    );
-    if (found != end(m_materialManager.GetCache())){
-        return found->get();
-    }
-    return nullptr;
-}
-
-Mesh* Scene::GetMeshByName(const std::string& name){
-    auto found = find_if(begin(m_meshManager.GetCache()), end(m_meshManager.GetCache()), 
-        [&name](const std::unique_ptr<Mesh>& mesh){
-            return mesh->GetName() == name;
-        }
-    );
-    if (found != end(m_meshManager.GetCache())){
-        return found->get();
-    }
-    return nullptr;
-}
 
 static const int max_samples = 64;
 float fpsSamples[max_samples];
@@ -372,15 +350,9 @@ void Scene::Update(float dt)
 	string pos = "Position: " + position.ToString();
 	string dir = "Direction: " + direction.ToString();
     
-    auto ls = GetMeshByName("launch_sphere");
-    int lsc = 0;
-    if (ls != nullptr){
-        lsc = ls->GetRendererCount();
-    }
-    
     string meshCount = "Meshes in Cache: " + std::to_string(m_meshManager.GetSize());
-    string launch_sphere_count = "Spheres from launcher: " + std::to_string(lsc);
-	
+    string renderedObjectCount = "Rendered Objects: " + std::to_string(m_renderer->GetMeshRendererCount());
+    \
 	m_fontRenderer->SetColor(1.0f, 0.0f, 0.0f);
 	m_fontRenderer->RenderText(pos, 25, 25);
 	//fontRenderer->SetColor(0.0f, 0.0f, 1.0f);
@@ -389,7 +361,7 @@ void Scene::Update(float dt)
 	m_fontRenderer->RenderText("FPS: " + to_string(fps), 25, 75);
     
     m_fontRenderer->RenderText(meshCount, 25, 102);
-    m_fontRenderer->RenderText(launch_sphere_count, 25, 129);
+    m_fontRenderer->RenderText(renderedObjectCount, 25, 129);
 }
 
 

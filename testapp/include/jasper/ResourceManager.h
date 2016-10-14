@@ -1,8 +1,8 @@
-#ifndef _JASPER_RESOURCE_MANAGER_H_
-#define	_JASPER_RESOURCE_MANAGER_H_	
+#pragma once	
 
 #include <vector>
 #include <memory>
+
 
 namespace Jasper {
 
@@ -33,11 +33,15 @@ public:
 	}
     
     T* GetResourceByName(const std::string& name){
-        auto found = std::find_if(begin(m_cache), end(m_cache), 
+        auto found = std::find_if(std::begin(m_cache), std::end(m_cache), 
         [& name](const std::unique_ptr<T>& obj){
             return obj->GetName() == name;
         }
         );
+        if (found != std::end(m_cache)){
+            return found->get();
+        }
+        return nullptr;
     }
 
 	void Clear() {
@@ -67,5 +71,5 @@ public:
 
 }
 
-#endif // !_JASPER_RESOURCE_MANAGER_H_
+
 

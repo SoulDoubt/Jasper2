@@ -125,6 +125,7 @@
       <File Name="include/jasper/Scriptable.h"/>
       <File Name="Mesh.cpp"/>
       <File Name="BasicShader.cpp"/>
+      <File Name="include/jasper/TaskSystem.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

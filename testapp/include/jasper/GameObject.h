@@ -209,6 +209,9 @@ inline Scene * GameObject::GetScene() const
 
 template <typename T>
 T* GameObject::FindFirstComponentByType() {
+    
+    static_assert(std::is_base_of<Component, T>::value, "Type Paramater must derive from Component.");
+    
 	std::vector<std::unique_ptr<Component>>* c = FindComponentsByType<T>();
 	if (c) {
 		return (T*)(c->at(0).get());
@@ -230,9 +233,9 @@ inline Component* GameObject::FindComponentByID(int id) {
 
 template<typename T>
 inline  std::vector<std::unique_ptr<Component>>* GameObject::FindComponentsByType() {
-	if (!std::is_base_of<Component, T>::value) {
-		return nullptr;
-	}
+    
+    static_assert(std::is_base_of<Component, T>::value, "Type Paramater must derive from Component.");
+    
 	if (m_groupedComponents.size() == 0) {
 		return nullptr;
 	}
@@ -246,11 +249,10 @@ inline  std::vector<std::unique_ptr<Component>>* GameObject::FindComponentsByTyp
 }
 
 template<typename T, typename... Args>
-T* GameObject::AttachNewChild(Args&&... args)
-{
-	if (!std::is_base_of<GameObject, T>::value) {
-		return nullptr;
-	}
+T* GameObject::AttachNewChild(Args&&... args){
+    
+	static_assert(std::is_base_of<GameObject, T>::value, "Type Paramater must derive from Component.");
+    
 	auto child = std::make_unique<T>(std::forward<Args>(args)...);
 	child->SetParemt(this);
 	child->SetScene(this->m_scene);	
@@ -273,8 +275,10 @@ inline GameObject& GameObject::AttachComponent(std::unique_ptr<Component> compon
 }
 
 template<typename T, typename... Args>
-inline T* GameObject::AttachNewComponent(Args&&... args)
-{
+inline T* GameObject::AttachNewComponent(Args&&... args){
+    
+    static_assert(std::is_base_of<Component, T>::value, "Type Paramater must derive from Component.");
+    
 	auto upc = std::make_unique<T>(std::forward<Args>(args)...);
 	T* p = upc.get();
 	this->AttachComponent(std::move(upc));
@@ -282,11 +286,10 @@ inline T* GameObject::AttachNewComponent(Args&&... args)
 }
 
 template<typename T>
-inline T * GameObject::GetComponentByType()
-{
-	if (!std::is_base_of<Component, T>::value) {
-		return nullptr;
-	}
+inline T * GameObject::GetComponentByType() {
+    
+	static_assert(std::is_base_of<Component, T>::value, "Type Paramater must derive from Component.");
+    
 	for (auto& c : m_components) {
 		if (T* found = dynamic_cast<T*>(c.get())) {
 			return found;
@@ -296,11 +299,10 @@ inline T * GameObject::GetComponentByType()
 }
 
 template<typename T>
-inline std::vector<T*> GameObject::GetComponentsByType()
-{
-	if (!std::is_base_of<Component, T>::value) {
-		return std::vector<T*>();
-	}
+inline std::vector<T*> GameObject::GetComponentsByType() {
+	
+    static_assert(std::is_base_of<Component, T>::value, "Type Paramater must derive from Component.");
+    
 	std::vector<T*> ret;
 	for (auto& c : m_components) {
 		if (T* found = dynamic_cast<T*>(c.get())) {

@@ -87,7 +87,7 @@ public:
     }
     
     template<typename T, typename... Args>
-    Mesh* CreateMesh(Args&&... args){
+    T* CreateMesh(Args&&... args){
         return m_meshManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
     
@@ -96,8 +96,24 @@ public:
         return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
     
-    Material* GetMaterialByName(const std::string& name);
-    Mesh*     GetMeshByName(const std::string& name);
+    //Material* GetMaterialByName(const std::string& name);
+    //Mesh*     GetMeshByName(const std::string& name);
+    
+    ResourceManager<Material>& GetMaterialCache(){
+        return m_materialManager;
+    }
+    
+    ResourceManager<Mesh>& GetMeshCache(){
+        return m_meshManager;
+    }
+    
+    ResourceManager<Model>& GetModelCache(){
+        return m_modelManager;
+    }
+    
+    ResourceManager<Texture>& GetTextureCache(){
+        return m_textureManager;
+    }
 
 	int m_windowWidth, m_windowHeight;
     

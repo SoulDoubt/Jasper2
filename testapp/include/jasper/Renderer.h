@@ -28,6 +28,10 @@ public:
 	void UnregisterGameObject(GameObject* obj);
 
 	
+    const size_t GetMeshRendererCount() const {
+        return m_renderers.size();
+    }
+    
 private:
 
 	void ProcessGameObject(const GameObject* go);
