@@ -164,20 +164,22 @@ void GLWindow::SetupGL()
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glPolygonMode(GL_FRONT, GL_FILL);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glfwWindowHint(GLFW_SAMPLES, 4);
-
+	//glfwWindowHint(GL_SAMPLES, 4);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glEnable(GL_MULTISAMPLE);
 	GLERRORCHECK;
 
 }
 
-void ResizeWindow(SDL_WindowEvent evt){
-    //int w = evt.event.resize.w;
-    //int h = evt.event.resize.h;
+void ResizeWindow(int w, int h){
+    printf("Window resized\n");
+    printf("Width: %d, Height: %d \n", w, h);
+    glViewport(0, 0, w, h);
+    
+    
 }
 
 bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime) {
@@ -190,8 +192,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime) {
 	switch (evt.type) {
     case SDL_WINDOWEVENT:
         if (evt.window.event == SDL_WINDOWEVENT_RESIZED){
-            
-            ResizeWindow(evt.window);
+            int width = evt.window.data1;
+            int height = evt.window.data2;
+            ResizeWindow(width, height);
         }
         break;
 	case SDL_KEYDOWN:

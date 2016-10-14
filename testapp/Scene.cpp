@@ -300,12 +300,14 @@ float currentLerpTime = 0.f;
 
 void Scene::Update(float dt)
 {	
-	
-	
 	Vector3 position = m_camera->GetPosition();	
-	Vector3 direction = m_camera->GetViewDirection();    
-	m_physicsWorld->Update(dt);						
-    m_rootNode->Update(dt);		
+	Vector3 direction = m_camera->GetViewDirection();   
+    // step the physics simulation
+	m_physicsWorld->Update(dt);		
+    // updating game objects will collect their updated physics transforms
+    // and perform any scripted activities.
+    m_rootNode->Update(dt);
+    // after update the scene is ready for rendering...
 	m_renderer->RenderScene();
 
 #ifdef DEBUG_DRAW_PHYSICS
