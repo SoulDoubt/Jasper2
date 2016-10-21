@@ -2,12 +2,12 @@
 
 namespace Jasper {
 
-	Room::Room()
-	{
-	}
-
-
-	Room::~Room()
-	{
-	}
+//	Room::Room()
+//	{
+//	}
+//
+//
+//	Room::~Room()
+//	{
+//	}
 }

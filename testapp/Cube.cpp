@@ -5,19 +5,19 @@
 
 namespace Jasper {
 
-Cube::Cube() : Mesh("Cube")
+Cube::Cube(const std::string& name) : Mesh(name)
 {
 	Dimensions = Vector3(0.5f, 0.5f, 0.5f);
 	Initialize();
 }
 
-Cube::Cube(const Vector3& dimensions)
+Cube::Cube(const std::string& name, const Vector3& dimensions) : Mesh(name)
 {
 	Dimensions = dimensions;
 	Initialize();
 }
 
-Cube::Cube(const Vector3& dimensions, bool reverseWinding)
+Cube::Cube(const std::string& name, const Vector3& dimensions, bool reverseWinding) : Mesh(name)
 {
 	m_isCubemap = reverseWinding;
 	Dimensions = dimensions;

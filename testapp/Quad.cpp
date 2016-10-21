@@ -2,14 +2,14 @@
 
 namespace Jasper {
 
-	Quad::Quad()
+	Quad::Quad(const std::string& name) : Mesh(name)
 	{
 		m_size = { 0.5f, 0.5f };
 		Initialize();
 		FlipTextureCoords();
 	}
 
-	Quad::Quad(const Vector2& size, Quad::AxisAlignment align)
+	Quad::Quad(const std::string& name, const Vector2& size, Quad::AxisAlignment align) : Mesh(name)
 	{
 		m_alignment = align;
 		m_size = size;
@@ -19,7 +19,7 @@ namespace Jasper {
 		FlipTextureCoords();
 	}
 
-	Quad::Quad(const Vector2& size, int repeatU, int repeatV, Quad::AxisAlignment align)
+	Quad::Quad(const std::string& name, const Vector2& size, int repeatU, int repeatV, Quad::AxisAlignment align) :Mesh(name)
 	{
 		m_alignment = align;
 		m_size = size;
@@ -29,7 +29,7 @@ namespace Jasper {
 		FlipTextureCoords();
 	}
 
-	Quad::Quad(const Vector3 & normal, const Vector3 & point)
+	Quad::Quad(const std::string& name, const Vector3 & normal, const Vector3 & point) :Mesh(name)
 	{
 
 	}

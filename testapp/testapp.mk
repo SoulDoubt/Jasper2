@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Al
-Date                   :=17/10/16
+Date                   :=21/10/16
 CodeLitePath           :="/home/al/.codelite"
 LinkerName             :=/usr/bin/clang++
 SharedObjectLinkerName :=/usr/bin/clang++ -shared -fPIC
@@ -66,7 +66,7 @@ Objects0=$(IntermediateDirectory)/Camera.cpp$(ObjectSuffix) $(IntermediateDirect
 	$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Transform.cpp$(ObjectSuffix) $(IntermediateDirectory)/Triangle.cpp$(ObjectSuffix) $(IntermediateDirectory)/DefaultScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateLightScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) 
 
-Objects1=$(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) 
+Objects1=$(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) 
 
 
 
@@ -465,6 +465,14 @@ $(IntermediateDirectory)/BasicShader.cpp$(DependSuffix): BasicShader.cpp
 
 $(IntermediateDirectory)/BasicShader.cpp$(PreprocessSuffix): BasicShader.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/BasicShader.cpp$(PreprocessSuffix) "BasicShader.cpp"
+
+$(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix): include/jasper/AssetSerializer.cpp $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/include/jasper/AssetSerializer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/jasper_AssetSerializer.cpp$(DependSuffix): include/jasper/AssetSerializer.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/jasper_AssetSerializer.cpp$(DependSuffix) -MM "include/jasper/AssetSerializer.cpp"
+
+$(IntermediateDirectory)/jasper_AssetSerializer.cpp$(PreprocessSuffix): include/jasper/AssetSerializer.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(PreprocessSuffix) "include/jasper/AssetSerializer.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

@@ -14,7 +14,7 @@ namespace Jasper {
 
 using namespace std;
 
-MeshRenderer::MeshRenderer(Mesh* mesh, Material* material) :
+MeshRenderer::MeshRenderer(Mesh* mesh, Material* material) : Component("mesh_renderer"),
 	m_vertexBuffer(GLBuffer::BufferType::VERTEX),
     m_texCoordBuffer(GLBuffer::BufferType::VERTEX),
     m_normalBuffer(GLBuffer::BufferType::VERTEX),

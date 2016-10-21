@@ -48,17 +48,19 @@ void LauncherScript::LaunchTeapot(){
     auto transform = gameObject->GetWorldTransform();
     auto rootNode = gameObject->GetScene()->GetRootNode();
 
-    auto model = rootNode->AttachNewChild<Model>("teapot", "../models/teapot/teapot.obj", shader, true, pw);
+    GameObject* model = rootNode->AttachNewChild<GameObject>("teapot_model");
+    model->AttachNewComponent<Model>("teapot", "../models/teapot/teapot.obj", shader, true, pw);
        
     model->SetLocalTransform(transform);
-    model->GetLocalTransform().UniformScale(0.02f);
-    model->Mass = 1.0f;
-    model->Restitution = 1.2f;        
+    model->GetLocalTransform().UniformScale(0.2f);
+    auto collider = model->GetComponentByType<PhysicsCollider>();
+    collider->Mass = 1.0f;
+    collider->Restitution = 1.2f;        
     model->AttachNewComponent<DestroyScript>("Destroy_Script");
     model->Awake();
     
     scene->GetRenderer()->RegisterGameObject(model);
-    auto collider = model->GetComponentByType<PhysicsCollider>();
+    
     btVector3 junk = {0.f, 0.f, 0.f};
     collider->GetRigidBody()->applyForce(Force.AsBtVector3(), junk);
 
@@ -78,7 +80,7 @@ void LauncherScript::LaunchSphere(){
     Mesh* mesh = nullptr;
     if ((mesh = scene->GetMeshCache().GetResourceByName("launch_sphere")) == nullptr){
         // need to create the mesh instance
-        mesh = scene->CreateMesh<Sphere>(0.5f);
+        mesh = scene->CreateMesh<Sphere>("sphere_mesh", 0.5f);
         mesh->SetName("launch_sphere");
     }
      
@@ -109,18 +111,17 @@ void LauncherScript::LaunchCube(){
     auto mat = scene->GetMaterialCache().GetResourceByName("red_material");
     auto sphere = rootNode->AttachNewChild<GameObject>("cube");
     Mesh* mesh = nullptr;
-    if ((mesh = scene->GetMeshCache().GetResourceByName("launch_cube")) == nullptr){
+    if ((mesh = scene->GetMeshCache().GetResourceByName("launcher_cube_mesh")) == nullptr){
         // need to create the mesh instance
-        mesh = scene->CreateMesh<Cube>(Vector3(0.5f, 0.5f, 0.5f));
-        mesh->SetName("launch_cube");
+        mesh = scene->CreateMesh<Cube>("launcher_cube_mesh", Vector3(0.5f, 0.5f, 0.5f));        
     }
      
     sphere->AttachNewComponent<MeshRenderer>(mesh, mat);
     sphere->SetLocalTransform(transform);
     
     auto collider = sphere->AttachNewComponent<BoxCollider>("cube_collider", mesh, pw);            
-    collider->Mass = 1.0f;
-    collider->Restitution = 0.56f;        
+    collider->Mass = 10.0f;
+    collider->Restitution = 0.96f;        
     sphere->AttachNewComponent<DestroyScript>("Destroy_Script");
     sphere->Awake();
     sphere->Children().clear();

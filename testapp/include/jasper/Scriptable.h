@@ -11,7 +11,7 @@ class ScriptComponent : public Component{
 
     public:
 
-    ScriptComponent() : Component() {}
+    //ScriptComponent() : Component() {}
     ScriptComponent(std::string name): Component(name){}
     
     ~ScriptComponent(){}
@@ -30,7 +30,7 @@ class DefaultScript: public ScriptComponent{
     
 public:
     
-    DefaultScript() : ScriptComponent(){}
+    DefaultScript() : ScriptComponent("default_script"){}
     DefaultScript(std::string name) : ScriptComponent(name){}
     ~DefaultScript(){}
     
@@ -48,7 +48,7 @@ class RotateLightScript : public ScriptComponent{
 
 public:
     
-    RotateLightScript() : ScriptComponent(){}
+    RotateLightScript() : ScriptComponent("rotate_light_script"){}
     RotateLightScript(std::string name) : ScriptComponent(name){}
     ~RotateLightScript(){}
     
@@ -64,7 +64,7 @@ public:
 class LauncherScript: public ScriptComponent{
 
 public:
-    LauncherScript() : ScriptComponent(){}
+    LauncherScript() : ScriptComponent("launcher_script"){}
     LauncherScript(std::string name) : ScriptComponent(name){}
     ~LauncherScript(){}
     
@@ -91,7 +91,7 @@ private:
 
 class DestroyScript: public ScriptComponent{
     public:
-    DestroyScript() : ScriptComponent(){}
+    DestroyScript() : ScriptComponent("destroy_script"){}
     DestroyScript(std::string name) : ScriptComponent(name){}
     ~DestroyScript(){}
     

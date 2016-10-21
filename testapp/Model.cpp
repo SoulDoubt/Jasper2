@@ -14,15 +14,18 @@
 #include "CylinderCollider.h"
 #include "SphereCollider.h"
 #include <string>
+#include <iostream>
+#include <fstream>
+#include "AssetSerializer.h"
 
 namespace Jasper {
 
 using namespace std;
 
 Model::Model(const std::string& name, const std::string& filename, Shader* shader, bool enablePhysics, PhysicsWorld* physicsWorld)
-	:GameObject(name), m_filename(filename), m_shader(shader), m_enablePhysics(enablePhysics), m_physicsWorld(physicsWorld)
+	:Component(name), m_filename(filename), m_shader(shader), m_enablePhysics(enablePhysics), m_physicsWorld(physicsWorld)
 {
-
+    
 }
 
 
@@ -31,9 +34,8 @@ Model::~Model()
     
 }
 
-void Model::Initialize()
-{
-	Assimp::Importer importer;
+void Model::Setup(){
+    Assimp::Importer importer;
     printf("Loading model: %s\n", m_filename.c_str());
 	const aiScene* scene = importer.ReadFile(m_filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs);
     
@@ -46,7 +48,8 @@ void Model::Initialize()
 
 	ProcessAiSceneNode(scene, scene->mRootNode);
 
-	auto meshes = this->GetComponentsByType<Mesh>();
+	//auto meshes = this->GetComponentsByType<Mesh>();
+    auto& meshes = m_meshManager.GetCache();
 	int sz = meshes.size();
 	printf("\nLoaded %d meshes in model: %s", sz, this->GetName().c_str());
 	uint numTris = 0;
@@ -81,19 +84,19 @@ void Model::Initialize()
 		PhysicsCollider* collider = nullptr;
 		switch (this->ColliderType) {
 		case PHYSICS_COLLIDER_TYPE::Box:
-			collider = AttachNewComponent<BoxCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);			
+			collider = GetGameObject()->AttachNewComponent<BoxCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);			
 			break;
 		case PHYSICS_COLLIDER_TYPE::Capsule:
-			collider = AttachNewComponent<CapsuleCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);			
+			collider = GetGameObject()->AttachNewComponent<CapsuleCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);			
 			break;
 		case PHYSICS_COLLIDER_TYPE::Sphere:
-			collider = AttachNewComponent<SphereCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);			
+			collider = GetGameObject()->AttachNewComponent<SphereCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);			
 			break;
 		case PHYSICS_COLLIDER_TYPE::Cylinder:
-			collider = AttachNewComponent<CylinderCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
+			collider = GetGameObject()->AttachNewComponent<CylinderCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
 			break;
 		case PHYSICS_COLLIDER_TYPE::ConvexHull:
-			collider = AttachNewComponent<ConvexHullCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
+			collider = GetGameObject()->AttachNewComponent<ConvexHullCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
 			break;
 		}
 		if (collider) {
@@ -105,16 +108,22 @@ void Model::Initialize()
 
 
 	int i = 0;
-	for (auto mesh : meshes) {
+	for (auto& mesh : meshes) {
 		//Vector3 meshOrigin = { (mesh->GetMinExtents().x + mesh->GetMaxExtents().x) / 2.f, (mesh->GetMinExtents().y + mesh->GetMaxExtents().y) / 2.f , (mesh->GetMinExtents().z + mesh->GetMaxExtents().z) / 2.f };
 		//auto child = make_unique<GameObject>("child_" + std::to_string(i));
 		//child->GetLocalTransform().Position = meshOrigin;
-		AttachNewComponent<MeshRenderer>(mesh, mesh->m_material);		
+		GetGameObject()->AttachNewComponent<MeshRenderer>(mesh.get(), mesh->m_material);		
 		//this->AttachChild(move(child));
 		i++;
 	}
+    SaveToAssetFile("modelSave.bin");
 	printf("\nModel Contains %d Vertices and %d Triangles and %d Materials.", VertCount, TriCount, m_materialManager.GetCache().size());
 
+}
+
+void Model::Initialize()
+{
+	
 
 }
 
@@ -128,13 +137,17 @@ void Model::ProcessAiSceneNode(const aiScene* scene, aiNode* node)
 	for (uint i = 0; i < node->mNumChildren; i++) {
 		ProcessAiSceneNode(scene, node->mChildren[i]);
 	}
+    
+    
 
 }
 
 void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
 {
-
-	auto m = this->AttachNewComponent<Mesh>();
+    string meshName = "";
+    aiMesh->mName != aiString("") ? meshName = aiMesh->mName.C_Str() : meshName = "unnamed_model_mesh";
+    auto m = m_meshManager.CreateInstance<Mesh>(meshName);    
+	//auto m = this->AttachNewComponent<Mesh>();
 	m->Positions.reserve(aiMesh->mNumVertices);
     m->Normals.reserve(aiMesh->mNumVertices);
     m->Tangents.reserve(aiMesh->mNumVertices);
@@ -179,8 +192,12 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
 	m->CalculateExtents();
 	Material* myMaterial = nullptr;
 	if (aiMesh->mMaterialIndex >= 0) {
-		auto mat = scene->mMaterials[aiMesh->mMaterialIndex];
-		printf("Found Material...\n");
+		aiMaterial* mat = scene->mMaterials[aiMesh->mMaterialIndex];
+        aiString matName;
+        mat->Get(AI_MATKEY_NAME, matName);
+        
+		printf("Found Material...%s\n", matName.C_Str());
+        
 		aiString texString;
 		mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &texString);
 		string textureFileName = string(texString.C_Str());
@@ -190,14 +207,15 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
 		string texturePath = m_directory + "/" + textureFileName;
 		if (texString.length > 0) {
 
-			auto existingMat = std::find_if(std::begin(m_materialManager.GetCache()), std::end(m_materialManager.GetCache()), [&](const std::unique_ptr<Material>& mm) {
-				return mm->DiffuseTextureFilename() == texturePath;
+			auto existingMat = std::find_if(std::begin(m_materialManager.GetCache()), std::end(m_materialManager.GetCache()), 
+            [&](const std::unique_ptr<Material>& mm) {
+				return mm->GetName() == matName.C_Str();
 			});
 			if (existingMat != std::end(m_materialManager.GetCache())) {
 				myMaterial = existingMat->get();
 			}
 			else {
-				myMaterial = m_materialManager.CreateInstance<Material>(m_shader);
+				myMaterial = m_materialManager.CreateInstance<Material>(m_shader, matName.C_Str());
 
 				aiColor3D diffuse, ambient, specular;
 				float shine;
@@ -244,7 +262,7 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
 		renderMaterial = myMaterial;
 	}
 	else {
-		renderMaterial = m_materialManager.CreateInstance<Material>(m_shader);
+		renderMaterial = m_materialManager.CreateInstance<Material>(m_shader, "jasper_default_material");
 		renderMaterial->SetTextureDiffuse("./textures/default.png");
 	}
 	m->m_material = renderMaterial;
@@ -277,18 +295,38 @@ void Model::Destroy()
 {
 	m_materialManager.Clear();
 	m_meshManager.Clear();
-	GameObject::Destroy();
+	Component::Destroy();
 }
 
 void Model::Awake()
 {
 	Initialize();
-	GameObject::Awake();
+	Component::Awake();
 }
 
 void Model::Update(float dt)
 {
-	GameObject::Update(dt);
+	Component::Update(dt);
+}
+
+void Model::SaveToAssetFile(const std::string& filename){
+    
+    auto& meshes = m_meshManager.GetCache();
+    int numMeshes = meshes.size();
+    int numMaterials = m_materialManager.GetCache().size();
+    
+    ofstream ofs;
+    ofs.open(filename, std::ios::binary | std::ios::out);
+    
+    ofs.write( reinterpret_cast<char*>(&numMeshes), sizeof(numMeshes) );
+        
+    for(const auto& mesh : meshes){
+        AssetSerializer::SerializeMesh(ofs, mesh.get());
+    }
+    
+    ofs.close();
+    
+    
 }
 
 }

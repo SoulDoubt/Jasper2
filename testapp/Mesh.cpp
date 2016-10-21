@@ -7,12 +7,12 @@
 namespace Jasper {
 using namespace std;
 
-Mesh::Mesh()
-{
-	Initialize();
-}
+//Mesh::Mesh()
+//{
+//	Initialize();
+//}
 
-Mesh::Mesh(const std::string& name) {
+Mesh::Mesh(const std::string& name) : Component(name){
 	Initialize();
 	CalculateExtents();
 }

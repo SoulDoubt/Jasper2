@@ -97,10 +97,10 @@ void Scene::Initialize() {
 
 	 //create the skybox
 	auto skybox = m_rootNode->AttachNewChild<GameObject>("skybox");
-	auto skyboxMesh = m_meshManager.CreateInstance<Cube>(Vector3(100.0f, 100.0f, 100.0f), true);
+	auto skyboxMesh = m_meshManager.CreateInstance<Cube>("skybox_cube_mesh", Vector3(100.0f, 100.0f, 100.0f), true);
 	skyboxMesh->SetCubemap(true); // we want to render the inside of the cube
 	auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>();
-	auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader);
+	auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader, "skybox_material");
 	string posx = "../textures/darkskies/darkskies_lf.tga";
 	string negx = "../textures/darkskies/darkskies_ft.tga";
 	string posy = "../textures/darkskies/darkskies_up.tga";
@@ -117,7 +117,7 @@ void Scene::Initialize() {
 	m_fontRenderer->Initialize();
 	m_fontRenderer->SetOrthoMatrix(m_orthoMatrix);
 
-	auto m1 = m_materialManager.CreateInstance<Material>(defaultShader);
+	auto m1 = m_materialManager.CreateInstance<Material>(defaultShader, "wall_material");
 	m1->SetTextureDiffuse("../textures/196.JPG");
 	m1->SetTextureNormalMap("../textures/196_norm.JPG");
 	m1->Diffuse = { 0.85f, 0.85f, 0.85f };
@@ -126,8 +126,8 @@ void Scene::Initialize() {
 
 //	 Floor
 	auto floor = m_rootNode->AttachNewChild<GameObject>("floor");
-	auto quadMesh = m_meshManager.CreateInstance<Quad>(Vector2(100.0f, 100.0f), 5, 5, Quad::AxisAlignment::XZ);	
-	auto floorMaterial = m_materialManager.CreateInstance<Material>(defaultShader);
+	auto quadMesh = m_meshManager.CreateInstance<Quad>("floor_quad", Vector2(100.0f, 100.0f), 5, 5, Quad::AxisAlignment::XZ);	
+	auto floorMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "floor_material");
 	floorMaterial->SetTextureDiffuse("../textures/151.JPG");
     floorMaterial->SetTextureNormalMap("../textures/151_norm.JPG");
 	floor->AttachNewComponent<MeshRenderer>(quadMesh, floorMaterial);		
@@ -138,7 +138,7 @@ void Scene::Initialize() {
 	
 
 	auto wall = m_rootNode->AttachNewChild<GameObject>("wall_0");
-	auto wallMesh = m_meshManager.CreateInstance<Cube>( Vector3(50.f, 50.0f, 3.0f));
+	auto wallMesh = m_meshManager.CreateInstance<Cube>("wall_mesh", Vector3(50.f, 50.0f, 3.0f));
 	wall->AttachNewComponent<MeshRenderer>(wallMesh, m1);
 	auto wallCollider = wall->AttachNewComponent<BoxCollider>("wall_0_collider", wallMesh, m_physicsWorld.get());
 	wallCollider->Mass = 0.0f;	
@@ -177,6 +177,16 @@ void Scene::Initialize() {
     auto launcher2 = m_rootNode->AttachNewChild<GameObject>("Launcher2");
     launcher2->GetLocalTransform().Translate(10.f, 2.f, 5.f);
     launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
+//    
+    auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model");    
+    auto mdl = model->AttachNewComponent<Model>("mathias", "../models/Mathias/Mathias.obj", defaultShader, true, m_physicsWorld.get());           
+    mdl->Setup();
+    auto collider = model->GetComponentByType<PhysicsCollider>();
+    //model->getlocaltransform().uniformscale(0.02f);
+    if (collider){
+    collider->Mass = 75.0f;
+    collider->Restitution = 0.2f;        
+    }
     
 	//
 //	auto teapot = m_rootNode->AttachNewChild<Model>("teapot", "./models/teapot/teapot.obj", defaultShader, true, m_physicsWorld.get());
@@ -223,18 +233,18 @@ void Scene::Initialize() {
 	sc->Mass = 5.f;
 	sphereObject->GetLocalTransform().Translate({ 0.f, 25.f, -3.f });*/
 
-	auto light0 = m_rootNode->AttachNewChild<PointLight>("p_light");	
-	light0->GetLocalTransform().Translate({ 0.0f, 10.f, 15.0f });	
-	light0->ConstAtten = 0.002f;
-	light0->Color = { 1.f, 1.f, 1.f };	
-	light0->AmbientIntensity = 0.15f;
-	light0->DiffuseIntensity = 1.f;    
-	auto lightMesh = m_meshManager.CreateInstance<Cube>(Vector3(0.1f, 0.1f, 0.1f));
-	auto lightMaterial = m_materialManager.CreateInstance<Material>(defaultShader);
-	lightMaterial->SetTextureDiffuse("../textures/white.png");
-	light0->AttachNewComponent<MeshRenderer>(lightMesh, lightMaterial);
-    light0->AttachNewComponent<RotateLightScript>("Rotate_Light_Script");
-    
+//	auto light0 = m_rootNode->AttachNewChild<PointLight>("p_light");	
+//	light0->GetLocalTransform().Translate({ 0.0f, 10.f, 15.0f });	
+//	light0->ConstAtten = 0.002f;
+//	light0->Color = { 1.f, 1.f, 1.f };	
+//	light0->AmbientIntensity = 0.15f;
+//	light0->DiffuseIntensity = 1.f;    
+//	auto lightMesh = m_meshManager.CreateInstance<Cube>(Vector3(0.1f, 0.1f, 0.1f));
+//	auto lightMaterial = m_materialManager.CreateInstance<Material>(defaultShader);
+//	lightMaterial->SetTextureDiffuse("../textures/white.png");
+//	light0->AttachNewComponent<MeshRenderer>(lightMesh, lightMaterial);
+//    light0->AttachNewComponent<RotateLightScript>("Rotate_Light_Script");
+//    
 
     auto dlight = m_rootNode->AttachNewChild<DirectionalLight>("d_light");
 	dlight->Direction = Normalize({ 0.0, -1.f, 0.f });
@@ -246,6 +256,7 @@ void Scene::Initialize() {
     redMaterial->SetTextureDiffuse("../textures/red.png");
     
 
+    m_rootNode->Initialize();
 }
 
 Shader* Scene::GetShaderByName(std::string name){

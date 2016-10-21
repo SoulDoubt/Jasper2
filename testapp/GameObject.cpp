@@ -16,13 +16,7 @@ GameObject::~GameObject()
 }
 
 
-void GameObject::Initialize() {
-    
-	m_transform = Transform();
-	m_transform.SetIdentity();
-	m_transform.Position = { 0.0f, 0.0f, 0.0f };    
-    
-}
+
 
 
 GameObject& GameObject::AttachChild(std::unique_ptr<GameObject> child) {
@@ -116,6 +110,23 @@ GameObject* GameObject::FindChildByName(std::string name) {
 Component* GameObject::GetComponentByID(int id)
 {
 	return nullptr;
+}
+
+void GameObject::Initialize() {
+    InitializeCurrent();
+    InitializeChildren();
+}
+
+void GameObject::InitializeCurrent(){    
+    for (auto& comp : m_components){
+        comp->Initialize();
+    }
+}
+
+void GameObject::InitializeChildren(){
+    for (auto& child : m_children){
+        child->Initialize();
+    }
 }
 
 void GameObject::Awake() {

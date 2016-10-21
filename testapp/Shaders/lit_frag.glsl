@@ -50,7 +50,7 @@ vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
 
 	vec4 diffuse_color = vec4(0,0,0,1);
 	vec4 specular_color = vec4(0,0,0,1);
-	vec3 light_direction = v_fragPosition.xyz - plight.Position;
+	vec3 light_direction = plight.Position - v_fragPosition.xyz ;
 	float dist_to_light = length(light_direction);
 	light_direction = normalize(light_direction);
 
@@ -75,14 +75,13 @@ vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
 	float attenuation = 1 / (dnom * dnom);
 	attenuation = max(attenuation, 0.0f);
 
-
 	return (ambient_color + diffuse_color + specular_color) * attenuation;	
 }
 
 vec4 CalculateDirectionalLight(directional_light dlight, vec3 normal, vec3 specular){
 	vec4 diffuse_color = vec4(0,0,0,1);
 	vec4 specular_color = vec4(0,0,0,1);
-	vec3 light_direction = dlight.Direction;
+	vec3 light_direction = (dlight.Direction);
 	light_direction = normalize(light_direction);
 
 	vec3 ambient_factor = dlight.Color * material0.ka * dlight.AmbientIntensity;

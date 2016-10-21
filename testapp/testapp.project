@@ -126,6 +126,8 @@
       <File Name="Mesh.cpp"/>
       <File Name="BasicShader.cpp"/>
       <File Name="include/jasper/TaskSystem.h"/>
+      <File Name="include/jasper/AssetSerializer.h"/>
+      <File Name="include/jasper/AssetSerializer.cpp"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

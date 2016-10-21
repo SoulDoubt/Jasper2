@@ -14,7 +14,7 @@ public:
 
 	int ComponentID = 0;
 
-	Component();
+	//Component();
 	Component(std::string name);
 
 	std::string GetName() const;
@@ -51,11 +51,11 @@ protected:
 
 };
 
-inline Component::Component() {
-	m_name = "Unnamed Component";
-	m_isEnabled = true;
-	m_gameObject = nullptr;
-}
+//inline Component::Component() {
+//	m_name = "Unnamed Component";
+//	m_isEnabled = true;
+//	m_gameObject = nullptr;
+//}
 
 inline Component::Component(std::string name) {
 	m_name = name;

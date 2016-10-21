@@ -2,7 +2,7 @@
 #define _JASPER_MODEL_H_
 
 #include "Common.h"
-#include "GameObject.h"
+#include "Component.h"
 #include "PhysicsWorld.h"
 #include "PhysicsCollider.h"
 #include "ResourceManager.h"
@@ -18,7 +18,7 @@ namespace Jasper {
 class Shader;
 class Material;
 
-class Model : public GameObject
+class Model : public Component
 {
 public:
 	explicit Model(const std::string& name, const std::string& filename, Shader* shader, bool enablePhysics = false, PhysicsWorld* physicsWorld = nullptr);
@@ -41,6 +41,10 @@ public:
 
 	uint TriCount = 0;
 	uint VertCount = 0;
+    
+    void SaveToAssetFile(const std::string& filename);
+    
+    void Setup();
 
 private:
 	std::string m_filename;

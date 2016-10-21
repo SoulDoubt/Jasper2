@@ -16,10 +16,10 @@ public:
 		XZ
 	};
 
-	Quad();
-	explicit Quad(const Vector2& size, AxisAlignment align);
-	Quad(const Vector2& size, int repeatU, int repeatV, AxisAlignment align);
-	Quad(const Vector3& normal, const Vector3& point);
+	Quad(const std::string& name);
+	explicit Quad(const std::string& name, const Vector2& size, AxisAlignment align);
+	Quad(const std::string& name, const Vector2& size, int repeatU, int repeatV, AxisAlignment align);
+	Quad(const std::string& name, const Vector3& normal, const Vector3& point);
 	~Quad();
 
 	virtual void Initialize() override;

@@ -26,6 +26,8 @@ public:
 	~Scene();	
     
     void Resize(int width, int height);
+    
+    
 
 	Matrix4& ProjectionMatrix() {
 		return m_projectionMatrix;

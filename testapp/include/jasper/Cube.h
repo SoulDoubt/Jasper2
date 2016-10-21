@@ -8,9 +8,9 @@ namespace Jasper {
 class Cube : public Mesh
 {
 public:
-	Cube();
-	explicit Cube(const Vector3& dimensions);
-	Cube(const Vector3& dimensions, bool reverseWinding);
+	Cube(const std::string& name);
+	explicit Cube(const std::string& name, const Vector3& dimensions);
+	Cube(const std::string& name, const Vector3& dimensions, bool reverseWinding);
 	virtual ~Cube();
 
 	virtual void Initialize() override;

@@ -43,7 +43,7 @@ void DestroyScript::Update(float dt) {
         
         auto elapsed = std::chrono::duration_cast<milliseconds>(current - awakeTime).count();
         
-        if (elapsed > 40000){
+        if (elapsed > 60000){
             go->GetScene()->DestroyGameObject(go); 
         }
     }

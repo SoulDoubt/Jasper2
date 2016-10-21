@@ -79,7 +79,7 @@ private:
 
 
 public:
-	Mesh();
+	//Mesh();
 	explicit Mesh(const std::string& name);
 	virtual ~Mesh();
 

@@ -2,7 +2,7 @@
 
 namespace Jasper {
 
-	Triangle::Triangle()
+	Triangle::Triangle(const std::string& name) : Mesh(name)
 	{
 		Initialize();
 	}

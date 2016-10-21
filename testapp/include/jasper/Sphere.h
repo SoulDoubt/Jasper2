@@ -9,7 +9,7 @@ class Sphere :
 	public Mesh
 {
 public:
-	explicit Sphere(float radius);
+	explicit Sphere(const std::string& name, float radius);
 	~Sphere();
 
 	virtual void Initialize() override;

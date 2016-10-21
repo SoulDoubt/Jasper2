@@ -23,7 +23,7 @@ private:
 
 	std::string m_diffuseTextureFileName;
     
-        void BindTextures(){
+    void BindTextures(){
         bool hasNormalMap = this->GetTextureNormalMap();
         auto shader  = this->GetShader();
         if (hasNormalMap) {
@@ -62,7 +62,7 @@ private:
     }
 
 public:
-	explicit Material(Shader* shader);
+	//explicit Material(Shader* shader);
     Material(Shader* shader, const std::string& name);
 	~Material();
 	// onto a material we will attach a shader...

@@ -28,7 +28,7 @@ public:
 
 	using GroupedComponentMap = std::map<std::type_index, std::vector<std::unique_ptr<Component>>>;
 
-	GameObject();
+	//GameObject();
 	GameObject(const std::string& name);
     GameObject(GameObject&& oth) = default;
 	virtual ~GameObject();
@@ -138,6 +138,8 @@ protected:
 	Transform m_transform;
 	bool m_isDestroyed = false;
 	bool m_isRenderable = false;
+    virtual void InitializeCurrent();
+    void InitializeChildren();
 	virtual void AwakeCurrent();
 	void AwakeChildren();
 	virtual void StartCurrent();
@@ -146,22 +148,24 @@ protected:
 	void UpdateChildren(float dt);
 	virtual void DestroyCurrent();
 	void DestroyChildren();
-
+    
 
 };
+//
+//inline GameObject::GameObject() : m_components(), m_children() {
+//	m_name = "Unnamed Game object";
+//	m_tag = "";
+//	m_parent = nullptr;
+//	//Initialize();
+//}
 
-inline GameObject::GameObject() : m_components(), m_children() {
-	m_name = "Unnamed Game object";
-	m_tag = "";
-	m_parent = nullptr;
-	Initialize();
-}
-
-inline GameObject::GameObject(const std::string& name) : m_components(), m_children() {
+inline GameObject::GameObject(const std::string& name) : m_components(), m_children(), m_transform()  {
 	m_name = name;
 	m_tag = "";
-	m_parent = nullptr;
-	Initialize();
+	m_parent = nullptr;    
+    m_transform.SetIdentity();
+	m_transform.Position = { 0.0f, 0.0f, 0.0f };    
+	//Initialize();
 }
 
 inline std::string GameObject::GetName() const {
@@ -251,7 +255,7 @@ inline  std::vector<std::unique_ptr<Component>>* GameObject::FindComponentsByTyp
 template<typename T, typename... Args>
 T* GameObject::AttachNewChild(Args&&... args){
     
-	static_assert(std::is_base_of<GameObject, T>::value, "Type Paramater must derive from Component.");
+	static_assert(std::is_base_of<GameObject, T>::value, "Type Paramater must derive from GameObject.");
     
 	auto child = std::make_unique<T>(std::forward<Args>(args)...);
 	child->SetParemt(this);
@@ -309,6 +313,13 @@ inline std::vector<T*> GameObject::GetComponentsByType() {
 			ret.push_back(found);
 		}
 	}
+    for (const auto& child : m_children){
+        for (auto& c : child->m_components) {
+		if (T* found = dynamic_cast<T*>(c.get())) {
+			ret.push_back(found);
+		}
+	}
+    }
 	return ret;
 }
 

@@ -10,7 +10,7 @@ Vector3 Camera::WORLD_Y_AXIS = Vector3(0.0f, 1.0f, 0.0f);
 Vector3 Camera::WORLD_Z_AXIS = Vector3(0.0f, 0.0f, 1.0f);
 
 
-Camera::Camera(Camera::CameraType type)
+Camera::Camera(Camera::CameraType type) : GameObject("camera")
 {
 	
 	m_type = type;

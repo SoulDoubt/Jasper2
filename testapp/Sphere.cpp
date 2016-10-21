@@ -5,7 +5,7 @@ namespace Jasper {
 #define PI 3.14159265359	
 
 
-Sphere::Sphere(float radius) : m_radius(radius)
+Sphere::Sphere(const std::string& name, float radius) : Mesh(name), m_radius(radius)
 {
 	Initialize();
 }

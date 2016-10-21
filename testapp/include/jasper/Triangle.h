@@ -8,7 +8,7 @@ namespace Jasper {
 class Triangle : public Mesh
 {
 public:
-	Triangle();
+	Triangle(const std::string& name);
 	~Triangle();
 
 	virtual void Initialize() override;

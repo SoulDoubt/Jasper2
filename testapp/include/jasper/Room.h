@@ -4,13 +4,13 @@
 #include "Mesh.h"
 
 namespace Jasper {
-	class Room :
-		public Mesh
-	{
-	public:
-		Room();
-		~Room();
-	};
+//	class Room :
+//		public Mesh
+//	{
+//	public:
+//		Room();
+//		~Room();
+//	};
 }
 
 #endif // _JASPER_ROOM_H_
