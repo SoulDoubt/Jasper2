@@ -140,14 +140,14 @@ void main()
 	//float attenuation = plight0.ConstAtten + plight0.LinearAtten * dist_to_light + plight0.ExpAtten * dist_to_light * dist_to_light;
 
 	
-	//fcolor = vec4(normal, 1.0);
+	fcolor = vec4(normal, 1.0);
 	//fcolor = ambient_color;	
 	//vec3 norm = vec3(abs(normal.x), abs(normal.y), abs(normal.z));
 	//fcolor = vec4(normal, 1.0);
 	//fcolor = diffuse_color;
 	//fcolor = map_color;// * diffuse_color;
 	//fcolor = specular_color;
-	fcolor = map_color * lighting;// + vec4(ambient_color.xyz, 1.0) + vec4(specular_color.xyz, 1.0));
+	//fcolor = map_color * lighting;// + vec4(ambient_color.xyz, 1.0) + vec4(specular_color.xyz, 1.0));
 	//fcolor = pow(fcolor, 2.2);
 	
 

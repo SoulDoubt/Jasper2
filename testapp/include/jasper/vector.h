@@ -22,6 +22,7 @@ struct Vector2 {
 
 	Vector2(float x, float y);
 	Vector2() = default;
+    std::string ToString() const;
 };
 
 inline Vector2::Vector2(float x, float y) : x(x), y(y) {
@@ -57,6 +58,12 @@ inline float Length(const Vector2& vec) {
 inline Vector2 Normalize(const Vector2& vec) {
 	float len = Length(vec);
 	return Vector2(vec.x / len, vec.y / len);
+}
+
+inline std::string Vector2::ToString() const {
+	std::string xval = std::to_string(x) + "f";
+	std::string yval = std::to_string(y) + "f";
+	return "(" + xval + "," + yval + ")";
 }
 
 
@@ -258,9 +265,9 @@ inline Vector3 SmoothStep(const Vector3& a, const Vector3& b, const float pct) {
 }
 
 inline std::string Vector3::ToString(int precision) const {
-	std::string xval = std::to_string(x);
-	std::string yval = std::to_string(y);
-	std::string zval = std::to_string(z);
+	std::string xval = std::to_string(x) + "f";
+	std::string yval = std::to_string(y) + "f";
+	std::string zval = std::to_string(z) + "f";
 	return "(" + xval + "," + yval + "," + zval + ")";
 }
 
@@ -434,7 +441,7 @@ inline Vector4 operator*(const Vector4& a, const Vector4& b) {
 }
 
 inline std::string Vector4::ToString() const {
-	return "(" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w) + ")";
+	return "(" + std::to_string(x) +  "f" + ", " + std::to_string(y) + "f" + ", " + std::to_string(z) + "f" + ", " + std::to_string(w) + "f" + ")";
 }
 
 inline Vector4 Normalize(const Vector4& v) {

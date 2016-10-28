@@ -179,7 +179,7 @@ void Scene::Initialize() {
     launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
 //    
     auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model");    
-    auto mdl = model->AttachNewComponent<Model>("mathias", "../models/Mathias/Mathias.obj", defaultShader, true, m_physicsWorld.get());           
+    auto mdl = model->AttachNewComponent<Model>("mathias", "../models/Crate/crate.obj", defaultShader, true, m_physicsWorld.get());           
     mdl->Setup();
     auto collider = model->GetComponentByType<PhysicsCollider>();
     //model->getlocaltransform().uniformscale(0.02f);
@@ -247,8 +247,8 @@ void Scene::Initialize() {
 //    
 
     auto dlight = m_rootNode->AttachNewChild<DirectionalLight>("d_light");
-	dlight->Direction = Normalize({ 0.0, -1.f, 0.f });
-	dlight->AmbientIntensity = 0.14f;
+	dlight->Direction = Normalize({ 0.0, -1.f, 0.0f });
+	dlight->AmbientIntensity = 0.001f;
 	dlight->Diffuseintensity = 0.99f;
 
     auto redMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "red_material");

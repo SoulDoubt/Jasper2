@@ -116,7 +116,8 @@ void Model::Setup(){
 		//this->AttachChild(move(child));
 		i++;
 	}
-    SaveToAssetFile("modelSave.bin");
+    //SaveToAssetFile("modelSave.bin");
+    OutputMeshData();
 	printf("\nModel Contains %d Vertices and %d Triangles and %d Materials.", VertCount, TriCount, m_materialManager.GetCache().size());
 
 }
@@ -326,6 +327,55 @@ void Model::SaveToAssetFile(const std::string& filename){
     
     ofs.close();
     
+    
+}
+
+void Model::OutputMeshData(){
+    ofstream ofs ;
+    ofs.open("mesh_data.txt", ios::out);
+    
+    auto& meshes = m_meshManager.GetCache();
+    int numMeshes = meshes.size();
+
+    for (auto& mesh : meshes){
+        ofs << "// Outputting Mesh data for: " << GetName() << "\n";
+        ofs << "// Position Data:" << "\n";
+        ofs << "Positions.reserve(" << std::to_string(mesh->Positions.size()) << ");\n";
+        for (const auto& position : mesh->Positions){
+            ofs << "Positions.push_back(Vector3" << position.ToString() << ");\n";
+        }        
+        ofs << "// TexCoord Data:" << "\n";
+        ofs << "TexCoords.reserve(" << std::to_string(mesh->TexCoords.size()) << ");\n";
+        for (const auto& tex : mesh->TexCoords){
+            ofs << "TexCoords.push_back(Vector2" << tex.ToString() << ");\n";
+        }
+        
+        ofs << "// Normal Data:" << "\n";
+        ofs << "Normals.reserve(" << std::to_string(mesh->Normals.size()) << ");\n";
+        for (const auto& n : mesh->Normals){
+            ofs << "Normals.push_back(Vector3" << n.ToString() << ");\n";
+        }
+        
+        ofs << "// Tangent Data:" << "\n";
+        ofs << "Tangents.reserve(" << std::to_string(mesh->Tangents.size()) << ");\n";
+        for (const auto& n : mesh->Tangents){
+            ofs << "Tangents.push_back(Vector4" << n.ToString() << ");\n";
+        }
+        
+        ofs << "// BiTangent Data:" << "\n";
+        ofs << "Bitangents.reserve(" << std::to_string(mesh->Bitangents.size()) << ");\n";
+        for (const auto& n : mesh->Bitangents){
+            ofs << "Bitangents.push_back(Vector3" << n.ToString() << ");\n";
+        }
+        
+        ofs << "// Index Data:" << "\n";
+        ofs << "Indices.reserve(" << std::to_string(mesh->Indices.size()) << ");\n";
+        for (const auto& idx : mesh->Indices){
+            ofs << "Indices.push_back(" << std::to_string(idx) << ");\n";
+        }
+    }
+    
+    ofs.close();
     
 }
 

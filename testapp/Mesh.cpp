@@ -36,6 +36,7 @@ void Mesh::Destroy() {
     Tangents.clear();
     Bitangents.clear();
 	Indices.clear();
+    //Vertices.clear();
 }
 
 void Mesh::FlipTextureCoords()

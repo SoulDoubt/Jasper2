@@ -58,6 +58,8 @@ private:
 	ResourceManager<Material> m_materialManager;
 
 	NON_COPYABLE(Model);
+    
+    void OutputMeshData();
 
 protected:
 

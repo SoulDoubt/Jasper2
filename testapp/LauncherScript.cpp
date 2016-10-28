@@ -113,7 +113,7 @@ void LauncherScript::LaunchCube(){
     Mesh* mesh = nullptr;
     if ((mesh = scene->GetMeshCache().GetResourceByName("launcher_cube_mesh")) == nullptr){
         // need to create the mesh instance
-        mesh = scene->CreateMesh<Cube>("launcher_cube_mesh", Vector3(0.5f, 0.5f, 0.5f));        
+        mesh = scene->CreateMesh<Cube>("launcher_cube_mesh", Vector3(0.25f, 0.25f, 0.25f));        
     }
      
     sphere->AttachNewComponent<MeshRenderer>(mesh, mat);
