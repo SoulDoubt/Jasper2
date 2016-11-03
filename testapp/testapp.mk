@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Al
-Date                   :=24/10/16
+Date                   :=03/11/16
 CodeLitePath           :="/home/al/.codelite"
 LinkerName             :=/usr/bin/clang++
 SharedObjectLinkerName :=/usr/bin/clang++ -shared -fPIC
@@ -64,9 +64,9 @@ Objects0=$(IntermediateDirectory)/Camera.cpp$(ObjectSuffix) $(IntermediateDirect
 	$(IntermediateDirectory)/GLBuffer.cpp$(ObjectSuffix) $(IntermediateDirectory)/GLWindow.cpp$(ObjectSuffix) $(IntermediateDirectory)/Lights.cpp$(ObjectSuffix) $(IntermediateDirectory)/LitShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/Material.cpp$(ObjectSuffix) $(IntermediateDirectory)/matrix.cpp$(ObjectSuffix) $(IntermediateDirectory)/Memory.cpp$(ObjectSuffix) $(IntermediateDirectory)/MeshRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Model.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/PhysicsCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsDebugDraw.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsWorld.cpp$(ObjectSuffix) $(IntermediateDirectory)/PlaneCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Quad.cpp$(ObjectSuffix) $(IntermediateDirectory)/quaternion.cpp$(ObjectSuffix) $(IntermediateDirectory)/Renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Room.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scene.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Transform.cpp$(ObjectSuffix) $(IntermediateDirectory)/Triangle.cpp$(ObjectSuffix) $(IntermediateDirectory)/DefaultScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateLightScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) 
+	$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) 
 
-Objects1=$(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) 
+Objects1=$(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) 
 
 
 
@@ -434,14 +434,6 @@ $(IntermediateDirectory)/GameObject.cpp$(DependSuffix): GameObject.cpp
 $(IntermediateDirectory)/GameObject.cpp$(PreprocessSuffix): GameObject.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/GameObject.cpp$(PreprocessSuffix) "GameObject.cpp"
 
-$(IntermediateDirectory)/RotateLightScript.cpp$(ObjectSuffix): RotateLightScript.cpp $(IntermediateDirectory)/RotateLightScript.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/RotateLightScript.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RotateLightScript.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/RotateLightScript.cpp$(DependSuffix): RotateLightScript.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RotateLightScript.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RotateLightScript.cpp$(DependSuffix) -MM "RotateLightScript.cpp"
-
-$(IntermediateDirectory)/RotateLightScript.cpp$(PreprocessSuffix): RotateLightScript.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RotateLightScript.cpp$(PreprocessSuffix) "RotateLightScript.cpp"
-
 $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix): LauncherScript.cpp $(IntermediateDirectory)/LauncherScript.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/LauncherScript.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/LauncherScript.cpp$(DependSuffix): LauncherScript.cpp
@@ -450,6 +442,14 @@ $(IntermediateDirectory)/LauncherScript.cpp$(DependSuffix): LauncherScript.cpp
 $(IntermediateDirectory)/LauncherScript.cpp$(PreprocessSuffix): LauncherScript.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/LauncherScript.cpp$(PreprocessSuffix) "LauncherScript.cpp"
 
+$(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix): RotateInPlaceScript.cpp $(IntermediateDirectory)/RotateInPlaceScript.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/RotateInPlaceScript.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/RotateInPlaceScript.cpp$(DependSuffix): RotateInPlaceScript.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RotateInPlaceScript.cpp$(DependSuffix) -MM "RotateInPlaceScript.cpp"
+
+$(IntermediateDirectory)/RotateInPlaceScript.cpp$(PreprocessSuffix): RotateInPlaceScript.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RotateInPlaceScript.cpp$(PreprocessSuffix) "RotateInPlaceScript.cpp"
+
 $(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix): Mesh.cpp $(IntermediateDirectory)/Mesh.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/Mesh.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/Mesh.cpp$(DependSuffix): Mesh.cpp
@@ -457,6 +457,14 @@ $(IntermediateDirectory)/Mesh.cpp$(DependSuffix): Mesh.cpp
 
 $(IntermediateDirectory)/Mesh.cpp$(PreprocessSuffix): Mesh.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Mesh.cpp$(PreprocessSuffix) "Mesh.cpp"
+
+$(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix): RotateAboutPointScript.cpp $(IntermediateDirectory)/RotateAboutPointScript.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/RotateAboutPointScript.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/RotateAboutPointScript.cpp$(DependSuffix): RotateAboutPointScript.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/RotateAboutPointScript.cpp$(DependSuffix) -MM "RotateAboutPointScript.cpp"
+
+$(IntermediateDirectory)/RotateAboutPointScript.cpp$(PreprocessSuffix): RotateAboutPointScript.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/RotateAboutPointScript.cpp$(PreprocessSuffix) "RotateAboutPointScript.cpp"
 
 $(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix): BasicShader.cpp $(IntermediateDirectory)/BasicShader.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/Documents/testapp/testapp/BasicShader.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IncludePath)

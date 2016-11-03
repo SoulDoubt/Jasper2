@@ -174,7 +174,6 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
 			v.Tangent = { tang.x, tang.y, tang.z, 1.f };
 			auto bitang = aiMesh->mBitangents[i];
 			v.Bitangent = { bitang.x, bitang.y, bitang.z };
-
 			//v.Tangent.w = (Dot(Cross(v.Normal, v.Tangent.AsVector3()), v.Bitangent) > 0.0f) ? -1.0f : 1.0f;
 
 		}
@@ -189,7 +188,7 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
 			}
 		}
 	}
-
+    //m->CalculateFaceNormals();
 	m->CalculateExtents();
 	Material* myMaterial = nullptr;
 	if (aiMesh->mMaterialIndex >= 0) {

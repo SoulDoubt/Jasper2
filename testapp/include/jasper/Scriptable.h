@@ -44,13 +44,18 @@ public:
     
 };
 
-class RotateLightScript : public ScriptComponent{
+class RotateAboutPointScript : public ScriptComponent{
 
 public:
     
-    RotateLightScript() : ScriptComponent("rotate_light_script"){}
-    RotateLightScript(std::string name) : ScriptComponent(name){}
-    ~RotateLightScript(){}
+    RotateAboutPointScript(const Vector3& point, const Vector3& axis, const float degsPerSecond) 
+    : ScriptComponent("rotate_light_script"), m_point(point), m_axis(axis), m_degreesPerSec(degsPerSecond){
+        
+    }
+    RotateAboutPointScript(std::string name, const Vector3& point, const Vector3& axis, const float degsPerSecond) 
+    : ScriptComponent(name), m_point(point), m_axis(axis), m_degreesPerSec(degsPerSecond){
+    }
+    ~RotateAboutPointScript(){}
     
     virtual void Initialize() override{}
 	virtual void Destroy()override{}
@@ -58,7 +63,17 @@ public:
 	virtual void Start()override{}
 	virtual void FixedUpdate()override{}
 	virtual void Update(float dt) override;            
-	virtual void LateUpdate()override{}    
+	virtual void LateUpdate()override{}   
+    
+    
+
+    private:
+    
+    Vector3 m_point;
+    Vector3 m_axis;
+    float m_degreesPerSec;
+    
+    
 };
 
 class LauncherScript: public ScriptComponent{
@@ -103,6 +118,29 @@ class DestroyScript: public ScriptComponent{
 	virtual void Update(float dt) override;
             
 	virtual void LateUpdate()override{} 
+};
+
+class RotateInPlaceScript : public ScriptComponent{
+public:
+    RotateInPlaceScript(const Vector3& axis, float degsPerSecond)
+    : ScriptComponent("rotate_in_place_script"), m_axis(axis), m_degreesPerSecond(degsPerSecond) {
+    }
+    RotateInPlaceScript(std::string name, const Vector3& axis, float degsPerSecond)
+    : ScriptComponent(name), m_axis(axis), m_degreesPerSecond(degsPerSecond) {}
+    ~RotateInPlaceScript(){}
+    
+    void Initialize() override {}
+	void Destroy() override {}
+	void Awake() override {}
+	void Start() override {}
+	void FixedUpdate() override {}
+	void Update(float dt) override;
+	void LateUpdate() override {}
+    
+    private:
+    
+    Vector3 m_axis;
+    float m_degreesPerSecond;
 };
 
 }

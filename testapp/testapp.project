@@ -65,8 +65,10 @@
     <File Name="BoxCollider.cpp"/>
     <File Name="include/jasper/CapsuleCollider.cpp"/>
     <File Name="GameObject.cpp"/>
-    <File Name="RotateLightScript.cpp"/>
     <File Name="LauncherScript.cpp"/>
+    <File Name="RotateInPlaceScript.cpp"/>
+    <File Name="Mesh.cpp"/>
+    <File Name="RotateAboutPointScript.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <VirtualDirectory Name="jasper">
@@ -123,7 +125,6 @@
       <File Name="include/jasper/PhysicsCollider.h"/>
       <File Name="include/jasper/Scene.h"/>
       <File Name="include/jasper/Scriptable.h"/>
-      <File Name="Mesh.cpp"/>
       <File Name="BasicShader.cpp"/>
       <File Name="include/jasper/TaskSystem.h"/>
       <File Name="include/jasper/AssetSerializer.h"/>

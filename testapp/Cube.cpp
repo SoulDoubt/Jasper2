@@ -239,61 +239,17 @@ void Cube::LoadCubemapVerts() {
 	Indices.push_back(33);
 	Indices.push_back(34);
 	Indices.push_back(35);
-
+    //CalculateFaceNormals();
 	CalculateExtents();
 }
 
 void Cube::LoadStandardVerts()
 {
-//    float vfs[36 * 3] = {
-//    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-//    -1.0f,-1.0f, 1.0f,
-//    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-//    1.0f, 1.0f,-1.0f, // triangle 2 : begin
-//    -1.0f,-1.0f,-1.0f,
-//    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-//    1.0f,-1.0f, 1.0f,
-//    -1.0f,-1.0f,-1.0f,
-//    1.0f,-1.0f,-1.0f,
-//    1.0f, 1.0f,-1.0f,
-//    1.0f,-1.0f,-1.0f,
-//    -1.0f,-1.0f,-1.0f,
-//    -1.0f,-1.0f,-1.0f,
-//    -1.0f, 1.0f, 1.0f,
-//    -1.0f, 1.0f,-1.0f,
-//    1.0f,-1.0f, 1.0f,
-//    -1.0f,-1.0f, 1.0f,
-//    -1.0f,-1.0f,-1.0f,
-//    -1.0f, 1.0f, 1.0f,
-//    -1.0f,-1.0f, 1.0f,
-//    1.0f,-1.0f, 1.0f,
-//    1.0f, 1.0f, 1.0f,
-//    1.0f,-1.0f,-1.0f,
-//    1.0f, 1.0f,-1.0f,
-//    1.0f,-1.0f,-1.0f,
-//    1.0f, 1.0f, 1.0f,
-//    1.0f,-1.0f, 1.0f,
-//    1.0f, 1.0f, 1.0f,
-//    1.0f, 1.0f,-1.0f,
-//    -1.0f, 1.0f,-1.0f,
-//    1.0f, 1.0f, 1.0f,
-//    -1.0f, 1.0f,-1.0f,
-//    -1.0f, 1.0f, 1.0f,
-//    1.0f, 1.0f, 1.0f,
-//    -1.0f, 1.0f, 1.0f,
-//    1.0f,-1.0f, 1.0f
-//};
-//	for(int i = 0; i < 108; i += 3){
-//        float x = vfs[i];
-//        float y = vfs[i+1];
-//        float z = vfs[i+2];
-//        Vertex vv = Vertex({x, y, z});
-//        AddVertex(vv);
-//    }
 
-//	float x = Dimensions.x;
-//	float y = Dimensions.y;
-//	float z = Dimensions.z;
+
+	float x = Dimensions.x;
+	float y = Dimensions.y;
+	float z = Dimensions.z;
 //
 //	// Front
 //	Vertex f0 = { -x, -y, z, 0.0f, 0.0f }; // 0
@@ -412,30 +368,30 @@ void Cube::LoadStandardVerts()
 // Outputting Mesh data for: mathias
 // Position Data:
 Positions.reserve(24);
-Positions.push_back(Vector3(0.500000f,-0.500000f,0.500000f));
-Positions.push_back(Vector3(0.500000f,0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,-0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,-0.500000f,-0.500000f));
-Positions.push_back(Vector3(-0.500000f,0.500000f,-0.500000f));
-Positions.push_back(Vector3(0.500000f,0.500000f,-0.500000f));
-Positions.push_back(Vector3(0.500000f,-0.500000f,-0.500000f));
-Positions.push_back(Vector3(-0.500000f,-0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,0.500000f,-0.500000f));
-Positions.push_back(Vector3(-0.500000f,-0.500000f,-0.500000f));
-Positions.push_back(Vector3(0.500000f,-0.500000f,-0.500000f));
-Positions.push_back(Vector3(0.500000f,0.500000f,-0.500000f));
-Positions.push_back(Vector3(0.500000f,0.500000f,0.500000f));
-Positions.push_back(Vector3(0.500000f,-0.500000f,0.500000f));
-Positions.push_back(Vector3(0.500000f,0.500000f,0.500000f));
-Positions.push_back(Vector3(0.500000f,0.500000f,-0.500000f));
-Positions.push_back(Vector3(-0.500000f,0.500000f,-0.500000f));
-Positions.push_back(Vector3(-0.500000f,0.500000f,0.500000f));
-Positions.push_back(Vector3(0.500000f,-0.500000f,-0.500000f));
-Positions.push_back(Vector3(0.500000f,-0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,-0.500000f,0.500000f));
-Positions.push_back(Vector3(-0.500000f,-0.500000f,-0.500000f));
+Positions.push_back(Vector3(x  ,-y  ,z));
+Positions.push_back(Vector3(x   ,y  ,z));
+Positions.push_back(Vector3(-x  ,y  ,z));
+Positions.push_back(Vector3(-x ,-y  ,z));
+Positions.push_back(Vector3(-x ,-y ,-z));
+Positions.push_back(Vector3(-x  ,y ,-z));
+Positions.push_back(Vector3(x   ,y ,-z));
+Positions.push_back(Vector3(x  ,-y ,-z));
+Positions.push_back(Vector3(-x ,-y  ,z));
+Positions.push_back(Vector3(-x  ,y  ,z));
+Positions.push_back(Vector3(-x  ,y ,-z));
+Positions.push_back(Vector3(-x ,-y ,-z));
+Positions.push_back(Vector3(x  ,-y ,-z));
+Positions.push_back(Vector3(x   ,y ,-z));
+Positions.push_back(Vector3(x   ,y , z));
+Positions.push_back(Vector3(x  ,-y  ,z));
+Positions.push_back(Vector3(x   ,y  ,z));
+Positions.push_back(Vector3(x   ,y ,-z));
+Positions.push_back(Vector3(-x  ,y ,-z));
+Positions.push_back(Vector3(-x  ,y  ,z));
+Positions.push_back(Vector3(x  ,-y ,-z));
+Positions.push_back(Vector3(x  ,-y  ,z));
+Positions.push_back(Vector3(-x ,-y  ,z));
+Positions.push_back(Vector3(-x ,-y ,-z));
 // TexCoord Data:
 TexCoords.reserve(24);
 TexCoords.push_back(Vector2(1.000000f,1.000000f));
@@ -583,7 +539,9 @@ Indices.push_back(23);
 }
 
 
-void Cube::Destroy() {}
+void Cube::Destroy() {
+   
+}
     
 }
 

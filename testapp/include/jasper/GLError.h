@@ -24,7 +24,7 @@ inline void checkGError(const char* file, int line) {
 			message = "GL_STACK_OVERFLOW";
 			break;
 		}
-		printf("GL error detected at: %s, line: %d, message: %s\n", file, line, message.c_str());
+		//printf("GL error detected at: %s, line: %d, message: %s\n", file, line, message.c_str());
 	}
 }
 

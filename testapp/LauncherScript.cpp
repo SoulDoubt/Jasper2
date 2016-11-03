@@ -31,7 +31,7 @@ void LauncherScript::Update(float dt){
     } else {
         auto elapsed = duration_cast<milliseconds>(current - time_last_launch).count();
         if (elapsed >= launch_interval){
-            LaunchCube();
+            //LaunchCube();
             time_last_launch = current;
         }
     }
@@ -73,7 +73,8 @@ void LauncherScript::LaunchSphere(){
         
     auto scene = gameObject->GetScene();
     auto pw = scene->GetPhysicsWorld();
-    auto transform = gameObject->GetWorldTransform();
+    auto transform = Transform();
+    transform.SetIdentity();
     auto rootNode = gameObject->GetScene()->GetRootNode();
     auto mat = scene->GetMaterialCache().GetResourceByName("red_material");
     auto sphere = rootNode->AttachNewChild<GameObject>("Sphere");
@@ -106,7 +107,10 @@ void LauncherScript::LaunchCube(){
         
     auto scene = gameObject->GetScene();
     auto pw = scene->GetPhysicsWorld();
-    auto transform = gameObject->GetWorldTransform();
+    //auto transform = gameObject->GetWorldTransform();
+    auto transform = Transform();
+    transform.SetIdentity();
+    
     auto rootNode = gameObject->GetScene()->GetRootNode();
     auto mat = scene->GetMaterialCache().GetResourceByName("red_material");
     auto sphere = rootNode->AttachNewChild<GameObject>("cube");
@@ -114,6 +118,7 @@ void LauncherScript::LaunchCube(){
     if ((mesh = scene->GetMeshCache().GetResourceByName("launcher_cube_mesh")) == nullptr){
         // need to create the mesh instance
         mesh = scene->CreateMesh<Cube>("launcher_cube_mesh", Vector3(0.25f, 0.25f, 0.25f));        
+        //mesh->CalculateFaceNormals();
     }
      
     sphere->AttachNewComponent<MeshRenderer>(mesh, mat);

@@ -67,7 +67,7 @@ void PhysicsCollider::LateUpdate()
 
 Transform PhysicsCollider::GetCurrentWorldTransform()
 {
-	Transform t = GetGameObject()->GetLocalTransform();
+	Transform t = GetGameObject()->GetWorldTransform();
 	btTransform trans;
 	m_rigidBody->getMotionState()->getWorldTransform(trans);
 	Transform physTransform = Transform(trans);

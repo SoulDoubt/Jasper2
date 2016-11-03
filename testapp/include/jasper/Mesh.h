@@ -155,12 +155,14 @@ public:
  
 	//std::vector<Vertex> Vertices;
 	std::vector<uint> Indices;
+    
+    void CalculateFaceNormals();
 
 protected:
 
     int renderer_count = 0;
 
-	void CalculateFaceNormals();
+	
 	void CalculateExtents();
 
 	bool m_reverseWinding = false;

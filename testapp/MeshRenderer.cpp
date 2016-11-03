@@ -68,6 +68,7 @@ void MeshRenderer::Awake() {
 	int normalLocation = shader->NormalAttributeLocation();
 	int texLocation = shader->TexCoordAttributeLocation();
 	int tangentLocation = shader->TangentAttributeLocation();
+    int bitangentLocation = shader->GetAttributeLocation("bitangent");
 
 	// upload the data
 	m_vertexBuffer.Bind();
@@ -78,8 +79,10 @@ void MeshRenderer::Awake() {
     m_texCoordBuffer.Bind();
     m_texCoordBuffer.Allocate(m_mesh->TexCoords.data(), m_mesh->TexCoords.size() * sizeof(Vector2));
     m_tangentBuffer.Bind();
-    m_tangentBuffer.Allocate(m_mesh->Tangents.data(), m_mesh->Tangents.size() * sizeof(Vector4));
-	m_indexBuffer.Bind();
+    m_tangentBuffer.Allocate(m_mesh->Tangents.data(), m_mesh->Tangents.size() * sizeof(Vector4));	
+    m_bitangentBuffer.Bind();
+    m_bitangentBuffer.Allocate(m_mesh->Bitangents.data(), m_mesh->Bitangents.size() * sizeof(Vector3) );
+    m_indexBuffer.Bind();
 	m_indexBuffer.Allocate(m_mesh->Indices.data(), m_mesh->Indices.size() * sizeof(GLuint));
     
 	// we can now destroy the client-side vertex data of the mesh...
@@ -100,6 +103,8 @@ void MeshRenderer::Awake() {
 	shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)0, 2, 0);
     m_tangentBuffer.Bind();
 	shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)0, 4, 0);
+    m_bitangentBuffer.Bind();
+    shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)0, 3, 0);
 
 	glBindVertexArray(0);
 	GLERRORCHECK;

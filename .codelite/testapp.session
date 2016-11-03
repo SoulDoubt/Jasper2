@@ -5,56 +5,56 @@
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/Scene.cpp" Name="FileName"/>
-      <int Value="167" Name="FirstVisibleLine"/>
+      <int Value="239" Name="FirstVisibleLine"/>
       <int Value="168" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/include/jasper/GameObject.h" Name="FileName"/>
-      <int Value="209" Name="FirstVisibleLine"/>
+      <int Value="206" Name="FirstVisibleLine"/>
       <int Value="207" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/Model.cpp" Name="FileName"/>
-      <int Value="293" Name="FirstVisibleLine"/>
+      <int Value="309" Name="FirstVisibleLine"/>
       <int Value="307" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/LauncherScript.cpp" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="66" Name="FirstVisibleLine"/>
       <int Value="64" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/Mesh.cpp" Name="FileName"/>
-      <int Value="39" Name="FirstVisibleLine"/>
+      <int Value="52" Name="FirstVisibleLine"/>
       <int Value="50" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/include/jasper/ResourceManager.h" Name="FileName"/>
-      <int Value="48" Name="FirstVisibleLine"/>
+      <int Value="15" Name="FirstVisibleLine"/>
       <int Value="16" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/include/jasper/AssetSerializer.h" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="18" Name="FirstVisibleLine"/>
       <int Value="16" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/Documents/testapp/testapp/include/jasper/AssetSerializer.cpp" Name="FileName"/>
-      <int Value="15" Name="FirstVisibleLine"/>
+      <int Value="0" Name="FirstVisibleLine"/>
       <int Value="1" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>

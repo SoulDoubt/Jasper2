@@ -55,17 +55,18 @@ vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
 	light_direction = normalize(light_direction);
 
 	vec3 ambient_factor = plight.Color * material0.ka * plight.AmbientIntensity;
-	vec4 ambient_color = vec4(ambient_factor, 1.0f);
+	vec4 ambient_color = vec4(ambient_factor, 1.0);
 
-	float diffuse_factor = max(dot(-light_direction, normal), 0.0);
+	float diffuse_factor = max(dot(light_direction, normal), 0.0);
 	if (diffuse_factor > 0) {
 		vec3 diff = plight.Color * material0.kd * plight.DiffuseIntensity * diffuse_factor;
 		diffuse_color = vec4(diff, 1.0f);
-		vec3 vert_to_eye = normalize(v_fragPosition.xyz - cameraPosition);
+		vec3 vert_to_eye = normalize(cameraPosition - v_fragPosition.xyz);
 		vec3 reflection = normalize(reflect(light_direction, normal));
-		float specular_factor = max(dot(reflection, -vert_to_eye), 0.0);
+		float specular_factor = max(dot(reflection, vert_to_eye), 0.0);
 		if (specular_factor > 0){
-			vec3 spec = plight.Color * specular * pow(specular_factor, material0.ns);
+			specular_factor = pow(specular_factor, material0.ns);
+			vec3 spec = plight.Color * specular_factor * material0.ks; 
 			specular_color = vec4(spec, 1.0f);
 		}
 	}
@@ -105,16 +106,19 @@ vec4 CalculateDirectionalLight(directional_light dlight, vec3 normal, vec3 specu
 
 void main()
 {	
-	vec3 normal;
+	vec3 normal;// = v_normal;
+
 	if (textureSize(normalMap, 0).x > 0){
 		vec3 fn = texture( normalMap, v_texCoords ).xyz;
-		fn.xy = fn.xy * 2.0 - 1.0;
+		//fn.xy = fn.xy * 2.0 - 1.0;
 		//fn = 128.0/255.0 * fn - vec3(1.0, 1.0, 1.0);		
+
 		vec3 fragNormal = v_tbnMatrix * fn;
 		//fragNormal.x = (fragNormal.x * 2.0) -1;
 		//fragNormal.y = (fragNormal.y * 2.0) -1;
 		//fragNormal.z = (fragNormal.z * 2.0) -1;
-		normal = fragNormal;			
+		//normal = normalize(fragNormal * 2.0 - 1.0);			
+		normal = normalize(fragNormal);
 	}
 	else {
 		normal = normalize(v_normal); 	
@@ -140,15 +144,16 @@ void main()
 	//float attenuation = plight0.ConstAtten + plight0.LinearAtten * dist_to_light + plight0.ExpAtten * dist_to_light * dist_to_light;
 
 	
-	fcolor = vec4(normal, 1.0);
+	//fcolor = vec4(normal, 1.0);
 	//fcolor = ambient_color;	
 	//vec3 norm = vec3(abs(normal.x), abs(normal.y), abs(normal.z));
 	//fcolor = vec4(normal, 1.0);
 	//fcolor = diffuse_color;
 	//fcolor = map_color;// * diffuse_color;
 	//fcolor = specular_color;
-	//fcolor = map_color * lighting;// + vec4(ambient_color.xyz, 1.0) + vec4(specular_color.xyz, 1.0));
-	//fcolor = pow(fcolor, 2.2);
+	fcolor = map_color * lighting;// + vec4(ambient_color.xyz, 1.0) + vec4(specular_color.xyz, 1.0));
+	float gamma = 2.2;
+	fcolor.rgb = pow(fcolor.rgb, vec3(1.0/gamma));
 	
 
 		

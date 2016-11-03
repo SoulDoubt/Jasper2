@@ -21,6 +21,8 @@ namespace Jasper {
 	bool Texture::Load(std::string filename)
 	{
 		int x, y, comp;
+        
+        GLenum force_linear = GL_SRGB_ALPHA;
 
 		auto image = stbi_load(filename.c_str(), &x, &y, &comp, STBI_rgb_alpha);
 		if (image) {
@@ -28,13 +30,14 @@ namespace Jasper {
 
 			glGenTextures(1, &m_textureID);
 			glBindTexture(GL_TEXTURE_2D, m_textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,  x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			glTexImage2D(GL_TEXTURE_2D, 0, force_linear, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);            
 			glBindTexture(GL_TEXTURE_2D, 0);
+            
 			GLERRORCHECK;
 			stbi_image_free(image);
 			return true;

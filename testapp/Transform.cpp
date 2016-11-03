@@ -4,7 +4,8 @@ namespace Jasper {
 
 Transform& Transform::Rotate(const Vector3 & axis, float angle)
 {
-	Orientation = Orientation * Quaternion::FromAxisAndAngle(axis, angle);
+    auto rotation_q = Quaternion::FromAxisAndAngle(axis, angle);
+	this->Orientation *= rotation_q;
 	return *this;
 }
 

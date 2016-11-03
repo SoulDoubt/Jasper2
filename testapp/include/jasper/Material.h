@@ -37,6 +37,9 @@ private:
             }
             glActiveTexture(GL_TEXTURE0 + 1);
             glBindTexture(GL_TEXTURE_2D, this->GetTextureNormalMap()->TextureID());
+        } else {
+            //glActiveTexture(GL_TEXTURE0 + 1);
+            //glBindTexture(GL_TEXTURE_2D, 0);
         }
 
         if (this->GetTextureSpecularMap()) {
