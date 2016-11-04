@@ -24,6 +24,8 @@ public:
 	void Disable() { m_isEnabled = false; }
 	void SetGameObject(GameObject* go);
 	GameObject* GetGameObject();
+    
+    
 
 	virtual ~Component();
 

@@ -58,6 +58,8 @@ public:
 	Shader(std::string name);
 	~Shader();
     
+    void PrintAttribsAndUniforms();
+    
     std::string GetName() const { return m_name; }
 
 	void AddShader(std::string filename, ShaderType t);

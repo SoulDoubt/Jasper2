@@ -31,7 +31,7 @@ void LauncherScript::Update(float dt){
     } else {
         auto elapsed = duration_cast<milliseconds>(current - time_last_launch).count();
         if (elapsed >= launch_interval){
-            //LaunchCube();
+            LaunchCube();
             time_last_launch = current;
         }
     }
@@ -112,7 +112,7 @@ void LauncherScript::LaunchCube(){
     transform.SetIdentity();
     
     auto rootNode = gameObject->GetScene()->GetRootNode();
-    auto mat = scene->GetMaterialCache().GetResourceByName("red_material");
+    auto mat = scene->GetMaterialCache().GetResourceByName("wall_material");
     auto sphere = rootNode->AttachNewChild<GameObject>("cube");
     Mesh* mesh = nullptr;
     if ((mesh = scene->GetMeshCache().GetResourceByName("launcher_cube_mesh")) == nullptr){

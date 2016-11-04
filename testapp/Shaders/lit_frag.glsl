@@ -62,11 +62,11 @@ vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
 		vec3 diff = plight.Color * material0.kd * plight.DiffuseIntensity * diffuse_factor;
 		diffuse_color = vec4(diff, 1.0f);
 		vec3 vert_to_eye = normalize(cameraPosition - v_fragPosition.xyz);
-		vec3 reflection = normalize(reflect(light_direction, normal));
+		vec3 reflection = normalize(reflect(-light_direction, normal));
 		float specular_factor = max(dot(reflection, vert_to_eye), 0.0);
 		if (specular_factor > 0){
 			specular_factor = pow(specular_factor, material0.ns);
-			vec3 spec = plight.Color * specular_factor * material0.ks; 
+			vec3 spec = plight.Color * specular_factor * specular; 
 			specular_color = vec4(spec, 1.0f);
 		}
 	}
@@ -96,7 +96,8 @@ vec4 CalculateDirectionalLight(directional_light dlight, vec3 normal, vec3 specu
 		vec3 reflection = normalize(reflect(-light_direction, normal));
 		float specular_factor = max(dot(reflection, vert_to_eye), 0.0);
 		if (specular_factor > 0){
-			vec3 spec = dlight.Color * specular * pow(specular_factor, material0.ns);
+			specular_factor = pow(specular_factor, material0.ns);
+			vec3 spec = dlight.Color * specular_factor * specular; 
 			specular_color = vec4(spec, 1.0f);
 		}
 	}
@@ -123,16 +124,18 @@ void main()
 	else {
 		normal = normalize(v_normal); 	
 	}
-	//normal = normalize(v_normal);
-	
-	vec4 map_color = texture(colorMap, v_texCoords);
-	vec3 materialSpecular = vec3(0,0,0);
+
+	vec3 materialSpecular = texture( specularMap, v_texCoords ).xyz;
 	if (textureSize(specularMap, 0).x > 0){
 		materialSpecular = texture( specularMap, v_texCoords ).xyz;
 	}
 	else{
 		materialSpecular = material0.ks;
 	}
+	//normal = normalize(v_normal);
+	
+	vec4 map_color = texture(colorMap, v_texCoords);
+	
 	if (map_color == vec4(0,0,0,0)){
 	 	map_color = vec4(material0.kd, 1.0);
 	}
