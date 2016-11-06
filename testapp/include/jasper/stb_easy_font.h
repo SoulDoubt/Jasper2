@@ -58,7 +58,7 @@
 //
 //      Use positive values to expand the space between characters,
 //      and small negative values (no smaller than -1.5) to contract
-//      the space between characters. 
+//      the space between characters.
 //
 //      E.g. spacing = 1 adds one "pixel" of spacing between the
 //      characters. spacing = -1 is reasonable but feels a bit too
@@ -85,16 +85,16 @@
 //
 void print_string(float x, float y, char *text, float r, float g, float b)
 {
-  static char buffer[99999]; // ~500 chars
-  int num_quads;
+    static char buffer[99999]; // ~500 chars
+    int num_quads;
 
-  num_quads = stb_easy_font_print(x, y, text, NULL, buffer, sizeof(buffer));
+    num_quads = stb_easy_font_print(x, y, text, NULL, buffer, sizeof(buffer));
 
-  glColor3f(r,g,b);
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glVertexPointer(2, GL_FLOAT, 16, buffer);
-  glDrawArrays(GL_QUADS, 0, num_quads*4);
-  glDisableClientState(GL_VERTEX_ARRAY);
+    glColor3f(r,g,b);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 16, buffer);
+    glDrawArrays(GL_QUADS, 0, num_quads*4);
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 #endif
 
@@ -136,7 +136,7 @@ struct {
 };
 
 unsigned char stb_easy_font_hseg[214] = {
-   97,37,69,84,28,51,2,18,10,49,98,41,65,25,81,105,33,9,97,1,97,37,37,36,
+    97,37,69,84,28,51,2,18,10,49,98,41,65,25,81,105,33,9,97,1,97,37,37,36,
     81,10,98,107,3,100,3,99,58,51,4,99,58,8,73,81,10,50,98,8,73,81,4,10,50,
     98,8,25,33,65,81,10,50,17,65,97,25,33,25,49,9,65,20,68,1,65,25,49,41,
     11,105,13,101,76,10,50,10,50,98,11,99,10,98,11,50,99,11,50,11,99,8,57,
@@ -148,7 +148,7 @@ unsigned char stb_easy_font_hseg[214] = {
 };
 
 unsigned char stb_easy_font_vseg[253] = {
-   4,2,8,10,15,8,15,33,8,15,8,73,82,73,57,41,82,10,82,18,66,10,21,29,1,65,
+    4,2,8,10,15,8,15,33,8,15,8,73,82,73,57,41,82,10,82,18,66,10,21,29,1,65,
     27,8,27,9,65,8,10,50,97,74,66,42,10,21,57,41,29,25,14,81,73,57,26,8,8,
     26,66,3,8,8,15,19,21,90,58,26,18,66,18,105,89,28,74,17,8,73,57,26,21,
     8,42,41,42,8,28,22,8,8,30,7,8,8,26,66,21,7,8,8,29,7,7,21,8,8,8,59,7,8,
@@ -160,9 +160,8 @@ unsigned char stb_easy_font_vseg[253] = {
     20,8,8,28,18,58,89,58,26,21,89,73,89,29,20,8,8,30,7,
 };
 
-typedef struct
-{
-   unsigned char c[4];
+typedef struct {
+    unsigned char c[4];
 } stb_easy_font_color;
 
 static int stb_easy_font_draw_segs(float x, float y, unsigned char *segs, int num_segs, int vertical, stb_easy_font_color c, char *vbuf, int vbuf_size, int offset)
@@ -188,7 +187,7 @@ static int stb_easy_font_draw_segs(float x, float y, unsigned char *segs, int nu
 float stb_easy_font_spacing_val = 0;
 static void stb_easy_font_spacing(float spacing)
 {
-   stb_easy_font_spacing_val = spacing;
+    stb_easy_font_spacing_val = spacing;
 }
 
 static int stb_easy_font_print(float x, float y, char *text, unsigned char color[4], void *vertex_buffer, int vbuf_size)
@@ -198,7 +197,12 @@ static int stb_easy_font_print(float x, float y, char *text, unsigned char color
     int offset = 0;
 
     stb_easy_font_color c = { 255,255,255,255 }; // use structure copying to avoid needing depending on memcpy()
-    if (color) { c.c[0] = color[0]; c.c[1] = color[1]; c.c[2] = color[2]; c.c[3] = color[3]; }
+    if (color) {
+        c.c[0] = color[0];
+        c.c[1] = color[1];
+        c.c[2] = color[2];
+        c.c[3] = color[3];
+    }
 
     while (*text && offset < vbuf_size) {
         if (*text == '\n') {

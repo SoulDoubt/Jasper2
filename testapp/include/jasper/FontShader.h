@@ -4,16 +4,17 @@
 
 #include "Shader.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class FontShader :
-	public Shader
+    public Shader
 {
 public:
-	FontShader();
-	~FontShader();
+    FontShader();
+    ~FontShader();
 
-	void Initialize() override;
+    void Initialize() override;
 };
 
 }

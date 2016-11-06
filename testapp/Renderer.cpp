@@ -7,7 +7,8 @@
 
 #include "GBuffer.h"
 
-namespace Jasper{
+namespace Jasper
+{
 
 using namespace std;
 
@@ -23,11 +24,10 @@ void Renderer::Initialize()
     //gbuff.Initialize();
     const auto root = m_scene->GetRootNode();
     ProcessGameObject(root);
+    SortByMaterial();
 
     // create a framebuffer for shadow mapping...
     //CreateShadowMapObjects();
-
-    SortByMaterial();
 }
 
 void Renderer::SetFrameInvariants(Material* material)

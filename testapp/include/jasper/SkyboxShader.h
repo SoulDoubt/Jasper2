@@ -4,19 +4,20 @@
 
 #include "Shader.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class SkyboxShader :
-	public Shader
+    public Shader
 {
 public:
-	SkyboxShader();
-	~SkyboxShader();
+    SkyboxShader();
+    ~SkyboxShader();
 
-	void Initialize() override;
+    void Initialize() override;
 
-	virtual void SetProjectionMatrix(const Matrix4& proj) override;
-	virtual void SetViewMatrix(const Matrix4& view) override;
+    virtual void SetProjectionMatrix(const Matrix4& proj) override;
+    virtual void SetViewMatrix(const Matrix4& view) override;
 
 };
 

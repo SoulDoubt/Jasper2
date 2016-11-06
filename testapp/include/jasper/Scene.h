@@ -17,134 +17,135 @@
 #include "Renderer.h"
 #include "CharacterController.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class Scene
 {
-public:	
-	explicit Scene(int width, int height);
-	~Scene();	
-    
+public:
+    explicit Scene(int width, int height);
+    ~Scene();
+
     void Resize(int width, int height);
-    
-    
 
-	Matrix4& ProjectionMatrix() {
-		return m_projectionMatrix;
-	}
 
-	Matrix4& OrthographicMatrix() {
-		return m_orthoMatrix;
-	}	
 
-	GameObject* GetRootNode() const {
-		return m_rootNode.get();
-	}
+    Matrix4& ProjectionMatrix() {
+        return m_projectionMatrix;
+    }
 
-	void AddGameObject(std::unique_ptr<GameObject> go);
-    
+    Matrix4& OrthographicMatrix() {
+        return m_orthoMatrix;
+    }
+
+    GameObject* GetRootNode() const {
+        return m_rootNode.get();
+    }
+
+    void AddGameObject(std::unique_ptr<GameObject> go);
+
     void DestroyGameObject(GameObject* go);
-    
-	GameObject* GetGameObjectByName(std::string name);	
 
-	void Update(float dt);
-	void Awake();
-	void Start();
-	void Destroy();
+    GameObject* GetGameObjectByName(std::string name);
 
-	Camera& GetCamera() {
-		if (m_camera) 
-			return *m_camera;
-		m_camera = GetGameObjectByType<Camera>();
-		return *m_camera;
-	};
+    void Update(float dt);
+    void Awake();
+    void Start();
+    void Destroy();
 
-	CharacterController* GetPlayer() {
-		return m_player.get();
-	}
+    Camera& GetCamera() {
+        if (m_camera)
+            return *m_camera;
+        m_camera = GetGameObjectByType<Camera>();
+        return *m_camera;
+    };
 
-	void DoLeftClick(double x, double y);
+    CharacterController* GetPlayer() {
+        return m_player.get();
+    }
 
-	void DestroyGameObject(std::unique_ptr<GameObject> object);
+    void DoLeftClick(double x, double y);
 
-	GameObject* CreateEmptyGameObject(std::string name, GameObject* parent);
+    void DestroyGameObject(std::unique_ptr<GameObject> object);
 
-	template<typename T> T* GetGameObjectByType() {
-		for (auto& go : m_rootNode->Children()) {
-			if (auto found = dynamic_cast<T*>(go.get())) {
-				return found;
-			}
-		}
-		return nullptr;
-	}
-    
-    PhysicsWorld* GetPhysicsWorld() const{
+    GameObject* CreateEmptyGameObject(std::string name, GameObject* parent);
+
+    template<typename T> T* GetGameObjectByType() {
+        for (auto& go : m_rootNode->Children()) {
+            if (auto found = dynamic_cast<T*>(go.get())) {
+                return found;
+            }
+        }
+        return nullptr;
+    }
+
+    PhysicsWorld* GetPhysicsWorld() const {
         return m_physicsWorld.get();
     }
-    
+
     Shader* GetShaderByName(std::string name);
 
-    Renderer* GetRenderer() const{
+    Renderer* GetRenderer() const {
         return m_renderer.get();
     }
-    
+
     template<typename T, typename... Args>
-    T* CreateMesh(Args&&... args){
+    T* CreateMesh(Args&&... args) {
         return m_meshManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
-    
+
     template<typename T, typename... Args>
-    T* CreateModel(Args&&... args){
+    T* CreateModel(Args&&... args) {
         return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
-    
+
     //Material* GetMaterialByName(const std::string& name);
     //Mesh*     GetMeshByName(const std::string& name);
-    
-    ResourceManager<Material>& GetMaterialCache(){
+
+    ResourceManager<Material>& GetMaterialCache() {
         return m_materialManager;
     }
-    
-    ResourceManager<Mesh>& GetMeshCache(){
+
+    ResourceManager<Mesh>& GetMeshCache() {
         return m_meshManager;
     }
-    
-    ResourceManager<Model>& GetModelCache(){
+
+    ResourceManager<Model>& GetModelCache() {
         return m_modelManager;
     }
-    
-    ResourceManager<Texture>& GetTextureCache(){
+
+    ResourceManager<Texture>& GetTextureCache() {
         return m_textureManager;
     }
 
-	int m_windowWidth, m_windowHeight;
-    
+    int m_windowWidth, m_windowHeight;
+
 private:
 
-	std::unique_ptr<GameObject> m_rootNode;
+    std::unique_ptr<GameObject> m_rootNode;
 
-	Matrix4 m_projectionMatrix;
-	Matrix4 m_orthoMatrix;
-	
-	Camera* m_camera;
+    Matrix4 m_projectionMatrix;
+    Matrix4 m_orthoMatrix;
 
-	std::unique_ptr<PhysicsWorld> m_physicsWorld;
+    Camera* m_camera;
 
-	ResourceManager<Shader> m_shaderManager;	
-	ResourceManager<Mesh> m_meshManager;
-	ResourceManager<Material> m_materialManager;
-	ResourceManager<Texture> m_textureManager;
+    std::unique_ptr<PhysicsWorld> m_physicsWorld;
+
+    ResourceManager<Shader> m_shaderManager;
+    ResourceManager<Mesh> m_meshManager;
+    ResourceManager<Material> m_materialManager;
+    ResourceManager<Texture> m_textureManager;
     ResourceManager<Model> m_modelManager;
 
-	std::unique_ptr<FontRenderer> m_fontRenderer;
+    std::unique_ptr<FontRenderer> m_fontRenderer;
 
-	std::unique_ptr<Renderer> m_renderer;
+    std::unique_ptr<Renderer> m_renderer;
 
-	std::unique_ptr<CharacterController> m_player;
-    
+    std::unique_ptr<CharacterController> m_player;
+
     std::vector<ScriptComponent> m_scripts;
 
-	void Initialize();
+    void Initialize();
 
 
 };

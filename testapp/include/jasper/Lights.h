@@ -3,34 +3,36 @@
 
 #include "GameObject.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class PointLight : public GameObject
 {
 public:
 
-	explicit PointLight(const std::string& name);
-	~PointLight();
+    explicit PointLight(const std::string& name);
+    ~PointLight();
 
-	Vector3 Color = { 1.0f, 1.0f, 1.0f };
-	float AmbientIntensity = 0.5f;
-	float DiffuseIntensity = 1.0f;
-	float ConstAtten = 0.1f;
-	float LinearAtten = 0.1f;
-	float ExpAtten = 0.1f;
-	float Radius = 20.0f;
+    Vector3 Color = { 1.0f, 1.0f, 1.0f };
+    float AmbientIntensity = 0.5f;
+    float DiffuseIntensity = 1.0f;
+    float ConstAtten = 1.0f;
+    float LinearAtten = 0.09f;
+    float ExpAtten = 0.032f;
+    float Radius = 20.0f;
 };
 
-class DirectionalLight : public GameObject {
+class DirectionalLight : public GameObject
+{
 
 public:
-	Vector3 Color = { 1.f, 1.f, 1.f };
-	Vector3 Direction = { 0.f, -1.f, 0.f };
-	float AmbientIntensity = 0.5f;
-	float Diffuseintensity = 1.0f;
+    Vector3 Color = { 1.f, 1.f, 1.f };
+    Vector3 Direction = { 0.f, -1.f, 0.f };
+    float AmbientIntensity = 0.5f;
+    float Diffuseintensity = 1.0f;
 
-	explicit DirectionalLight(const std::string& name);
-	~DirectionalLight();
+    explicit DirectionalLight(const std::string& name);
+    ~DirectionalLight();
 
 };
 

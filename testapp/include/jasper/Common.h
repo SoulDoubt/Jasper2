@@ -8,14 +8,14 @@
 #define ALIGN16 __declspec(align(16))
 
 #define ALIGN_16_OPERATORS void* operator new(size_t sz){ \
-				return _aligned_malloc(sz, 16); \
-				} \
-				void operator delete(void* p) { \
-					_aligned_free(p); \
-				} \
-
+        return _aligned_malloc(sz, 16); \
+    } \
+    void operator delete(void* p) { \
+        _aligned_free(p); \
+    } \
+     
 #define NON_COPYABLE(X)   X(const X&) = delete; \
-				X& operator=(const X&) = delete;
+    X& operator=(const X&) = delete;
 
 using uint = unsigned int;
 

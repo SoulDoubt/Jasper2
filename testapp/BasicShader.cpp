@@ -2,28 +2,27 @@
 
 using namespace std;
 
-namespace Jasper {
+namespace Jasper
+{
 
 BasicShader::BasicShader() : Shader(string("Basic_Shader"))
 {
-	Initialize();
+    Initialize();
 }
 
 BasicShader::~BasicShader()
 {
 }
 
-void BasicShader::Initialize() {
-	string vsFile = "../Shaders/basic_vert.glsl";
-	string fsFile = "../Shaders/basic_fragment.glsl";
+void BasicShader::Initialize()
+{
+    string vsFile = "../Shaders/basic_vert.glsl";
+    string fsFile = "../Shaders/basic_fragment.glsl";
 
-	AddShader(vsFile, ShaderType::VERTEX);
-	AddShader(fsFile, ShaderType::FRAGMENT);
+    AddShader(vsFile, ShaderType::VERTEX);
+    AddShader(fsFile, ShaderType::FRAGMENT);
 
-	LinkShaderProgram();
+    LinkShaderProgram();
 }
 
 }
-
-
-

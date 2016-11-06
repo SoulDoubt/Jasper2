@@ -4,19 +4,20 @@
 
 #include "MeshRenderer.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class SkyboxRenderer :
-	public MeshRenderer
+    public MeshRenderer
 {
 public:
-	explicit SkyboxRenderer(Mesh* mesh, Material* mat);
-	SkyboxRenderer(const SkyboxRenderer& o) = delete;
-	SkyboxRenderer& operator=(const SkyboxRenderer& o) = delete;
-	~SkyboxRenderer();
-	virtual void Update(float dt) override;
-	virtual void Render() override;
-	
+    explicit SkyboxRenderer(Mesh* mesh, Material* mat);
+    SkyboxRenderer(const SkyboxRenderer& o) = delete;
+    SkyboxRenderer& operator=(const SkyboxRenderer& o) = delete;
+    ~SkyboxRenderer();
+    virtual void Update(float dt) override;
+    virtual void Render() override;
+
 
 };
 

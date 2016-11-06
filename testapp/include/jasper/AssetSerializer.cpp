@@ -1,14 +1,18 @@
 #include "AssetSerializer.h"
 #include "Mesh.h"
+#include <memory>
 
 
 
-namespace Jasper {
-namespace AssetSerializer{
-    
+namespace Jasper
+{
+namespace AssetSerializer
+{
+
 using namespace std;
 
-void SerializeMesh(ofstream& ofs, Mesh* mesh){
+void SerializeMesh(ofstream& ofs, Mesh* mesh)
+{
     // each mesh will write the following to the stream
     // 1) Count of Positions
     // 2) Position Data
@@ -21,27 +25,31 @@ void SerializeMesh(ofstream& ofs, Mesh* mesh){
     int tanc = mesh->Tangents.size();
     int bitanc = mesh->Bitangents.size();
     // write positions
-    ofs.write(reinterpret_cast<char*>(&posc), sizeof(posc));
-    ofs.write(reinterpret_cast<char*>(&(mesh->Positions[0])), sizeof(Vector3) * posc);
+    ofs.write(CharPtr(&posc), sizeof(posc));
+    ofs.write(CharPtr(&(mesh->Positions[0])), sizeof(Vector3) * posc);
     cout << mesh->Positions[0].ToString() << endl;
     cout << mesh->Positions[1].ToString() << endl;
     // write normals
-    ofs.write(reinterpret_cast<char*>(&norc), sizeof(norc));
-    ofs.write(reinterpret_cast<char*>(&(mesh->Normals[0])), sizeof(Vector3) * norc);
+    ofs.write(CharPtr(&norc), sizeof(norc));
+    ofs.write(CharPtr(&(mesh->Normals[0])), sizeof(Vector3) * norc);
     // write tex coords
-    ofs.write(reinterpret_cast<char*>(&texc), sizeof(texc));
-    ofs.write(reinterpret_cast<char*>(&(mesh->TexCoords[0])), sizeof(Vector2) * texc);
+    ofs.write(CharPtr(&texc), sizeof(texc));
+    ofs.write(CharPtr(&(mesh->TexCoords[0])), sizeof(Vector2) * texc);
     // write tangents
-    ofs.write(reinterpret_cast<char*>(&tanc), sizeof(tanc));
-    ofs.write(reinterpret_cast<char*>(&(mesh->Tangents[0])), sizeof(Vector4) * tanc);
+    ofs.write(CharPtr(&tanc), sizeof(tanc));
+    ofs.write(CharPtr(&(mesh->Tangents[0])), sizeof(Vector4) * tanc);
     // write bitans
-    ofs.write(reinterpret_cast<char*>(&bitanc), sizeof(bitanc));
-    ofs.write(reinterpret_cast<char*>(&(mesh->Bitangents[0])), sizeof(Vector3) * bitanc);
-        
+    ofs.write(CharPtr(&bitanc), sizeof(bitanc));
+    ofs.write(CharPtr(&(mesh->Bitangents[0])), sizeof(Vector3) * bitanc);
+
 }
 
-void SerializeMaterial(std::ofstream& ofs, Material* mat){
-    
+
+
+
+void SerializeMaterial(std::ofstream& ofs, Material* mat)
+{
+
 }
 
 

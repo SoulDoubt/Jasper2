@@ -7,47 +7,48 @@
 #include "matrix.h"
 #include "FontShader.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class FontRenderer
 {
 public:
 
-	FontRenderer();
-	~FontRenderer();
+    FontRenderer();
+    ~FontRenderer();
 
-	void RenderText(const std::string& text, float x, float y);
-	std::unique_ptr<Texture> GetTextureAtlas();
-	void Initialize();
-	void SetOrthoMatrix(const Matrix4& ortho) {
-		m_matrix = ortho;
-	}
+    void RenderText(const std::string& text, float x, float y);
+    std::unique_ptr<Texture> GetTextureAtlas();
+    void Initialize();
+    void SetOrthoMatrix(const Matrix4& ortho) {
+        m_matrix = ortho;
+    }
 
-	void SetColor(const Vector3& c) {
-		m_color = c;
-	}
+    void SetColor(const Vector3& c) {
+        m_color = c;
+    }
 
-	void SetColor(float r, float g, float b) {
-		SetColor(Vector3(r, g, b));
-	}
+    void SetColor(float r, float g, float b) {
+        SetColor(Vector3(r, g, b));
+    }
 
-private:	
+private:
 
-	unsigned m_texID;
+    unsigned m_texID;
 
-	Matrix4 m_matrix;
-	
-	GLBuffer m_vertexBuffer;
-	GLBuffer m_indexBuffer;
+    Matrix4 m_matrix;
 
-	std::unique_ptr<FontShader> m_shader;
-	std::unique_ptr<Texture> m_texture;
+    GLBuffer m_vertexBuffer;
+    GLBuffer m_indexBuffer;
 
-	unsigned int m_vao;
+    std::unique_ptr<FontShader> m_shader;
+    std::unique_ptr<Texture> m_texture;
 
-	stbtt_packedchar m_packData[256];
+    unsigned int m_vao;
 
-	Vector3 m_color;
+    stbtt_packedchar m_packData[256];
+
+    Vector3 m_color;
 };
 
 }

@@ -8,34 +8,35 @@
 
 class btConvexShape;
 
-namespace Jasper {
+namespace Jasper
+{
 
 class PhysicsWorld;
 
 
 class CharacterController : public btKinematicCharacterController, public GameObject
 {
-public:	
-	CharacterController(btPairCachingGhostObject* ghostObject, btConvexShape* convexShape, btScalar stepHeight, PhysicsWorld* world, const btVector3 up = btVector3(0.f, 1.f, 0.f));
-	~CharacterController();
+public:
+    CharacterController(btPairCachingGhostObject* ghostObject, btConvexShape* convexShape, btScalar stepHeight, PhysicsWorld* world, const btVector3 up = btVector3(0.f, 1.f, 0.f));
+    ~CharacterController();
 
-	void debugDraw(btIDebugDraw* debugDrawer) override;
+    void debugDraw(btIDebugDraw* debugDrawer) override;
 
-	btConvexShape* GetCollisionShape() {
-		return m_convexShape;		
-	}
+    btConvexShape* GetCollisionShape() {
+        return m_convexShape;
+    }
 
-	Transform GetGhostWorldTransform() {
-		btTransform btt = m_ghostObject->getWorldTransform();
-		return Transform(btt);
-	}
+    Transform GetGhostWorldTransform() {
+        btTransform btt = m_ghostObject->getWorldTransform();
+        return Transform(btt);
+    }
 
-	void StepPlayer(float dt) {
-		playerStep(m_world->GetBtWorld(), dt);
-	}
+    void StepPlayer(float dt) {
+        playerStep(m_world->GetBtWorld(), dt);
+    }
 
 private:
-	PhysicsWorld* m_world;
+    PhysicsWorld* m_world;
 
 
 };

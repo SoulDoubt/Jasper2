@@ -3,16 +3,17 @@
 
 #include "PhysicsCollider.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class PlaneCollider :
-	public PhysicsCollider
+    public PhysicsCollider
 {
 public:
-	PlaneCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
-	~PlaneCollider();
+    PlaneCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
+    ~PlaneCollider();
 
-	void Awake() override;
+    void Awake() override;
 };
 
 }

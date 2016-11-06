@@ -3,16 +3,17 @@
 
 #include "Shader.h"
 
-namespace Jasper{
+namespace Jasper
+{
 
 class BasicShader :
-	public Shader
+    public Shader
 {
 public:
-	BasicShader();
-	~BasicShader();
+    BasicShader();
+    ~BasicShader();
 
-	virtual void Initialize() override;	
+    virtual void Initialize() override;
 
 };
 

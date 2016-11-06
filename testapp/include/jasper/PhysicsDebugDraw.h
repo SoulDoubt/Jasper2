@@ -7,48 +7,50 @@
 #include "GLBuffer.h"
 
 
-namespace Jasper {
+namespace Jasper
+{
 
 class Scene;
 class Shader;
 
-class PhysicsDebugDrawer : public btIDebugDraw {
+class PhysicsDebugDrawer : public btIDebugDraw
+{
 
 public:
 
-	~PhysicsDebugDrawer() {
-		Destroy();
-	}
+    ~PhysicsDebugDrawer() {
+        Destroy();
+    }
 
-	GLBuffer vbo;
-	GLBuffer ibo;
+    GLBuffer vbo;
+    GLBuffer ibo;
 
-	void Initialize();
-	void Destroy();
+    void Initialize();
+    void Destroy();
 
-	PhysicsDebugDrawer(Scene* scene) : scene(scene), vbo(GLBuffer::BufferType::VERTEX), ibo(GLBuffer::BufferType::INDEX) {
-		
-	}
+    PhysicsDebugDrawer(Scene* scene) : scene(scene), vbo(GLBuffer::BufferType::VERTEX), ibo(GLBuffer::BufferType::INDEX) {
 
-	Scene* scene;
-	uint vao;
+    }
 
-	virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
+    Scene* scene;
+    uint vao;
 
-	virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) {}
+    virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color);
 
-	virtual void reportErrorWarning(const char* warningString) {}
+    virtual void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) {}
 
-	virtual void draw3dText(const btVector3& location, const char* textString) {}
+    virtual void reportErrorWarning(const char* warningString) {}
 
-	virtual void setDebugMode(int debugMode) {}
+    virtual void draw3dText(const btVector3& location, const char* textString) {}
 
-	virtual int	getDebugMode() const {
-		return btIDebugDraw::DBG_DrawWireframe;
-	}
+    virtual void setDebugMode(int debugMode) {}
 
-	Matrix4 mvpMatrix;
-	Shader* debugShader;
+    virtual int	getDebugMode() const {
+        return btIDebugDraw::DBG_DrawWireframe;
+    }
+
+    Matrix4 mvpMatrix;
+    Shader* debugShader;
 };
 
 

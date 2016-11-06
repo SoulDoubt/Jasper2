@@ -8,7 +8,8 @@
 #include <memory>
 #include "CapsuleCollider.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class PhysicsWorld;
 
@@ -16,60 +17,62 @@ class Camera : public GameObject
 {
 public:
 
-	enum class CameraType {
-		FIRST_PERSON,
-		FLYING
-	};
+    enum class CameraType
+    {
+        FIRST_PERSON,
+        FLYING
+    };
 
-	explicit Camera(CameraType type);
-	virtual ~Camera();
+    explicit Camera(CameraType type);
+    virtual ~Camera();
 
-	void Awake();
+    void Awake();
 
-	void SetPhysicsWorld(PhysicsWorld* world);
+    void SetPhysicsWorld(PhysicsWorld* world);
 
-	Matrix4 GetViewMatrix();
-	Matrix4 GetCubemapViewMatrix();
-	void Rotate(float pitch, float roll, float yaw);
-	void Translate(float x, float y, float z);
-	void Translate(const Vector3& vec);
+    Matrix4 GetViewMatrix();
+    Matrix4 GetCubemapViewMatrix();
+    void Rotate(float pitch, float roll, float yaw);
+    void Translate(float x, float y, float z);
+    void Translate(const Vector3& vec);
 
-	Vector3 GetPosition() const {		
-		return m_transform.Position;
-	}
+    Vector3 GetPosition() const {
+        return m_transform.Position;
+    }
 
-	Vector3 GetViewDirection() const {
-		return m_viewVector;
-	}	
+    Vector3 GetViewDirection() const {
+        return m_viewVector;
+    }
 
-	Quaternion m_orientation;
-	Vector3 m_position;
+    Quaternion m_orientation;
+    Vector3 m_position;
 
 private:
-	
-	CameraType m_type;
 
-	static Vector3 WORLD_X_AXIS;
-	static Vector3 WORLD_Y_AXIS;
-	static Vector3 WORLD_Z_AXIS;
+    CameraType m_type;
 
-	Vector3 m_localXAxis;
-	Vector3 m_localYAxis;
-	Vector3 m_localZAxis;
+    static Vector3 WORLD_X_AXIS;
+    static Vector3 WORLD_Y_AXIS;
+    static Vector3 WORLD_Z_AXIS;
 
-	Vector3 m_viewVector;
-	Vector3 m_upVector;
-	Vector3 m_rightVector;
+    Vector3 m_localXAxis;
+    Vector3 m_localYAxis;
+    Vector3 m_localZAxis;
 
-	float m_accumPitch = 0.f;
+    Vector3 m_viewVector;
+    Vector3 m_upVector;
+    Vector3 m_rightVector;
 
-	PhysicsWorld* m_physicsWorld = nullptr;
-	CapsuleCollider* m_collider = nullptr;
+    float m_accumPitch = 0.f;
+
+    PhysicsWorld* m_physicsWorld = nullptr;
+    CapsuleCollider* m_collider = nullptr;
 
 };
 
-inline void Camera::SetPhysicsWorld(PhysicsWorld* world) {
-	m_physicsWorld = world;
+inline void Camera::SetPhysicsWorld(PhysicsWorld* world)
+{
+    m_physicsWorld = world;
 }
 
 }

@@ -11,53 +11,64 @@
 #include <memory>
 #include "Common.h"
 
+#include "Shader.h"
+#include "GLBuffer.h"
+
 //#include <SDL\SDL.h>
 
 //#define WIN32_LEAN_AND_MEAN
 //#include <Windows.h>
 
 
-namespace Jasper {
+namespace Jasper
+{
 
 class Scene;
 
 class GLWindow
 {
 public:
-	GLWindow(int h, int w, std::string title);
-	~GLWindow();
+    GLWindow(int h, int w, std::string title);
+    ~GLWindow();
 
-	bool Init();
+    bool Init();
 
-	int Height, Width;
-	std::string Title;
+    int Height, Width;
+    std::string Title;
 
-	SDL_Window* m_window;
-	SDL_GLContext m_context;
-	//SDL_Window* m_sdlWindow;
+    SDL_Window* m_window;
+    SDL_GLContext m_context;
+    //SDL_Window* m_sdlWindow;
 
-	void RunLoop();
+    void RunLoop();
 
-	void InitializeScene();
+    void InitializeScene();
+    void InitializeGui();
 
-	void SetupGL();
+    void SetupGL();
+    void SetupGui(); // add gui components here.
 
-	//HWND GetWindowHandle() const;
+    void GuiNewFrame();
+    void GetGuiFontTexture();
+    void DrawGui();
 
-	void printGLInfo() {
-		printf("Vendor: %s\n", glGetString(GL_VENDOR));
-		printf("Renderer: %s\n", glGetString(GL_RENDERER));
-		printf("Version: %s\n", glGetString(GL_VERSION));
-		printf("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-	}
+    //HWND GetWindowHandle() const;
 
-	std::unique_ptr<Scene> m_scene;
+    void printGLInfo() {
+        printf("Vendor: %s\n", glGetString(GL_VENDOR));
+        printf("Renderer: %s\n", glGetString(GL_RENDERER));
+        printf("Version: %s\n", glGetString(GL_VERSION));
+        printf("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    }
+
+    std::unique_ptr<Scene> m_scene;
 
 private:
-	NON_COPYABLE(GLWindow);
-	double m_previousFrameTime = 0;
+    NON_COPYABLE(GLWindow);
+    double m_previousFrameTime = 0;
+    
+    
 
 };
 }
 #endif // _GL_WINDOW_H_
-

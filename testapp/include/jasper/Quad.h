@@ -3,34 +3,36 @@
 
 #include "Mesh.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class Quad :
-	public Mesh
+    public Mesh
 {
 public:
 
-	enum class AxisAlignment {
-		XY,
-		YZ,
-		XZ
-	};
+    enum class AxisAlignment
+    {
+        XY,
+        YZ,
+        XZ
+    };
 
-	Quad(const std::string& name);
-	explicit Quad(const std::string& name, const Vector2& size, AxisAlignment align);
-	Quad(const std::string& name, const Vector2& size, int repeatU, int repeatV, AxisAlignment align);
-	Quad(const std::string& name, const Vector3& normal, const Vector3& point);
-	~Quad();
+    Quad(const std::string& name);
+    explicit Quad(const std::string& name, const Vector2& size, AxisAlignment align);
+    Quad(const std::string& name, const Vector2& size, int repeatU, int repeatV, AxisAlignment align);
+    Quad(const std::string& name, const Vector3& normal, const Vector3& point);
+    ~Quad();
 
-	virtual void Initialize() override;
-	virtual void Destroy() override;
+    void Initialize() override;
+    void Destroy() override;
 
 
 private:
-	Vector2 m_size;
-	int m_repeatU;
-	int m_repeatV;
-	AxisAlignment m_alignment = AxisAlignment::XY;
+    Vector2 m_size;
+    int m_repeatU;
+    int m_repeatV;
+    AxisAlignment m_alignment = AxisAlignment::XY;
 
 };
 

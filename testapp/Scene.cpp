@@ -17,6 +17,7 @@
 
 
 
+
 namespace Jasper
 {
 
@@ -50,7 +51,7 @@ void Scene::Resize(int width, int height)
 
     float aspectRatio = (float)m_windowWidth / (float)m_windowHeight;
 
-    pm.CreatePerspectiveProjection(60, aspectRatio, 0.1f, 1000.0f);
+    pm.CreatePerspectiveProjection(30, aspectRatio, 0.1f, 1000.0f);
     om.CreateOrthographicProjection(0.0f, m_windowWidth, m_windowHeight, 0.0f, 1.0f, -1.0f);
     m_projectionMatrix = pm;
     m_orthoMatrix = om;
@@ -84,7 +85,7 @@ void Scene::Initialize()
 
     m_camera = m_rootNode->AttachNewChild<Camera>(Camera::CameraType::FLYING);
     m_camera->SetPhysicsWorld(m_physicsWorld.get());
-    m_camera->AttachNewComponent<CapsuleCollider>("camera_collider", Vector3(1.f, 2.f, 1.f), m_physicsWorld.get());
+    //m_camera->AttachNewComponent<CapsuleCollider>("camera_collider", Vector3(1.f, 2.f, 1.f), m_physicsWorld.get());
 
     // perform actual game object initialization
 
@@ -142,16 +143,16 @@ void Scene::Initialize()
 
     // launcher
     auto launcher = m_rootNode->AttachNewChild<GameObject>("Launcher");
-    launcher->GetLocalTransform().Translate(0.f, 10.f, 10.f);
+    launcher->GetLocalTransform().Translate(0.f, 1.f, 10.f);
     launcher->AttachNewComponent<LauncherScript>("Launcher_script");
 
     // secondary launcher
     auto launcher2 = m_rootNode->AttachNewChild<GameObject>("Launcher2");
     launcher2->GetLocalTransform().Translate(10.f, 2.f, 5.f);
-    launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
+    //launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
 
     auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model");
-    auto mdl = model->AttachNewComponent<Model>("mathias", "../models/Leon Kennedy/Leon_kennedy.obj", defaultShader, true, m_physicsWorld.get());
+    auto mdl = model->AttachNewComponent<Model>("mathias", "../models/Mathias/Mathias.obj", defaultShader, true, m_physicsWorld.get());
     mdl->Setup();
     auto collider = model->GetComponentByType<PhysicsCollider>();
     //model->getlocaltransform().uniformscale(0.02f);
@@ -164,9 +165,10 @@ void Scene::Initialize()
     auto light0 = m_rootNode->AttachNewChild<PointLight>("p_light");
     light0->GetLocalTransform().Translate( { 0.0f, 10.f, 15.0f });
     light0->ConstAtten = 0.002f;
-    light0->Color = { 1.f, 1.f, 1.f };
+    light0->Color = { 1.f, 0.f, 0.f };
     light0->AmbientIntensity = 0.15f;
     light0->DiffuseIntensity = 1.f;
+    light0->Radius = 12.0f;
     auto lightMesh = m_meshManager.CreateInstance<Cube>("point_light_mesh", Vector3(0.1f, 0.1f, 0.1f));
     auto lightMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "point_light_material");
     lightMaterial->SetTextureDiffuse("../textures/white.jpg");
@@ -179,9 +181,10 @@ void Scene::Initialize()
     dlight->AmbientIntensity = 0.01f;
     dlight->Diffuseintensity = 0.85f;
 
-    auto redMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "red_material");
-    redMaterial->Specular = {1.2f, 1.2f, 1.2f};
-    redMaterial->SetTextureDiffuse("../textures/red.png");
+    auto crateMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "crate_material");
+    crateMaterial->Specular = {1.2f, 1.2f, 1.2f};
+    crateMaterial->SetTextureDiffuse("../models/Crate/crate_tex3.jpg");
+
 
 
     m_rootNode->Initialize();
@@ -192,8 +195,7 @@ Shader* Scene::GetShaderByName(std::string name)
     auto res = find_if(begin(m_shaderManager.GetCache()), end(m_shaderManager.GetCache()),
     [&](const std::unique_ptr<Shader>& c) {
         return c->GetName() == name;
-    }
-                      );
+    });
     if (res != end(m_shaderManager.GetCache())) {
         return res->get();
     }

@@ -1,33 +1,41 @@
 #include "Component.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 Component::~Component()
 {
 }
 
-void Component::Initialize() {
+void Component::Initialize()
+{
 
 }
 
-void Component::Destroy() {
+void Component::Destroy()
+{
 }
 
-void Component::Awake() {
+void Component::Awake()
+{
 
 }
 
-void Component::Start() {
+void Component::Start()
+{
 }
 
-void Component::FixedUpdate() {
+void Component::FixedUpdate()
+{
 }
 
-void Component::Update(float dt) {
-    
+void Component::Update(float dt)
+{
+
 }
 
-void Component::LateUpdate() {
+void Component::LateUpdate()
+{
 }
 
 }

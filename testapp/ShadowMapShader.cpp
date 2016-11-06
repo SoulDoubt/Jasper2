@@ -1,23 +1,26 @@
 #include "ShadowMapShader.h"
 #include <string>
 
-namespace Jasper {
+namespace Jasper
+{
 
 using namespace std;
 
-ShadowMapShader::ShadowMapShader() : Shader("Shadow_map_shader") {
+ShadowMapShader::ShadowMapShader() : Shader("Shadow_map_shader")
+{
 
 }
 
-void ShadowMapShader::Initialize() {
+void ShadowMapShader::Initialize()
+{
 
-	string vsFile = ".\\Shaders\\shadow_map_vert.glsl";
-	string fsFile = ".\\Shaders\\shadow_map_frag.glsl";
+    string vsFile = ".\\Shaders\\shadow_map_vert.glsl";
+    string fsFile = ".\\Shaders\\shadow_map_frag.glsl";
 
-	AddShader(vsFile, ShaderType::VERTEX);
-	AddShader(fsFile, ShaderType::FRAGMENT);
+    AddShader(vsFile, ShaderType::VERTEX);
+    AddShader(fsFile, ShaderType::FRAGMENT);
 
-	LinkShaderProgram();
+    LinkShaderProgram();
 }
 
 } // namespace Jasper

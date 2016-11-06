@@ -101,6 +101,13 @@ void Shader::SetAttributeArray(int location, GLenum num_type, void * offset, int
     }
 }
 
+void Shader::SetAttributeArray(int location, GLenum num_type, void* offset, int num_components, int stride, bool normalize){
+    if (location > -1) {
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, num_components, num_type, normalize, stride, offset);
+    }
+}
+
 void Shader::AddShader(std::string filename, ShaderType t)
 {
 
@@ -185,8 +192,8 @@ void Shader::LinkShaderProgram()
         glDeleteShader(shader);
     }
     m_shaders.clear();
-    
-    PrintAttribsAndUniforms();
+
+    //PrintAttribsAndUniforms();
 }
 
 void Shader::Destroy()

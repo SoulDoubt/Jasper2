@@ -3,16 +3,17 @@
 
 #include "Mesh.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class Triangle : public Mesh
 {
 public:
-	Triangle(const std::string& name);
-	~Triangle();
+    Triangle(const std::string& name);
+    ~Triangle();
 
-	virtual void Initialize() override;
-	virtual void Destroy() override;
+    virtual void Initialize() override;
+    virtual void Destroy() override;
 
 };
 }

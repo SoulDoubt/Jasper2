@@ -3,21 +3,22 @@
 
 #include "Mesh.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 class Sphere :
-	public Mesh
+    public Mesh
 {
 public:
-	explicit Sphere(const std::string& name, float radius);
-	~Sphere();
+    explicit Sphere(const std::string& name, float radius);
+    ~Sphere();
 
-	virtual void Initialize() override;
-	virtual void Destroy() override;
+    virtual void Initialize() override;
+    virtual void Destroy() override;
 
-	unsigned m_latLines = 24;
-	unsigned m_longLines = 24;
-	float m_radius;
+    unsigned m_latLines = 24;
+    unsigned m_longLines = 24;
+    float m_radius;
 };
 
 }

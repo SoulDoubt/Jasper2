@@ -2,27 +2,29 @@
 #define _JASPER_TEXTURE_SHADER_H_
 
 #include "Shader.h"
-namespace Jasper {
+namespace Jasper
+{
 
-	using namespace std;
+using namespace std;
 
-	class TextureShader : public Shader {
-	public:
+class TextureShader : public Shader
+{
+public:
 
-		TextureShader() : Shader("Texture_Shader") {
-			Initialize();
-		}
+    TextureShader() : Shader("Texture_Shader") {
+        Initialize();
+    }
 
-		void Initialize() override {
-			string vsFile = "./Shaders/texture_vert.glsl";
-			string fsFile = "./Shaders/texture_fragment.glsl";
+    void Initialize() override {
+        string vsFile = "./Shaders/texture_vert.glsl";
+        string fsFile = "./Shaders/texture_fragment.glsl";
 
-			AddShader(vsFile, ShaderType::VERTEX);
-			AddShader(fsFile, ShaderType::FRAGMENT);
+        AddShader(vsFile, ShaderType::VERTEX);
+        AddShader(fsFile, ShaderType::FRAGMENT);
 
-			LinkShaderProgram();
-		}
-	};
+        LinkShaderProgram();
+    }
+};
 
 }
 

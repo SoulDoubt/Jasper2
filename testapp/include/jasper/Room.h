@@ -3,7 +3,8 @@
 
 #include "Mesh.h"
 
-namespace Jasper {
+namespace Jasper
+{
 //	class Room :
 //		public Mesh
 //	{

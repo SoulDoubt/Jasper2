@@ -2,14 +2,16 @@
 
 #include "Shader.h"
 
-namespace Jasper {
-class ShadowMapShader : public Shader {
+namespace Jasper
+{
+class ShadowMapShader : public Shader
+{
 
 public:
-	ShadowMapShader();
-	~ShadowMapShader();
+    ShadowMapShader();
+    ~ShadowMapShader();
 
-	void Initialize() override;
+    void Initialize() override;
 
 };
 

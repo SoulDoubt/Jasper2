@@ -1,6 +1,7 @@
 #include "Room.h"
 
-namespace Jasper {
+namespace Jasper
+{
 
 //	Room::Room()
 //	{

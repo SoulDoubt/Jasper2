@@ -5,13 +5,15 @@
 #include "Scene.h"
 #include <chrono>
 
-namespace Jasper{
+namespace Jasper
+{
 
-void RotateAboutPointScript::Update(float dt){    
+void RotateAboutPointScript::Update(float dt)
+{
     auto go = GetGameObject();
-	if (go != nullptr) {
-		go->GetLocalTransform().RotateAround(m_point, m_axis, dt * m_degreesPerSec);
-	}
+    if (go != nullptr) {
+        go->GetLocalTransform().RotateAround(m_point, m_axis, dt * m_degreesPerSec);
+    }
 }
 
 }
