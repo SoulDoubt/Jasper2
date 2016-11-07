@@ -19,6 +19,7 @@
 //#define WIN32_LEAN_AND_MEAN
 //#include <Windows.h>
 
+struct ImDrawData;
 
 namespace Jasper
 {
@@ -51,6 +52,8 @@ public:
     void GuiNewFrame();
     void GetGuiFontTexture();
     void DrawGui();
+    bool CreateAddGameObjectGui(GameObject* parent);
+    void RenderGui(ImDrawData* draw_data);
 
     //HWND GetWindowHandle() const;
 
@@ -66,8 +69,19 @@ public:
 private:
     NON_COPYABLE(GLWindow);
     double m_previousFrameTime = 0;
-    
-    
+
+    struct GuiGLHandles {
+        std::unique_ptr<Shader>   GuiShader;
+        std::unique_ptr<GLBuffer> PositionBuffer;
+        std::unique_ptr<GLBuffer> IndexBuffer;
+        unsigned vaoID;
+        unsigned fontTexture;
+    };
+
+    GuiGLHandles m_guiHandles;
+    Matrix4 m_guiMatrix;
+
+
 
 };
 }

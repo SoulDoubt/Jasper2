@@ -6,6 +6,8 @@
 
 #include "imgui.h"
 
+#include <typeinfo>
+
 //#define GLFW_EXPOSE_NATIVE_WIN32
 //#define GLFW_EXPOSE_NATIVE_WGL
 //#include <GLFW\glfw3native.h>
@@ -48,23 +50,34 @@ bool ROTATING_DOWN = 0;
 
 bool MOUSE_MOVE = 0;
 
-struct GuiGLHandles {
-    std::unique_ptr<Shader>   GuiShader;
-    std::unique_ptr<GLBuffer> PositionBuffer;
-    std::unique_ptr<GLBuffer> IndexBuffer;
-    unsigned vaoID;
-    unsigned fontTexture;
+
+GLWindow* g_glWindow;
+
+
+static auto vector_getter = [](void* vec, int idx, const char** out_text)
+{
+    auto& vector = *static_cast<std::vector<std::string>*>(vec);
+    if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+    *out_text = vector.at(idx).c_str();
+    return true;
 };
+ 
+bool Combo(const char* label, int* currIndex, std::vector<std::string>& values)
+{
+    if (values.empty()) { return false; }
+    return ImGui::Combo(label, currIndex, vector_getter,
+        static_cast<void*>(&values), values.size());
+}
+ 
+bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values)
+{
+    if (values.empty()) { return false; }
+    return ImGui::ListBox(label, currIndex, vector_getter,
+        static_cast<void*>(&values), values.size());
+}
+ 
 
-GuiGLHandles m_guiHandles;
 
-Matrix4 m_guiMatrix;
-
-
-
-//void ProcessInput(GLFWwindow* window, Scene* scene, float deltaTime);
-
-//void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
 
 bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime);
 bool ProcessSDLEventGui(SDL_Event* evt, Scene* scene);
@@ -133,11 +146,9 @@ void GLWindow::RunLoop()
 {
 
     bool loop = true;
-    ImVec4 clear_color = ImColor(114, 144, 154);
     high_resolution_clock::time_point previousTime = high_resolution_clock::now();
 
     while (loop) {
-        //while (!glfwWindowShouldClose(m_window)) {
 
 
         high_resolution_clock::time_point currentTime = high_resolution_clock::now();
@@ -152,8 +163,9 @@ void GLWindow::RunLoop()
             if (ProcessSDLEvent(evt, m_scene.get(), dt)) {
                 loop = false;
             }
-            
         }
+
+
         DoMovement(m_scene.get(), dt);
 
         GuiNewFrame();
@@ -162,37 +174,149 @@ void GLWindow::RunLoop()
         //ProcessInput(m_window, m_scene.get(), deltaTime);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m_scene->Update(dt);
-        
-        
-
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
         {
-            static bool handleButtonClick = 0;
-            const Camera& camera = m_scene->GetCamera();
-            Vector3 cameraPosition = camera.GetPosition();
-            Vector3 cameraDirection = camera.GetViewDirection();
-            const Renderer* renderer = m_scene->GetRenderer();
-                       
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
-            ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
-            ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
-            char input[64];
-
-            ImGui::InputText("This is a text entry.", input, 64);
-            if (ImGui::Button("Click")) handleButtonClick ^=1;
-            if (handleButtonClick){
-                ImGui::Text("You entered: %s", input);
-            }
+            DrawGui();
         }
-            
+
         ImGui::Render();
         SDL_GL_SwapWindow(m_window);
 
     }
-    SDL_DestroyWindow(m_window);
     m_scene->Destroy();
-    //glfwTerminate();
+    SDL_GL_DeleteContext(m_context);
+    SDL_DestroyWindow(m_window);
+    SDL_Quit();
+
+//glfwTerminate();
+}
+
+void GLWindow::DrawGui()
+{
+    static bool handleButtonClick = 0;
+    static bool showNewGameObjectWindow = false;
+    static GameObject* goAddParent = nullptr;
+
+    const Camera& camera = m_scene->GetCamera();
+    Vector3 cameraPosition = camera.GetPosition();
+    Vector3 cameraDirection = camera.GetViewDirection();
+    const Renderer* renderer = m_scene->GetRenderer();
+
+    ImGui::Begin("Debug");
+
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
+    ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
+    ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
+    ImGui::Text("Physics: %.6f ms", m_scene->PhysicsFrameTime);
+    ImGui::Text("Update: %.6f ms", m_scene->UpdateFrameTime);
+    ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);    
+
+    ImGui::End();
+
+    auto rootNode = m_scene->GetRootNode();
+
+    ImGui::Begin("Game Object Hierarchy");
+
+    if (ImGui::TreeNode("Game Objects")) {
+        if (ImGui::TreeNode(rootNode->GetName().data())) {
+            if (ImGui::BeginPopupContextItem("item context menu")) {
+                if (ImGui::Selectable("Add New Child")) {
+                    showNewGameObjectWindow ^= 1;
+                    goAddParent = rootNode;
+                }
+                ImGui::EndPopup();
+            }
+            const auto& children = rootNode->Children();
+            unsigned i = 0;
+            GameObject* goToDelete = nullptr;
+
+            for (const auto& child : children) {
+                if (ImGui::TreeNode((void*)(uintptr_t)i, child->GetName().data())) {
+                    if (ImGui::BeginPopupContextItem("item context menu")) {
+                        if (ImGui::Selectable("Delete")) {
+                            goToDelete = child.get();
+                        }
+                        if (ImGui::Selectable("Add New Child")) {
+                            showNewGameObjectWindow ^= 1;
+                            goAddParent = child.get();
+                        }
+                        ImGui::EndPopup();
+                    }
+                    const auto& components = child->Components();
+                    unsigned j = 0;
+                    for (const auto& cmp : components) {
+                        auto typ = typeid(cmp).name();
+                        if (ImGui::TreeNode((void*)(uintptr_t)j, cmp->GetName().data())) {
+                            ImGui::Text("Component Data");
+                            ImGui::TreePop();
+                        }
+                        j++;
+                    }
+                    ImGui::TreePop();
+                }
+                i++;
+            }
+            if (goToDelete) {
+                m_scene->DestroyGameObject(goToDelete);
+            }
+            ImGui::TreePop();
+        }
+        ImGui::TreePop();
+
+    }
+
+    if (ImGui::TreeNode("Logging")) {
+        ImGui::TextWrapped("The logging API redirects all text output so you can easily capture the content of a window or a block. Tree nodes can be automatically expanded. You can also call ImGui::LogText() to output directly to the log without a visual output.");
+        ImGui::LogButtons();
+        ImGui::TreePop();
+    }
+    ImGui::End();
+    
+    ImGui::Begin("Shaders & Materials");    
+    auto& shaders = m_scene->GetShaderCache();
+    vector<string> shaderNames;
+    shaderNames.reserve(shaders.GetCache().size());
+    static int shader_list_selected = 1;
+    for (auto& shader : shaders.GetCache()){
+        shaderNames.push_back(shader->GetName());
+    }
+    ListBox("Shaders", &shader_list_selected, shaderNames);
+    //ImGui::ListBox("Shaders", &shader_list_selected, shaderNames.data(), shaderNames.size());
+    vector<string> materialNames;    
+    auto& materials = m_scene->GetMaterialCache();
+    materialNames.reserve(materials.GetCache().size());
+    static int material_list_selected;
+    for (auto& mat : materials.GetCache()){
+        materialNames.push_back(mat->GetName());
+    }
+    ListBox("Materials", &material_list_selected, materialNames);
+    ImGui::End();
+
+    if (showNewGameObjectWindow) {
+        if (CreateAddGameObjectGui(goAddParent)){
+            showNewGameObjectWindow ^= 1;
+        }
+    }
+}
+
+bool GLWindow::CreateAddGameObjectGui(GameObject* parent)
+{
+    if (parent) {
+        static char nameBuff[128] = "";
+        //memset(nameBuff, 0, 128);
+        ImGui::Begin("New Game Object");
+        ImGui::Text("Parent: %s", parent->GetName().data());
+        ImGui::InputText("Name: ", nameBuff, 128);
+        if (ImGui::Button("Add")){
+            parent->AttachNewChild(string(nameBuff));
+            ImGui::End();
+            return true;
+        }
+        ImGui::End();
+    }
+    return false;
+
 }
 
 void GLWindow::InitializeScene()
@@ -204,9 +328,9 @@ void GLWindow::InitializeScene()
 
 void GLWindow::InitializeGui()
 {
+    g_glWindow = this;
     auto window = m_window;
     ImGuiIO& io = ImGui::GetIO();
-    //ImGuiStyle& style = ImGui::GetStyle();
 
     io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;                     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
     io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
@@ -228,9 +352,9 @@ void GLWindow::InitializeGui()
     io.KeyMap[ImGuiKey_Y] = SDLK_y;
     io.KeyMap[ImGuiKey_Z] = SDLK_z;
 
-    io.RenderDrawListsFn = RenderImGuiDrawLists;   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-    //io.SetClipboardTextFn = ImGui_ImplSdlGL3_SetClipboardText;
-    //io.GetClipboardTextFn = ImGui_ImplSdlGL3_GetClipboardText;
+    io.RenderDrawListsFn = RenderImGuiDrawLists;//[self](ImDrawData* draw_data){
+    //self->RenderGui(draw_data);   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
+    //};
     io.ClipboardUserData = nullptr;
 
 #ifdef _WIN32
@@ -388,10 +512,8 @@ void ResizeWindow(int w, int h, Scene* scene)
 
 }
 
-void RenderImGuiDrawLists(ImDrawData* draw_data)
+void GLWindow::RenderGui(ImDrawData* draw_data)
 {
-
-    // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
     ImGuiIO& io = ImGui::GetIO();
     int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
     int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
@@ -462,12 +584,8 @@ void RenderImGuiDrawLists(ImDrawData* draw_data)
 
         m_guiHandles.PositionBuffer->Bind();
         m_guiHandles.PositionBuffer->Allocate((GLvoid*)cmd_list->VtxBuffer.Data, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
-        //glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-        //glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
         m_guiHandles.IndexBuffer->Bind();
         m_guiHandles.IndexBuffer->Allocate((GLvoid*)cmd_list->IdxBuffer.Data, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
-        //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++) {
             const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
@@ -504,6 +622,12 @@ void RenderImGuiDrawLists(ImDrawData* draw_data)
     glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
     glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
 
+
+}
+
+void RenderImGuiDrawLists(ImDrawData* draw_data)
+{
+    g_glWindow->RenderGui(draw_data);
 
 
 }

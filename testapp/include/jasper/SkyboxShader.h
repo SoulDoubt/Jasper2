@@ -11,7 +11,7 @@ class SkyboxShader :
     public Shader
 {
 public:
-    SkyboxShader();
+    SkyboxShader(std::string name);
     ~SkyboxShader();
 
     void Initialize() override;

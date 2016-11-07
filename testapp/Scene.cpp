@@ -1,4 +1,5 @@
 #include <memory>
+#include <chrono>
 #include "Scene.h"
 #include "Quad.h"
 #include "Cube.h"
@@ -93,7 +94,7 @@ void Scene::Initialize()
     auto skybox = m_rootNode->AttachNewChild<GameObject>("skybox");
     auto skyboxMesh = m_meshManager.CreateInstance<Cube>("skybox_cube_mesh", Vector3(100.0f, 100.0f, 100.0f), true);
     skyboxMesh->SetCubemap(true); // we want to render the inside of the cube
-    auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>();
+    auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("sjybox_shader");
     auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader, "skybox_material");
     string posx = "../textures/darkskies/darkskies_lf.tga";
     string negx = "../textures/darkskies/darkskies_ft.tga";
@@ -240,15 +241,31 @@ float currentLerpTime = 0.f;
 
 void Scene::Update(float dt)
 {
+    using namespace std::chrono;
     //Vector3 position = m_camera->GetPosition();
     //Vector3 direction = m_camera->GetViewDirection();
     // step the physics simulation
+    high_resolution_clock::time_point physicsStart = high_resolution_clock::now();
     m_physicsWorld->Update(dt);
+    high_resolution_clock::time_point physicsEnd = high_resolution_clock::now();
+    auto physicsTime = physicsEnd - physicsStart;  
+    double pt = physicsTime.count();
+    this->PhysicsFrameTime = pt / 1000000;
     // updating game objects will collect their updated physics transforms
     // and perform any scripted activities.
+    high_resolution_clock::time_point updateStart = high_resolution_clock::now();
     m_rootNode->Update(dt);
+    high_resolution_clock::time_point updateEnd = high_resolution_clock::now();
+    auto updateTime = updateEnd - updateStart;
+    double ut = updateTime.count();
+    this->UpdateFrameTime = ut / 1000000;
     // after update the scene is ready for rendering...
+    high_resolution_clock::time_point renderStart = high_resolution_clock::now();
     m_renderer->RenderScene();
+    high_resolution_clock::time_point renderEnd = high_resolution_clock::now();
+    auto renderTime = renderEnd - renderStart;
+    double rt = renderTime.count();
+    this->RendererFrameTime = rt / 1000000;
 
 #ifdef DEBUG_DRAW_PHYSICS
     auto viewMatrix = m_camera->GetViewMatrix().Inverted();

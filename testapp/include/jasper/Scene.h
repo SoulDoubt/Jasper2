@@ -15,6 +15,7 @@
 #include "Model.h"
 #include "FontRenderer.h"
 #include "Renderer.h"
+#include "Material.h"
 #include "CharacterController.h"
 
 namespace Jasper
@@ -115,8 +116,16 @@ public:
     ResourceManager<Texture>& GetTextureCache() {
         return m_textureManager;
     }
+    
+    ResourceManager<Shader>& GetShaderCache(){
+        return m_shaderManager;
+    }
 
     int m_windowWidth, m_windowHeight;
+    
+    double PhysicsFrameTime;
+    double UpdateFrameTime;
+    double RendererFrameTime;
 
 private:
 

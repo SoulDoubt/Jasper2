@@ -6,8 +6,8 @@ namespace Jasper
 {
 using namespace std;
 
-Shader::Shader()
-{
+Shader::Shader(): m_name("unamed_shader")
+{    
     m_transpose = true;
     Initialize();
 }

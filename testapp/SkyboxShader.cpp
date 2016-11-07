@@ -3,7 +3,7 @@
 namespace Jasper
 {
 
-SkyboxShader::SkyboxShader()
+SkyboxShader::SkyboxShader(std::string name) : Shader(name)
 {
     Initialize();
 }
