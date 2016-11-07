@@ -162,21 +162,17 @@ void GLWindow::RunLoop()
         //ProcessInput(m_window, m_scene.get(), deltaTime);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m_scene->Update(dt);
+        
+        
 
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
         {
+            static bool handleButtonClick = 0;
             const Camera& camera = m_scene->GetCamera();
             Vector3 cameraPosition = camera.GetPosition();
             Vector3 cameraDirection = camera.GetViewDirection();
             const Renderer* renderer = m_scene->GetRenderer();
-            
-            //ImGui::PushStyleColor(ImGuiCol_Text, ImColor::HSV(1.0, 0.0, 0.0));
-            static float f = 0.0f;
-            ImGui::Text("Hello, world!");
-            ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-            ImGui::ColorEdit3("clear color", (float*)&clear_color);
-            //if (ImGui::Button("Test Window")) show_test_window ^= 1;
-            //if (ImGui::Button("Another Window")) show_another_window ^= 1;
+                       
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
             ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
             ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
@@ -184,14 +180,14 @@ void GLWindow::RunLoop()
             char input[64];
 
             ImGui::InputText("This is a text entry.", input, 64);
-            //ImGui::PopStyleColor(1);
+            if (ImGui::Button("Click")) handleButtonClick ^=1;
+            if (handleButtonClick){
+                ImGui::Text("You entered: %s", input);
+            }
         }
-
-
+            
         ImGui::Render();
         SDL_GL_SwapWindow(m_window);
-        //glfwSwapBuffers(m_window);
-        //glfwPollEvents();
 
     }
     SDL_DestroyWindow(m_window);
@@ -274,7 +270,7 @@ void GLWindow::InitializeGui()
     m_guiHandles.GuiShader->SetAttributeArray(colorLocation, GL_UNSIGNED_BYTE, (void*)offsetof(ImDrawVert, col), 4, sizeof(ImDrawVert), true);
     m_guiHandles.PositionBuffer->Release();
 
-    io.Fonts->AddFontFromFileTTF("../fonts/Roboto-Medium.ttf", 14);
+    io.Fonts->AddFontFromFileTTF("../fonts/Roboto-Medium.ttf", 18);
     GetGuiFontTexture();
     glBindVertexArray(0);
 
