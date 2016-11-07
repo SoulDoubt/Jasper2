@@ -12,6 +12,7 @@ smooth out vec2 outTexCoords;
 smooth out vec4 outColor;
 void main()
 {
+	outColor = color;
 	outTexCoords = texCoords;
 	gl_Position = mvpMatrix * vec4(position, 0.0, 1.0);			
 }

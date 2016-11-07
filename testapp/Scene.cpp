@@ -240,8 +240,8 @@ float currentLerpTime = 0.f;
 
 void Scene::Update(float dt)
 {
-    Vector3 position = m_camera->GetPosition();
-    Vector3 direction = m_camera->GetViewDirection();
+    //Vector3 position = m_camera->GetPosition();
+    //Vector3 direction = m_camera->GetViewDirection();
     // step the physics simulation
     m_physicsWorld->Update(dt);
     // updating game objects will collect their updated physics transforms
@@ -288,21 +288,21 @@ void Scene::Update(float dt)
     //btt.setIdentity();
     //m_physicsWorld->DrawPhysicsShape(btt, m_player->GetCollisionShape(), {1.f, 1.f, 1.f});
 #endif
-    string pos = "Position: " + position.ToString();
-    string dir = "Direction: " + direction.ToString();
-
-    string meshCount = "Meshes in Cache: " + std::to_string(m_meshManager.GetSize());
-    string renderedObjectCount = "Rendered Objects: " + std::to_string(m_renderer->GetMeshRendererCount());
-    \
-    m_fontRenderer->SetColor(1.0f, 0.0f, 0.0f);
-    m_fontRenderer->RenderText(pos, 25, 25);
-    //fontRenderer->SetColor(0.0f, 0.0f, 1.0f);
-    m_fontRenderer->RenderText(dir, 25, 52);
-    float fps = CalcFPS(dt);
-    m_fontRenderer->RenderText("FPS: " + to_string(fps), 25, 75);
-
-    m_fontRenderer->RenderText(meshCount, 25, 102);
-    m_fontRenderer->RenderText(renderedObjectCount, 25, 129);
+//    string pos = "Position: " + position.ToString();
+//    string dir = "Direction: " + direction.ToString();
+//
+//    string meshCount = "Meshes in Cache: " + std::to_string(m_meshManager.GetSize());
+//    string renderedObjectCount = "Rendered Objects: " + std::to_string(m_renderer->GetMeshRendererCount());
+//    \
+//    m_fontRenderer->SetColor(1.0f, 0.0f, 0.0f);
+//    m_fontRenderer->RenderText(pos, 25, 25);
+//    //fontRenderer->SetColor(0.0f, 0.0f, 1.0f);
+//    m_fontRenderer->RenderText(dir, 25, 52);
+//    float fps = CalcFPS(dt);
+//    m_fontRenderer->RenderText("FPS: " + to_string(fps), 25, 75);
+//
+//    m_fontRenderer->RenderText(meshCount, 25, 102);
+//    m_fontRenderer->RenderText(renderedObjectCount, 25, 129);
 }
 
 

@@ -51,8 +51,6 @@ bool MOUSE_MOVE = 0;
 struct GuiGLHandles {
     std::unique_ptr<Shader>   GuiShader;
     std::unique_ptr<GLBuffer> PositionBuffer;
-    std::unique_ptr<GLBuffer> ColorBuffer;
-    std::unique_ptr<GLBuffer> TexCoordBuffer;
     std::unique_ptr<GLBuffer> IndexBuffer;
     unsigned vaoID;
     unsigned fontTexture;
@@ -69,6 +67,7 @@ Matrix4 m_guiMatrix;
 //void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
 
 bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime);
+bool ProcessSDLEventGui(SDL_Event* evt, Scene* scene);
 
 void DoMovement(Scene* scene, double deltaTime);
 
@@ -106,13 +105,6 @@ bool GLWindow::Init()
 
     m_context = SDL_GL_CreateContext(m_window);
 
-    /*if (!m_window) {
-    	glfwTerminate();
-    	return false;
-    }*/
-
-    //glfwMakeContextCurrent(m_window);
-
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK) {
         printf("GLEW Initialization Failed\n");
@@ -124,8 +116,8 @@ bool GLWindow::Init()
 
     glViewport(0, 0, Width, Height);
 
-
     m_guiMatrix.CreateOrthographicProjection(0.0f, Width, Height, 0.0f, 1.0f, -1.0f);
+    //m_guiMatrix = m_guiMatrix.Translate({0.1, 0.0, 0.0});
     //glfwSetFramebufferSizeCallback(m_window, framebuffer_resize_callback);
 
     printGLInfo();
@@ -156,9 +148,11 @@ void GLWindow::RunLoop()
 
         SDL_Event evt;
         while (SDL_PollEvent(&evt)) {
+            ProcessSDLEventGui(&evt, m_scene.get());
             if (ProcessSDLEvent(evt, m_scene.get(), dt)) {
                 loop = false;
             }
+            
         }
         DoMovement(m_scene.get(), dt);
 
@@ -171,6 +165,12 @@ void GLWindow::RunLoop()
 
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
         {
+            const Camera& camera = m_scene->GetCamera();
+            Vector3 cameraPosition = camera.GetPosition();
+            Vector3 cameraDirection = camera.GetViewDirection();
+            const Renderer* renderer = m_scene->GetRenderer();
+            
+            //ImGui::PushStyleColor(ImGuiCol_Text, ImColor::HSV(1.0, 0.0, 0.0));
             static float f = 0.0f;
             ImGui::Text("Hello, world!");
             ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
@@ -178,6 +178,13 @@ void GLWindow::RunLoop()
             //if (ImGui::Button("Test Window")) show_test_window ^= 1;
             //if (ImGui::Button("Another Window")) show_another_window ^= 1;
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
+            ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
+            ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
+            char input[64];
+
+            ImGui::InputText("This is a text entry.", input, 64);
+            //ImGui::PopStyleColor(1);
         }
 
 
@@ -203,9 +210,7 @@ void GLWindow::InitializeGui()
 {
     auto window = m_window;
     ImGuiIO& io = ImGui::GetIO();
-    ImGuiStyle& style = ImGui::GetStyle();
-
-
+    //ImGuiStyle& style = ImGui::GetStyle();
 
     io.KeyMap[ImGuiKey_Tab] = SDLK_TAB;                     // Keyboard mapping. ImGui will use those indices to peek into the io.KeyDown[] array.
     io.KeyMap[ImGuiKey_LeftArrow] = SDL_SCANCODE_LEFT;
@@ -245,9 +250,8 @@ void GLWindow::InitializeGui()
     m_guiHandles.GuiShader = make_unique<GuiShader>();
     m_guiHandles.PositionBuffer = make_unique<GLBuffer>(GLBuffer::BufferType::VERTEX);
     m_guiHandles.PositionBuffer->SetUsage(GLBuffer::Usage::StreamDraw);
-    //m_guiHandles.ColorBuffer = make_unique<GLBuffer>(GLBuffer::BufferType::VERTEX);
-    //m_guiHandles.TexCoordBuffer = make_unique<GLBuffer>(GLBuffer::BufferType::VERTEX);
     m_guiHandles.IndexBuffer = make_unique<GLBuffer>(GLBuffer::BufferType::INDEX);
+    m_guiHandles.IndexBuffer->SetUsage(GLBuffer::Usage::StreamDraw);
 
     GLint last_texture, last_array_buffer, last_vertex_array;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
@@ -259,8 +263,6 @@ void GLWindow::InitializeGui()
 
     m_guiHandles.GuiShader->Initialize();
     m_guiHandles.PositionBuffer->Create();
-    //m_guiHandles.ColorBuffer->Create();
-    //m_guiHandles.TexCoordBuffer->Create();
     m_guiHandles.IndexBuffer->Create();
 
     m_guiHandles.PositionBuffer->Bind();
@@ -272,13 +274,9 @@ void GLWindow::InitializeGui()
     m_guiHandles.GuiShader->SetAttributeArray(colorLocation, GL_UNSIGNED_BYTE, (void*)offsetof(ImDrawVert, col), 4, sizeof(ImDrawVert), true);
     m_guiHandles.PositionBuffer->Release();
 
-    
-    
-    io.Fonts->AddFontFromFileTTF("../fonts/Roboto-Medium.ttf", 16);
+    io.Fonts->AddFontFromFileTTF("../fonts/Roboto-Medium.ttf", 14);
     GetGuiFontTexture();
     glBindVertexArray(0);
-
-    
 
     // Restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture);
@@ -512,6 +510,41 @@ void RenderImGuiDrawLists(ImDrawData* draw_data)
 
 
 
+}
+
+bool ProcessSDLEventGui(SDL_Event* event, Scene* scene)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    switch (event->type) {
+    case SDL_MOUSEWHEEL: {
+        if (event->wheel.y > 0)
+            gui_mouse_wheel = 1;
+        if (event->wheel.y < 0)
+            gui_mouse_wheel = -1;
+        return true;
+    }
+    case SDL_MOUSEBUTTONDOWN: {
+        if (event->button.button == SDL_BUTTON_LEFT) gui_mouse_pressed[0] = true;
+        if (event->button.button == SDL_BUTTON_RIGHT) gui_mouse_pressed[1] = true;
+        if (event->button.button == SDL_BUTTON_MIDDLE) gui_mouse_pressed[2] = true;
+        return true;
+    }
+    case SDL_TEXTINPUT: {
+        io.AddInputCharactersUTF8(event->text.text);
+        return true;
+    }
+    case SDL_KEYDOWN:
+    case SDL_KEYUP: {
+        int key = event->key.keysym.sym & ~SDLK_SCANCODE_MASK;
+        io.KeysDown[key] = (event->type == SDL_KEYDOWN);
+        io.KeyShift = ((SDL_GetModState() & KMOD_SHIFT) != 0);
+        io.KeyCtrl = ((SDL_GetModState() & KMOD_CTRL) != 0);
+        io.KeyAlt = ((SDL_GetModState() & KMOD_ALT) != 0);
+        io.KeySuper = ((SDL_GetModState() & KMOD_GUI) != 0);
+        return true;
+    }
+    }
+    return false;
 }
 
 bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)

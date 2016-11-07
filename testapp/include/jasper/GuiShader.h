@@ -15,7 +15,7 @@ class GuiShader : public Shader
 inline void GuiShader::Initialize()
 {
     string vsFile = "../Shaders/texture_vert.glsl";
-    string fsFile = "../Shaders/texture_fragment.glsl";
+    string fsFile = "../Shaders/texture_frag.glsl";
 
     AddShader(vsFile, ShaderType::VERTEX);
     AddShader(fsFile, ShaderType::FRAGMENT);
