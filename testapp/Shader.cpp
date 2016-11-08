@@ -1,6 +1,7 @@
 #include "Shader.h"
 #include "Material.h"
 #include "GLError.h"
+#include "imgui.h"
 
 namespace Jasper
 {
@@ -390,5 +391,11 @@ void Shader::SetTransformUniforms(const Transform & trans)
     glUniform4fv(orientationLoc, 1, q.AsFloatPtr());
     glUniform3fv(scaleLoc, 1, trans.Scale.AsFloatPtr());
 
+}
+
+bool Shader::ShowGui(){
+    static char name_buffer[] = "";
+    return false;
+    
 }
 }

@@ -2,6 +2,7 @@
 #include "PhysicsCollider.h"
 #include "Scriptable.h"
 #include <chrono>
+#include "imgui.h"
 
 namespace Jasper
 {
@@ -16,7 +17,13 @@ GameObject::~GameObject()
     }
 }
 
-
+bool GameObject::ShowGui(){    
+    
+    ImGui::InputFloat3("Position", m_transform.Position.AsFloatPtr());
+    ImGui::InputFloat4("Orientation", m_transform.Orientation.AsFloatPtr());
+    return false;
+    //
+}
 
 
 

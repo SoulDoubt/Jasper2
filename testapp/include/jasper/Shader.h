@@ -59,6 +59,8 @@ public:
     ~Shader();
 
     void PrintAttribsAndUniforms();
+    
+    bool ShowGui();
 
     std::string GetName() const {
         return m_name;

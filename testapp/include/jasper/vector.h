@@ -114,6 +114,10 @@ struct Vector3 {
     const float* AsFloatPtr() const {
         return &x;
     }
+    
+    float* AsFloatPtr(){
+        return &x;
+    }
 
 };
 
@@ -439,6 +443,10 @@ public:
     std::string ToString() const;
 
     const float* AsFloatPtr() const {
+        return &x;
+    }
+    
+    float* AsFloatPtr() {
         return &x;
     }
 

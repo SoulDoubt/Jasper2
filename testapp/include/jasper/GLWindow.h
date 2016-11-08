@@ -53,6 +53,7 @@ public:
     void GetGuiFontTexture();
     void DrawGui();
     bool CreateAddGameObjectGui(GameObject* parent);
+    bool CreateMaterialEditorGui(Material* material);
     void RenderGui(ImDrawData* draw_data);
 
     //HWND GetWindowHandle() const;

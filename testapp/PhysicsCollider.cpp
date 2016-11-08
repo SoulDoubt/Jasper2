@@ -1,5 +1,6 @@
 #include "PhysicsCollider.h"
 #include "GameObject.h"
+#include "imgui.h"
 
 namespace Jasper
 {
@@ -57,8 +58,8 @@ void PhysicsCollider::Update(float dt)
 {
     auto go = this->GetGameObject();
     Transform t = this->GetCurrentWorldTransform();
-
     go->SetLocalTransform(t);
+    
     //Component::Update();
 }
 
@@ -74,6 +75,17 @@ Transform PhysicsCollider::GetCurrentWorldTransform()
     Transform physTransform = Transform(trans);
     physTransform.Scale = t.Scale;
     return physTransform;
+}
+
+bool PhysicsCollider::ShowGui(){
+    using namespace ImGui;
+    if (InputFloat("Mass", &Mass)){
+        this->m_rigidBody->setMassProps(Mass, btVector3(0,0,0));
+    }
+    if (InputFloat("Restitution", &Restitution)){
+        this->m_rigidBody->setRestitution(Restitution);
+    }
+    return false;
 }
 
 

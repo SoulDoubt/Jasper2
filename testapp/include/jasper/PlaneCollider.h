@@ -2,6 +2,7 @@
 #define _JASPER_PLANE_COLLIDER_H_
 
 #include "PhysicsCollider.h"
+#include "imgui.h"
 
 namespace Jasper
 {
@@ -14,6 +15,7 @@ public:
     ~PlaneCollider();
 
     void Awake() override;
+    
 };
 
 }

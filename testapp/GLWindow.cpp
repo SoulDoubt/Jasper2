@@ -53,6 +53,8 @@ bool MOUSE_MOVE = 0;
 
 GLWindow* g_glWindow;
 
+// ImGui hats std::strings, and isn't kind to std::vectors
+// these functions are necessary to make that easier on us.
 
 static auto vector_getter = [](void* vec, int idx, const char** out_text)
 {
@@ -61,6 +63,12 @@ static auto vector_getter = [](void* vec, int idx, const char** out_text)
     *out_text = vector.at(idx).c_str();
     return true;
 };
+
+void GetCharVector(vector<char>& buff, const string& s){    
+    buff.reserve(s.size());
+    buff.assign(begin(s), end(s));
+    buff.push_back('\0');
+}
  
 bool Combo(const char* label, int* currIndex, std::vector<std::string>& values)
 {
@@ -188,13 +196,13 @@ void GLWindow::RunLoop()
     SDL_DestroyWindow(m_window);
     SDL_Quit();
 
-//glfwTerminate();
 }
 
 void GLWindow::DrawGui()
 {
     static bool handleButtonClick = 0;
     static bool showNewGameObjectWindow = false;
+    static bool showMaterialEditor = false;
     static GameObject* goAddParent = nullptr;
 
     const Camera& camera = m_scene->GetCamera();
@@ -227,11 +235,11 @@ void GLWindow::DrawGui()
                 }
                 ImGui::EndPopup();
             }
-            const auto& children = rootNode->Children();
+            auto& children = rootNode->Children();
             unsigned i = 0;
             GameObject* goToDelete = nullptr;
 
-            for (const auto& child : children) {
+            for (auto& child : children) {
                 if (ImGui::TreeNode((void*)(uintptr_t)i, child->GetName().data())) {
                     if (ImGui::BeginPopupContextItem("item context menu")) {
                         if (ImGui::Selectable("Delete")) {
@@ -243,12 +251,13 @@ void GLWindow::DrawGui()
                         }
                         ImGui::EndPopup();
                     }
-                    const auto& components = child->Components();
+                    child->ShowGui();
+                    auto& components = child->Components();
                     unsigned j = 0;
-                    for (const auto& cmp : components) {
-                        auto typ = typeid(cmp).name();
+                    for (auto& cmp : components) {
+                        //auto typ = typeid(cmp).name();
                         if (ImGui::TreeNode((void*)(uintptr_t)j, cmp->GetName().data())) {
-                            ImGui::Text("Component Data");
+                            cmp->ShowGui();
                             ImGui::TreePop();
                         }
                         j++;
@@ -290,7 +299,12 @@ void GLWindow::DrawGui()
     for (auto& mat : materials.GetCache()){
         materialNames.push_back(mat->GetName());
     }
-    ListBox("Materials", &material_list_selected, materialNames);
+    
+    
+    if (ListBox("Materials", &material_list_selected, materialNames)){                                            
+    }
+    materials.GetCache()[material_list_selected].get()->ShowGui();    
+    
     ImGui::End();
 
     if (showNewGameObjectWindow) {
@@ -317,6 +331,21 @@ bool GLWindow::CreateAddGameObjectGui(GameObject* parent)
     }
     return false;
 
+}
+
+bool GLWindow::CreateMaterialEditorGui(Material* material){
+    string na = material->GetName();
+    static vector<char> name_buffer;      
+    GetCharVector(name_buffer, na);
+    ImGui::Separator();
+    ImGui::Text("Edit Material");
+    ImGui::InputText("Name: ", name_buffer.data(), name_buffer.size());    
+    ImGui::InputFloat3("Diffuse", material->Diffuse.AsFloatPtr());
+    ImGui::InputFloat3("Ambient", material->Ambient.AsFloatPtr());
+    ImGui::InputFloat3("Speculat", material->Specular.AsFloatPtr());
+    ImGui::InputFloat("Shine", &(material->Shine));
+    material->SetName(string(name_buffer.data()));
+    return false;
 }
 
 void GLWindow::InitializeScene()

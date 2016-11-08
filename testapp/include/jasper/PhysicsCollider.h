@@ -29,13 +29,14 @@ public:
     explicit PhysicsCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
     virtual ~PhysicsCollider();
 
-    virtual void Initialize() override;
-    virtual void Destroy() override;
-    virtual void Awake() override;
-    virtual void Start() override;
-    virtual void FixedUpdate() override;
-    virtual void Update(float dt) override;
-    virtual void LateUpdate() override;
+    void Initialize() override;
+    void Destroy() override;
+    void Awake() override;
+    void Start() override;
+    void FixedUpdate() override;
+    void Update(float dt) override;
+    void LateUpdate() override;
+    bool ShowGui() override;
 
     Transform GetCurrentWorldTransform();
 

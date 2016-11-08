@@ -20,6 +20,8 @@ public:
     float LinearAtten = 0.09f;
     float ExpAtten = 0.032f;
     float Radius = 20.0f;
+    
+    bool ShowGui() override;
 };
 
 class DirectionalLight : public GameObject
@@ -33,6 +35,8 @@ public:
 
     explicit DirectionalLight(const std::string& name);
     ~DirectionalLight();
+    
+    bool ShowGui() override;
 
 };
 

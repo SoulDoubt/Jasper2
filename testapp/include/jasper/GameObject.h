@@ -73,6 +73,7 @@ public:
     virtual void FixedUpdate();
     virtual void Update(float dt);
     virtual void LateUpdate();
+    virtual bool ShowGui();
 
     GameObject& AttachComponent(std::unique_ptr<Component> component);
 

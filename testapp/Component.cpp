@@ -1,4 +1,5 @@
 #include "Component.h"
+#include "imgui.h"
 
 namespace Jasper
 {
@@ -36,6 +37,10 @@ void Component::Update(float dt)
 
 void Component::LateUpdate()
 {
+}
+
+bool Component::ShowGui(){
+    return false;
 }
 
 }
