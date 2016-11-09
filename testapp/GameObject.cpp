@@ -17,12 +17,19 @@ GameObject::~GameObject()
     }
 }
 
-bool GameObject::ShowGui(){    
-    
+bool GameObject::ShowGui()
+{
+
     ImGui::InputFloat3("Position", m_transform.Position.AsFloatPtr());
     ImGui::InputFloat4("Orientation", m_transform.Orientation.AsFloatPtr());
+    auto euler = m_transform.Orientation.ToEulerAngles();
+    float radians = euler.Yaw;
+    if (ImGui::SliderAngle("Rotate Y", &radians, -180, 180)){
+        auto q = Quaternion::FromAxisAndAngle({0, 1, 0},radians);
+        //this->m_transform.Rotate({0.0f, 1.f, 0.f}, DEG_TO_RAD(radians));
+        m_transform.Orientation = q;
+    }
     return false;
-    //
 }
 
 
@@ -184,7 +191,9 @@ void GameObject::AwakeCurrent()
 {
     this->TimeAwakened = high_resolution_clock::now();
     for (auto& comp : m_components) {
-        comp->Awake();
+        if (comp->IsEnabled()) {
+            comp->Awake();
+        }
     }
 }
 
@@ -211,7 +220,9 @@ void GameObject::UpdateCurrent(float dt)
 {
     for (auto& comp : m_components) {
         if (comp != nullptr) {
-            comp->Update(dt);
+            if (comp->IsEnabled()) {
+                comp->Update(dt);
+            }
         } else {
 
         }

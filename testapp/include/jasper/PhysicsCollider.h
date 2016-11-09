@@ -39,6 +39,8 @@ public:
     bool ShowGui() override;
 
     Transform GetCurrentWorldTransform();
+    
+    void ToggleEnabled(bool enabled) override;
 
     PhysicsWorld* GetPhysicsWorld() {
         return m_world;

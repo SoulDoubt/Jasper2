@@ -9,7 +9,7 @@ void PhysicsDebugDrawer::Initialize()
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     vbo.Create();
-    vbo.SetUsage(GLBuffer::Usage::DynamicDraw);
+    vbo.SetUsage(GLBuffer::Usage::StreamDraw);
     vbo.Bind();
     uint loc = debugShader->PositionAttributeLocation();
     debugShader->SetAttributeArray(loc, GL_FLOAT, 0, 3, 0);

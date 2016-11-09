@@ -145,7 +145,7 @@ void Scene::Initialize()
     // launcher
     auto launcher = m_rootNode->AttachNewChild<GameObject>("Launcher");
     launcher->GetLocalTransform().Translate(0.f, 1.f, 10.f);
-    launcher->AttachNewComponent<LauncherScript>("Launcher_script");
+    //launcher->AttachNewComponent<LauncherScript>("Launcher_script");
 
     // secondary launcher
     auto launcher2 = m_rootNode->AttachNewChild<GameObject>("Launcher2");

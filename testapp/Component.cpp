@@ -39,7 +39,15 @@ void Component::LateUpdate()
 {
 }
 
+void Component::ToggleEnabled(bool enabled){
+    m_isEnabled = enabled;
+}
+
 bool Component::ShowGui(){
+    bool enabled = m_isEnabled;
+    if (ImGui::Checkbox("Enabled", &enabled)){
+        ToggleEnabled(enabled);
+    }
     return false;
 }
 

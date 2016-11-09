@@ -15,11 +15,12 @@
     } \
      
 #define NON_COPYABLE(X)   X(const X&) = delete; \
-    X& operator=(const X&) = delete;
+    X& operator=(const X&) = delete;            \
+    X(X&&) = default;
 
 using uint = unsigned int;
 
-//#define DEBUG_DRAW_PHYSICS
+#define DEBUG_DRAW_PHYSICS
 
 
 

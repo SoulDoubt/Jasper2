@@ -215,19 +215,23 @@ inline Quaternion Inverse(const Quaternion& q)
 
 inline float Quaternion::Pitch() const
 {
-    return atan2f(2.0f * y * z + w * x,
-                  w * w - x * x - y * y + z * z);
+    return asinf(2*x*y + 2*z*w);
 }
 
 inline float Quaternion::Roll() const
 {
-    return atan2f(2.0f * x * y + z * w,
-                  x * x + w * w - y * y - z * z);
+    //return atan2f(2.0f * x * y + z * w,
+    //              x * x + w * w - y * y - z * z);
+    return atan2f(2*x*w-2*y*z , 1 - 2*(x*x) - 2*(z*z));
+
+
 }
 
 inline float Quaternion::Yaw() const
 {
-    return asinf(-2.0f * (x * z * - w * y));
+    //return asinf(-2.0f * (x * z * - w * y));
+    
+    return atan2(2*y*w-2*x*z , 1 - 2*(y*y) - 2*(z*z));
 }
 
 inline Angles Quaternion::ToEulerAngles() const

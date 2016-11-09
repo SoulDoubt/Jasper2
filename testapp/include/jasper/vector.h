@@ -14,6 +14,9 @@
 #ifndef DEG_TO_RAD
 #define DEG_TO_RAD(theta) (((float)(M_PI / 180.0f)) * theta)
 #endif
+#ifndef RAD_TO_DEG
+#define RAD_TO_DEG(rads) (57.2958f * rads)
+#endif
 
 namespace Jasper
 {

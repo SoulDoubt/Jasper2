@@ -23,12 +23,15 @@ public:
     bool IsEnabled() const {
         return m_isEnabled;
     }
-    void Enable() {
-        m_isEnabled = true;
-    }
-    void Disable() {
-        m_isEnabled = false;
-    }
+//    void Enable() {
+//        m_isEnabled = true;
+//    }
+//    void Disable() {
+//        m_isEnabled = false;
+//    }
+    
+    virtual void ToggleEnabled(bool enabled);
+    
     void SetGameObject(GameObject* go);
     GameObject* GetGameObject();
 
@@ -53,10 +56,12 @@ private:
 
     std::string m_name;
     GameObject* m_gameObject;
-    bool m_isEnabled;
+    
 
 
-protected:
+    protected:
+    
+    bool m_isEnabled = true;
     bool m_isDestroyed = false;
 
 };

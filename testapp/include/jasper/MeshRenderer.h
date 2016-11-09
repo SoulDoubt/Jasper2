@@ -1,5 +1,4 @@
-#ifndef _MESH_RENDERER_H_
-#define _MESH_RENDERER_H_
+#pragma once
 
 #include "Component.h"
 #include "Transform.h"
@@ -57,4 +56,3 @@ public:
 };
 
 } // namespace Jasper
-#endif // _MESH_RENDERER_H_
