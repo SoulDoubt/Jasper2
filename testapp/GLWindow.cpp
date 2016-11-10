@@ -533,8 +533,7 @@ void GLWindow::GuiNewFrame()
 
 void ResizeWindow(int w, int h, Scene* scene)
 {
-    //printf("Window resized\n");
-    //printf("Width: %d, Height: %d \n", w, h);
+    
     glViewport(0, 0, w, h);
 
     scene->Resize(w, h);

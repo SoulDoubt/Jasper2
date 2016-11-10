@@ -19,19 +19,35 @@ GameObject::~GameObject()
 
 bool GameObject::ShowGui()
 {
-
+    bool rotation_updated = false;
     ImGui::InputFloat3("Position", m_transform.Position.AsFloatPtr());
     ImGui::InputFloat4("Orientation", m_transform.Orientation.AsFloatPtr());
     auto euler = m_transform.Orientation.ToEulerAngles();
-    float radians = euler.Yaw;
-    if (ImGui::SliderAngle("Rotate Y", &radians, -180, 180)){
-        auto q = Quaternion::FromAxisAndAngle({0, 1, 0},radians);
-        //this->m_transform.Rotate({0.0f, 1.f, 0.f}, DEG_TO_RAD(radians));
+    float roll_radians = euler.Roll;
+    if (ImGui::SliderAngle("X", &roll_radians, -180, 180)) {
+        rotation_updated = true;
+    }   
+    float yaw_radians = euler.Yaw;
+    if (ImGui::SliderAngle("Y", &yaw_radians, -180, 180)) {
+        rotation_updated = true;
+    }
+    float pitch_radians = euler.Pitch;
+    if (ImGui::SliderAngle("Z", &pitch_radians, -180, 180)) {
+        rotation_updated = true;
+    }     
+    if (rotation_updated) {
+        Quaternion q(pitch_radians, roll_radians, yaw_radians);
+        m_transform.Orientation = q;
+    }
+    if (ImGui::Button("Reset")){
+        pitch_radians = 0;
+        roll_radians = 0;
+        yaw_radians = 0;
+        Quaternion q(pitch_radians, roll_radians, yaw_radians);
         m_transform.Orientation = q;
     }
     return false;
 }
-
 
 
 GameObject& GameObject::AttachChild(std::unique_ptr<GameObject> child)

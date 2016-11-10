@@ -26,6 +26,7 @@ public:
     Quaternion() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
     Quaternion(const btQuaternion& q) : x(q.x()), y(q.y()), z(q.z()), w(q.w()) {}
     Quaternion(const Quaternion& o) = default;
+    Quaternion(float pitch, float roll, float yaw);
     btQuaternion AsBtQuaternion() {
         return btQuaternion(x, y, z, w);
     }
@@ -61,6 +62,8 @@ public:
     float Roll() const;
     float Yaw() const;
     Angles ToEulerAngles() const;
+    
+    
 
 
     float Length() const;
@@ -82,6 +85,22 @@ inline Quaternion::Quaternion(const Vector3 & vector, float scalar)
     y = vector.y;
     z = vector.z;
     w = scalar;
+}
+
+inline Quaternion::Quaternion(float pitch, float roll, float yaw){
+    // Assuming the angles are in radians.
+    float c1 = cosf(yaw/2);
+    float s1 = sinf(yaw/2);
+    float c2 = cosf(pitch/2);
+    float s2 = sinf(pitch/2);
+    float c3 = cosf(roll/2);
+    float s3 = sinf(roll/2);
+    float c1c2 = c1*c2;
+    float s1s2 = s1*s2;
+    w =c1c2*c3 - s1s2*s3;
+  	x =c1c2*s3 + s1s2*c3;
+	y =s1*c2*c3 + c1*s2*s3;
+	z =c1*s2*c3 - s1*c2*s3;
 }
 
 inline float Quaternion::operator[](int index) const

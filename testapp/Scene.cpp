@@ -178,7 +178,7 @@ void Scene::Initialize()
 //
 
     auto dlight = m_rootNode->AttachNewChild<DirectionalLight>("d_light");
-    dlight->Direction = Normalize( { 0.0, -1.f, 0.0f });
+    dlight->Direction = Normalize( Vector3( 0.0, -1.f, 0.0f ));
     dlight->AmbientIntensity = 0.01f;
     dlight->Diffuseintensity = 0.85f;
 

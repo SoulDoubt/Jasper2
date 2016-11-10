@@ -17,13 +17,13 @@ public:
 
     ~ScriptComponent() {}
 
-    virtual void Initialize() override {}
-    virtual void Destroy() override {}
-    virtual void Awake() override {}
-    virtual void Start() override {}
-    virtual void FixedUpdate() override {}
-    virtual void Update(float dt) override {}
-    virtual void LateUpdate() override {}
+    void Initialize() override {}
+    void Destroy() override {}
+    void Awake() override {}
+    void Start() override {}
+    void FixedUpdate() override {}
+    void Update(float dt) override {}
+    void LateUpdate() override {}
 
 };
 
@@ -36,13 +36,13 @@ public:
     DefaultScript(std::string name) : ScriptComponent(name) {}
     ~DefaultScript() {}
 
-    virtual void Initialize() override {}
-    virtual void Destroy()override {}
-    virtual void Awake()override {}
-    virtual void Start()override {}
-    virtual void FixedUpdate()override {}
-    virtual void Update(float dt) override;
-    virtual void LateUpdate()override {}
+    void Initialize() override {}
+    void Destroy()override {}
+    void Awake()override {}
+    void Start()override {}
+    void FixedUpdate()override {}
+    void Update(float dt) override;
+    void LateUpdate()override {}
 
 };
 
@@ -61,14 +61,14 @@ public:
     }
     ~RotateAboutPointScript() {}
 
-    virtual void Initialize() override {}
-    virtual void Destroy()override {}
-    virtual void Awake()override {}
-    virtual void Start()override {}
-    virtual void FixedUpdate()override {}
-    virtual void Update(float dt) override;
-    virtual void LateUpdate()override {}
-
+    void Initialize() override {}
+    void Destroy()override {}
+    void Awake()override {}
+    void Start()override {}
+    void FixedUpdate()override {}
+    void Update(float dt) override;
+    void LateUpdate()override {}
+    bool ShowGui() override;
 
 
 private:
