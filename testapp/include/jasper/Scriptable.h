@@ -88,13 +88,14 @@ public:
     LauncherScript(std::string name) : ScriptComponent(name) {}
     ~LauncherScript() {}
 
-    virtual void Initialize() override {}
-    virtual void Destroy()override {}
-    virtual void Awake()override {}
-    virtual void Start()override {}
-    virtual void FixedUpdate()override {}
-    virtual void Update(float dt) override;
-    virtual void LateUpdate()override {}
+    void Initialize() override {}
+    void Destroy()override {}
+    void Awake()override {}
+    void Start()override {}
+    void FixedUpdate()override {}
+    void Update(float dt) override;
+    void LateUpdate()override {}
+    bool ShowGui() override;
 
     Vector3 Force = {0.0f, 500.0f, 0.0f};
 

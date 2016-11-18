@@ -78,13 +78,10 @@ Transform PhysicsCollider::GetCurrentWorldTransform()
 }
 
 void PhysicsCollider::ToggleEnabled(bool e)
-{
-    Component::ToggleEnabled(e);
+{    
     if (e) {
-        //m_rigidBody->clearForces();
         auto tr = GetGameObject()->GetLocalTransform().GetBtTransform();
         m_rigidBody->setWorldTransform(tr);
-        //m_rigidBody->getMotionState()->setWorldTransform(tr);
         m_defaultMotionState->setWorldTransform(tr);
         //btVector3 inertia;
         //m_collisionShape->calculateLocalInertia(this->Mass, inertia);
@@ -92,21 +89,27 @@ void PhysicsCollider::ToggleEnabled(bool e)
         m_rigidBody->setFriction(Friction);
         m_rigidBody->activate();
     }
+    Component::ToggleEnabled(e);
 }
 
 bool PhysicsCollider::ShowGui()
 {
-    using namespace ImGui;
     Component::ShowGui();
-    if (InputFloat("Mass", &Mass)) {
+    
+//    bool enabled = m_isEnabled;
+//    if (ImGui::Checkbox("Enabled", &enabled)) {
+//        ToggleEnabled(enabled);
+//    }
+    if (ImGui::InputFloat("Mass", &Mass)) {
         this->m_rigidBody->setMassProps(Mass, btVector3(0,0,0));
     }
-    if (InputFloat("Restitution", &Restitution)) {
+    if (ImGui::InputFloat("Restitution", &Restitution)) {
         this->m_rigidBody->setRestitution(Restitution);
     }
-    if (InputFloat("Friction", &Friction)){
+    if (ImGui::InputFloat("Friction", &Friction)){
         this->m_rigidBody->setFriction(Friction);
     }
+    
     return false;
 }
 

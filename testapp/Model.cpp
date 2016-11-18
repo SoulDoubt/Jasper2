@@ -42,7 +42,7 @@ void Model::Setup()
     const aiScene* scene = importer.ReadFile(m_filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        printf("aiScene was corrupt in model load.");
+        printf("aiScene was corrupt in model load.\n");
         return;
     }
 
@@ -206,9 +206,10 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
         if (textureFileName.find(".") == string::npos) {
             textureFileName += "_D.tga";
         }
+        
         string texturePath = m_directory + "/" + textureFileName;
         if (texString.length > 0) {
-
+            printf("Looking for texture: %s in model.", textureFileName.c_str());
             auto existingMat = std::find_if(std::begin(m_materialManager.GetCache()), std::end(m_materialManager.GetCache()),
             [&](const std::unique_ptr<Material>& mm) {
                 return mm->GetName() == matName.C_Str();

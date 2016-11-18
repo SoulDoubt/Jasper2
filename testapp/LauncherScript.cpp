@@ -17,6 +17,10 @@ namespace Jasper
 using namespace std;
 using namespace std::chrono;
 
+bool LauncherScript::ShowGui(){
+    return false;
+}
+
 void LauncherScript::Update(float dt)
 {
     auto gameObject = GetGameObject();
@@ -38,6 +42,8 @@ void LauncherScript::Update(float dt)
         }
     }
 }
+
+
 
 void LauncherScript::LaunchTeapot()
 {

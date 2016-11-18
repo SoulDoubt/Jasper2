@@ -19,14 +19,17 @@ GameObject::~GameObject()
 
 bool GameObject::ShowGui()
 {
+    ImGui::Separator();
+    ImGui::Text(this->GetName().data());
     bool rotation_updated = false;
     ImGui::InputFloat3("Position", m_transform.Position.AsFloatPtr());
     ImGui::InputFloat4("Orientation", m_transform.Orientation.AsFloatPtr());
+    ImGui::InputFloat3("Scale", m_transform.Scale.AsFloatPtr());
     auto euler = m_transform.Orientation.ToEulerAngles();
     float roll_radians = euler.Roll;
     if (ImGui::SliderAngle("X", &roll_radians, -180, 180)) {
         rotation_updated = true;
-    }   
+    }
     float yaw_radians = euler.Yaw;
     if (ImGui::SliderAngle("Y", &yaw_radians, -180, 180)) {
         rotation_updated = true;
@@ -34,18 +37,38 @@ bool GameObject::ShowGui()
     float pitch_radians = euler.Pitch;
     if (ImGui::SliderAngle("Z", &pitch_radians, -180, 180)) {
         rotation_updated = true;
-    }     
+    }
     if (rotation_updated) {
         Quaternion q(pitch_radians, roll_radians, yaw_radians);
         m_transform.Orientation = q;
     }
-    if (ImGui::Button("Reset")){
+    if (ImGui::Button("Reset")) {
         pitch_radians = 0;
         roll_radians = 0;
         yaw_radians = 0;
         Quaternion q(pitch_radians, roll_radians, yaw_radians);
         m_transform.Orientation = q;
     }
+    ImGui::Separator();
+
+    //if (ImGui::CollapsingHeader("Components")){
+    ImGui::Text("Check out my sweet components");
+    int i = 0;
+    for (auto& cmp : m_components) {
+        if (ImGui::TreeNode((void*)(uintptr_t)i, cmp->GetName().data())) {
+            cmp->ShowGui();
+            ImGui::TreePop();
+        }
+        i++;
+    }
+    //ImGui::TreePop();
+
+    //}
+
+    //ImGui::BeginMenu("Add Component");
+    //ImGui::MenuItem("Shapes");
+    //ImGui::EndMenu();
+
     return false;
 }
 

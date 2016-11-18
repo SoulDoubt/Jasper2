@@ -6,7 +6,6 @@
 
 #include <SDL2/SDL.h>
 
-//#include <GLFW\glfw3.h>
 #include <string>
 #include <memory>
 #include "Common.h"
@@ -14,10 +13,6 @@
 #include "Shader.h"
 #include "GLBuffer.h"
 
-//#include <SDL\SDL.h>
-
-//#define WIN32_LEAN_AND_MEAN
-//#include <Windows.h>
 
 struct ImDrawData;
 
@@ -52,6 +47,7 @@ public:
     void GuiNewFrame();
     void GetGuiFontTexture();
     void DrawGui();
+    bool DrawGameObjectGuiNode(GameObject* go);
     bool CreateAddGameObjectGui(GameObject* parent);
     bool CreateMaterialEditorGui(Material* material);
     void RenderGui(ImDrawData* draw_data);

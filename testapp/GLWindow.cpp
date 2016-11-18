@@ -53,41 +53,50 @@ bool MOUSE_MOVE = 0;
 
 GLWindow* g_glWindow;
 
+
 // ImGui hats std::strings, and isn't kind to std::vectors
 // these functions are necessary to make that easier on us.
 
 static auto vector_getter = [](void* vec, int idx, const char** out_text)
 {
     auto& vector = *static_cast<std::vector<std::string>*>(vec);
-    if (idx < 0 || idx >= static_cast<int>(vector.size())) { return false; }
+    if (idx < 0 || idx >= static_cast<int>(vector.size())) {
+        return false;
+    }
     *out_text = vector.at(idx).c_str();
     return true;
 };
 
-void GetCharVector(vector<char>& buff, const string& s){    
+void GetCharVector(vector<char>& buff, const string& s)
+{
     buff.reserve(s.size());
     buff.assign(begin(s), end(s));
     buff.push_back('\0');
 }
- 
+
 bool Combo(const char* label, int* currIndex, std::vector<std::string>& values)
 {
-    if (values.empty()) { return false; }
+    if (values.empty()) {
+        return false;
+    }
     return ImGui::Combo(label, currIndex, vector_getter,
-        static_cast<void*>(&values), values.size());
+                        static_cast<void*>(&values), values.size());
 }
- 
+
 bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values)
 {
-    if (values.empty()) { return false; }
+    if (values.empty()) {
+        return false;
+    }
     return ImGui::ListBox(label, currIndex, vector_getter,
-        static_cast<void*>(&values), values.size());
+                          static_cast<void*>(&values), values.size());
 }
- 
+
 
 
 
 bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime);
+
 bool ProcessSDLEventGui(SDL_Event* evt, Scene* scene);
 
 void DoMovement(Scene* scene, double deltaTime);
@@ -97,8 +106,6 @@ void RotateCameraX(Scene* scene, double deltaTime, float degrees);
 void RotateCameraY(Scene* scene, double deltaTime, float degrees);
 
 void RenderImGuiDrawLists(ImDrawData* drawData);
-
-
 
 
 GLWindow::GLWindow(int w, int h, string title)
@@ -173,7 +180,6 @@ void GLWindow::RunLoop()
             }
         }
 
-
         DoMovement(m_scene.get(), dt);
 
         GuiNewFrame();
@@ -198,6 +204,20 @@ void GLWindow::RunLoop()
 
 }
 
+GameObject* game_object_under_edit = nullptr;
+
+bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
+{    
+    if (ImGui::TreeNode(go->GetName().data())) {        
+        game_object_under_edit = go;
+        for (auto& child: go->Children()) {
+            DrawGameObjectGuiNode(child.get());
+        }       
+        ImGui::TreePop();        
+    }
+    return false;
+}
+
 void GLWindow::DrawGui()
 {
     static bool handleButtonClick = 0;
@@ -218,7 +238,7 @@ void GLWindow::DrawGui()
     ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
     ImGui::Text("Physics: %.6f ms", m_scene->PhysicsFrameTime);
     ImGui::Text("Update: %.6f ms", m_scene->UpdateFrameTime);
-    ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);    
+    ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);
 
     ImGui::End();
 
@@ -226,89 +246,102 @@ void GLWindow::DrawGui()
 
     ImGui::Begin("Game Object Hierarchy");
 
-    if (ImGui::TreeNode("Game Objects")) {
-        if (ImGui::TreeNode(rootNode->GetName().data())) {
-            if (ImGui::BeginPopupContextItem("item context menu")) {
-                if (ImGui::Selectable("Add New Child")) {
-                    showNewGameObjectWindow ^= 1;
-                    goAddParent = rootNode;
-                }
-                ImGui::EndPopup();
-            }
-            auto& children = rootNode->Children();
-            unsigned i = 0;
-            GameObject* goToDelete = nullptr;
-
-            for (auto& child : children) {
-                if (ImGui::TreeNode((void*)(uintptr_t)i, child->GetName().data())) {
-                    if (ImGui::BeginPopupContextItem("item context menu")) {
-                        if (ImGui::Selectable("Delete")) {
-                            goToDelete = child.get();
-                        }
-                        if (ImGui::Selectable("Add New Child")) {
-                            showNewGameObjectWindow ^= 1;
-                            goAddParent = child.get();
-                        }
-                        ImGui::EndPopup();
-                    }
-                    child->ShowGui();
-                    auto& components = child->Components();
-                    unsigned j = 0;
-                    for (auto& cmp : components) {
-                        //auto typ = typeid(cmp).name();
-                        if (ImGui::TreeNode((void*)(uintptr_t)j, cmp->GetName().data())) {
-                            cmp->ShowGui();
-                            ImGui::TreePop();
-                        }
-                        j++;
-                    }
-                    ImGui::TreePop();
-                }
-                i++;
-            }
-            if (goToDelete) {
-                m_scene->DestroyGameObject(goToDelete);
-            }
-            ImGui::TreePop();
-        }
-        ImGui::TreePop();
-
-    }
-
-    if (ImGui::TreeNode("Logging")) {
-        ImGui::TextWrapped("The logging API redirects all text output so you can easily capture the content of a window or a block. Tree nodes can be automatically expanded. You can also call ImGui::LogText() to output directly to the log without a visual output.");
-        ImGui::LogButtons();
-        ImGui::TreePop();
-    }
-    ImGui::End();
+    //DrawGameObjectGuiNode(rootNode);
     
-    ImGui::Begin("Shaders & Materials");    
+    ImGui::Columns(2);
+    ImGui::Separator();
+    ImGui::AlignFirstTextHeightToWidgets();
+    DrawGameObjectGuiNode(rootNode);
+    if (game_object_under_edit){
+        ImGui::NextColumn();
+        game_object_under_edit->ShowGui();        
+    }
+    ImGui::Columns(1);
+    //ImGui::TreePop();
+
+//    if (ImGui::TreeNode("Game Objects")) {
+//        if (ImGui::TreeNode(rootNode->GetName().data())) {
+//            if (ImGui::BeginPopupContextItem("item context menu")) {
+//                if (ImGui::Selectable("Add New Child")) {
+//                    showNewGameObjectWindow ^= 1;
+//                    goAddParent = rootNode;
+//                }
+//                ImGui::EndPopup();
+//            }
+//            auto& children = rootNode->Children();
+//            unsigned i = 0;
+//            GameObject* goToDelete = nullptr;
+//
+//            for (auto& child : children) {
+//                if (ImGui::TreeNode((void*)(uintptr_t)i, child->GetName().data())) {
+//                    if (ImGui::BeginPopupContextItem("item context menu")) {
+//                        if (ImGui::Selectable("Delete")) {
+//                            goToDelete = child.get();
+//                        }
+//                        if (ImGui::Selectable("Add New Child")) {
+//                            showNewGameObjectWindow ^= 1;
+//                            goAddParent = child.get();
+//                        }
+//                        ImGui::EndPopup();
+//                    }
+//                    child->ShowGui();
+//                    auto& components = child->Components();
+//                    unsigned j = 0;
+//                    for (auto& cmp : components) {
+//                        //auto typ = typeid(cmp).name();
+//                        if (ImGui::TreeNode((void*)(uintptr_t)j, cmp->GetName().data())) {
+//                            cmp->ShowGui();
+//                            ImGui::TreePop();
+//                        }
+//                        j++;
+//                    }
+//                    ImGui::TreePop();
+//                }
+//                i++;
+//            }
+//            if (goToDelete) {
+//                m_scene->DestroyGameObject(goToDelete);
+//            }
+//            ImGui::TreePop();
+//        }
+//        ImGui::TreePop();
+//
+//    }
+
+//    if (ImGui::TreeNode("Logging")) {
+//        ImGui::TextWrapped("The logging API redirects all text output so you can easily capture the content of a window or a block. Tree nodes can be automatically expanded. You can also call ImGui::LogText() to output directly to the log without a visual output.");
+//        ImGui::LogButtons();
+//        //ImGui::TreePop();
+//    }
+    ImGui::End();
+
+    ImGui::Begin("Shaders & Materials");
     auto& shaders = m_scene->GetShaderCache();
     vector<string> shaderNames;
     shaderNames.reserve(shaders.GetCache().size());
     static int shader_list_selected = 1;
-    for (auto& shader : shaders.GetCache()){
+    for (auto& shader : shaders.GetCache()) {
         shaderNames.push_back(shader->GetName());
     }
     ListBox("Shaders", &shader_list_selected, shaderNames);
     //ImGui::ListBox("Shaders", &shader_list_selected, shaderNames.data(), shaderNames.size());
-    vector<string> materialNames;    
+    vector<string> materialNames;
     auto& materials = m_scene->GetMaterialCache();
     materialNames.reserve(materials.GetCache().size());
     static int material_list_selected;
-    for (auto& mat : materials.GetCache()){
+    for (auto& mat : materials.GetCache()) {
         materialNames.push_back(mat->GetName());
     }
-    
-    
-    if (ListBox("Materials", &material_list_selected, materialNames)){                                            
+
+
+    if (ListBox("Materials", &material_list_selected, materialNames)) {
     }
-    materials.GetCache()[material_list_selected].get()->ShowGui();    
-    
+    materials.GetCache()[material_list_selected].get()->ShowGui();
+
     ImGui::End();
 
     if (showNewGameObjectWindow) {
-        if (CreateAddGameObjectGui(goAddParent)){
+        if (CreateAddGameObjectGui(goAddParent)) {
             showNewGameObjectWindow ^= 1;
         }
     }
@@ -322,7 +355,7 @@ bool GLWindow::CreateAddGameObjectGui(GameObject* parent)
         ImGui::Begin("New Game Object");
         ImGui::Text("Parent: %s", parent->GetName().data());
         ImGui::InputText("Name: ", nameBuff, 128);
-        if (ImGui::Button("Add")){
+        if (ImGui::Button("Add")) {
             parent->AttachNewChild(string(nameBuff));
             ImGui::End();
             return true;
@@ -333,13 +366,14 @@ bool GLWindow::CreateAddGameObjectGui(GameObject* parent)
 
 }
 
-bool GLWindow::CreateMaterialEditorGui(Material* material){
+bool GLWindow::CreateMaterialEditorGui(Material* material)
+{
     string na = material->GetName();
-    static vector<char> name_buffer;      
+    static vector<char> name_buffer;
     GetCharVector(name_buffer, na);
     ImGui::Separator();
     ImGui::Text("Edit Material");
-    ImGui::InputText("Name: ", name_buffer.data(), name_buffer.size());    
+    ImGui::InputText("Name: ", name_buffer.data(), name_buffer.size());
     ImGui::InputFloat3("Diffuse", material->Diffuse.AsFloatPtr());
     ImGui::InputFloat3("Ambient", material->Ambient.AsFloatPtr());
     ImGui::InputFloat3("Speculat", material->Specular.AsFloatPtr());
@@ -533,9 +567,9 @@ void GLWindow::GuiNewFrame()
 
 void ResizeWindow(int w, int h, Scene* scene)
 {
-    
-    glViewport(0, 0, w, h);
 
+    glViewport(0, 0, w, h);
+    //m_guiMatrix.CreateOrthographicProjection(0.0f, w, h, 0.0f, 1.0f, -1.0f);
     scene->Resize(w, h);
 
 }
@@ -592,7 +626,8 @@ void GLWindow::RenderGui(ImDrawData* draw_data)
 
     // Setup orthographic projection matrix
     glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height);
-
+    m_guiMatrix.SetToIdentity();
+    m_guiMatrix.CreateOrthographicProjection(0.0f, fb_width, fb_height, 0.0f, 1.0f, -1.0f);
 
 
     //glUseProgram(g_ShaderHandle);
