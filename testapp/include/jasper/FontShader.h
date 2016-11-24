@@ -15,6 +15,10 @@ public:
     ~FontShader();
 
     void Initialize() override;
+
+    ShaderClassType GetShaderClassType() override {
+        return ShaderClassType::FontShader;
+    }
 };
 
 }

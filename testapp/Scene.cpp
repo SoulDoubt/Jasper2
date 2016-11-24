@@ -15,6 +15,8 @@
 #include "BoxCollider.h"
 #include "Sphere.h"
 #include "SphereCollider.h"
+#include <fstream>
+#include "AssetSerializer.h"
 
 
 
@@ -58,6 +60,48 @@ void Scene::Resize(int width, int height)
     m_orthoMatrix = om;
 }
 
+void Scene::Serialize(const std::string& filepath){
+    using namespace AssetSerializer;
+    ofstream ofs;
+    ofs.open(filepath.c_str(), ios::out | ios::binary);
+    // first serialize the shaders
+    
+    // write the count of shaders as the first thing in the file.
+    auto& shaderCache = m_shaderManager.GetCache();
+    size_t shaderCount = shaderCache.size();
+    ofs.write(CharPtr(&shaderCount), sizeof(shaderCount));
+    for (auto& shader : m_shaderManager.GetCache()){ 
+        SerializeShader(ofs, shader.get());
+    }
+    
+    // now the materials
+    size_t materialCount = m_materialManager.GetCache().size();
+    ofs.write(CharPtr(&materialCount), sizeof(materialCount));
+    for (auto& material : m_materialManager.GetCache()){
+        SerializeMaterial(ofs, material.get());
+    }
+    
+    ofs.close();
+    
+}
+
+void Scene::Deserialize(const std::string& filepath){
+    using namespace AssetSerializer;
+    
+    ifstream ifs;
+    ifs.open(filepath, ios::in | ios::binary);
+    
+    // first are the shaders.
+    size_t shadercount;
+    ifs.read(CharPtr(&shadercount), sizeof(shadercount));
+    for (int i = 0; i < shadercount; i++){
+        
+    }
+    
+    ifs.close();
+    
+}
+
 void Scene::Initialize()
 {
 
@@ -94,7 +138,7 @@ void Scene::Initialize()
     auto skybox = m_rootNode->AttachNewChild<GameObject>("skybox");
     auto skyboxMesh = m_meshManager.CreateInstance<Cube>("skybox_cube_mesh", Vector3(100.0f, 100.0f, 100.0f), true);
     skyboxMesh->SetCubemap(true); // we want to render the inside of the cube
-    auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("sjybox_shader");
+    auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
     auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader, "skybox_material");
     string posx = "../textures/darkskies/darkskies_lf.tga";
     string negx = "../textures/darkskies/darkskies_ft.tga";
@@ -120,6 +164,15 @@ void Scene::Initialize()
     m1->Specular = { 0.99f, 0.99f, 0.9f };
     m1->Shine = 255;
 
+//    std::ofstream serializer;
+//    serializer.open("scenedata.scene", ios::binary | ios::out);
+//    
+//    AssetSerializer::SerializeMaterial(serializer, m1);
+//    serializer.close();
+//    
+//    std::ifstream reader;
+//    reader.open("scenedata.scene", ios::in | ios::binary);
+//    AssetSerializer::ConstructMaterial(reader, this);
     // Floor
     auto floor = m_rootNode->AttachNewChild<GameObject>("floor");
     auto quadMesh = m_meshManager.CreateInstance<Quad>("floor_quad", Vector2(100.0f, 100.0f), 25, 25, Quad::AxisAlignment::XZ);
@@ -132,6 +185,7 @@ void Scene::Initialize()
     floor->GetLocalTransform().Translate(Vector3( 0.0f, -1.f, 0.0f ));
     auto floorP = floor->AttachNewComponent<PlaneCollider>("plane_collider", quadMesh, m_physicsWorld.get());
     floorP->Friction = 0.9f;
+    //floorP->Serialize(serializer);
     floorMaterial->Ambient = { 0.0f, 0.0f, 0.0f };
 
     // wall
@@ -141,6 +195,7 @@ void Scene::Initialize()
     auto wallCollider = wall->AttachNewComponent<BoxCollider>("wall_0_collider", wallMesh, m_physicsWorld.get());
     wallCollider->Mass = 1.0f;
     wall->GetLocalTransform().Translate(0.0f, 25.0f, -20.0f);
+    //wallCollider->Serialize(serializer);
 
     // launcher
     auto launcher = m_rootNode->AttachNewChild<GameObject>("Launcher");
@@ -154,7 +209,7 @@ void Scene::Initialize()
 
     auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model");
     auto mdl = model->AttachNewComponent<Model>("mathias", "../models/Mathias/Mathias.obj", defaultShader, true, m_physicsWorld.get());
-    mdl->Setup();
+    mdl->Setup(this);
     auto collider = model->GetComponentByType<PhysicsCollider>();
     //model->getlocaltransform().uniformscale(0.02f);
     if (collider) {
@@ -189,6 +244,8 @@ void Scene::Initialize()
 
 
     m_rootNode->Initialize();
+    
+    Serialize("scenedata.scene");
 }
 
 Shader* Scene::GetShaderByName(std::string name)
@@ -198,6 +255,17 @@ Shader* Scene::GetShaderByName(std::string name)
         return c->GetName() == name;
     });
     if (res != end(m_shaderManager.GetCache())) {
+        return res->get();
+    }
+    return nullptr;
+}
+
+Material* Scene::GetMaterialByName(std::string name){
+    auto res = find_if(begin(m_materialManager.GetCache()), end(m_materialManager.GetCache()), 
+    [&](const std::unique_ptr<Material>& mat){
+       return mat->GetName() == name; 
+    });
+    if (res != end(m_materialManager.GetCache())){
         return res->get();
     }
     return nullptr;

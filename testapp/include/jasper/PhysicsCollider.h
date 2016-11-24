@@ -28,6 +28,10 @@ public:
     explicit PhysicsCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
     explicit PhysicsCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
     virtual ~PhysicsCollider();
+    
+    ComponentType GetComponentType() override {
+        return ComponentType::PhysicsCollider;
+    }
 
     void Initialize() override;
     void Destroy() override;
@@ -37,6 +41,7 @@ public:
     void Update(float dt) override;
     void LateUpdate() override;
     bool ShowGui() override;
+    void Serialize(std::ofstream& ofs);
 
     Transform GetCurrentWorldTransform();
     

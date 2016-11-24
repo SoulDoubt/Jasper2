@@ -18,8 +18,11 @@ public:
     Cube(const std::string& name, const Vector3& dimensions, bool reverseWinding);
     virtual ~Cube();
 
-    virtual void Initialize() override;
-    virtual void Destroy() override;
+    void Initialize() override;
+    void Destroy() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::Cube;   
+    }
 
     void SetTextureRepeat(float u, float v) {
         m_repeatU = u;

@@ -21,6 +21,7 @@ Texture::~Texture()
 
 bool Texture::Load(std::string filename)
 {
+    m_filename = filename;
     int x, y, comp;
 
     GLenum force_linear = GL_SRGB_ALPHA;

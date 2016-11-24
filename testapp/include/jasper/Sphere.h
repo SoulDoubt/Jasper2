@@ -13,8 +13,11 @@ public:
     explicit Sphere(const std::string& name, float radius);
     ~Sphere();
 
-    virtual void Initialize() override;
-    virtual void Destroy() override;
+    void Initialize() override;
+    void Destroy() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::Sphere;
+    }
 
     unsigned m_latLines = 24;
     unsigned m_longLines = 24;

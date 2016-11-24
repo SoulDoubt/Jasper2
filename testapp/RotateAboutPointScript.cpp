@@ -20,6 +20,8 @@ void RotateAboutPointScript::Update(float dt)
 bool RotateAboutPointScript::ShowGui(){
     using namespace ImGui;
     
+    Component::ShowGui();
+    
     InputFloat3("Point", m_point.AsFloatPtr());
     InputFloat3("Axis", m_point.AsFloatPtr());
     InputFloat("Rate", &m_degreesPerSec);

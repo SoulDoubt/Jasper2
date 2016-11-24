@@ -14,6 +14,16 @@
 namespace Jasper
 {
 
+enum class ShaderClassType
+{
+    LitShader,
+    SkyboxShader,
+    BasicShader,
+    TextureShader,
+    FontShader,
+    GuiShader
+};
+
 class Material;
 
 struct DirectionalLightUniformLocations {
@@ -59,8 +69,10 @@ public:
     ~Shader();
 
     void PrintAttribsAndUniforms();
-    
+
     bool ShowGui();
+    
+    virtual ShaderClassType GetShaderClassType() = 0;
 
     std::string GetName() const {
         return m_name;

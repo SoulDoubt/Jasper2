@@ -110,21 +110,10 @@ void Renderer::RenderScene()
     auto projMatrix = m_scene->ProjectionMatrix();
     auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
     for (auto& mr : m_renderers) {
-        //string msg = "Starting to render Game Object:" + mr->GetGameObject()->GetName() + " with Shader: " + mr->GetMaterial()->GetShader()->GetName();
-        //printf("%s\n", msg.c_str());
-        auto material = mr->GetMaterial();
+        
+        if (!mr->IsEnabled()) continue;
 
-//		if (material != m_currentMaterial) {
-//			ReleaseTextures();
-//			if (m_currentMaterial != nullptr) {
-//				m_currentMaterial->GetShader()->Release();
-//			}
-//			m_currentMaterial = material;
-//			material->GetShader()->Bind();
-//			SetFrameInvariants(material);
-//			SetMaterialUniforms(material);
-//		}
-        //material->BindTextures();
+        auto material = mr->GetMaterial();
 
         material->Bind();
         SetFrameInvariants(material);
@@ -138,6 +127,7 @@ void Renderer::RenderScene()
         material->GetShader()->SetNormalMatrix(normMatrix);
         mr->Render();
         material->Release();
+
     }
 }
 

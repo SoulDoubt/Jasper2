@@ -4,10 +4,36 @@
 #include "Common.h"
 #include <string>
 
+
 namespace Jasper
 {
 
 class GameObject;
+//class std::ofstream;
+
+enum class ComponentType{
+    BoxCollider,
+    SphereCollider,
+    CapsuleCollider,
+    ConvexHullCollider,
+    PlaneCollider,
+    MeshRenderer,
+    DestroyScript,
+    DefaultScript,
+    RotateAboutPointScript,
+    RotateInPlaceScript,
+    LauncherScript,
+    CylinderCollider,
+    Mesh,
+    Cube,
+    Quad,
+    Model,
+    PhysicsCollider,
+    SkyboxRenderer,
+    Triangle,
+    Sphere,
+    ScriptComponent
+};
 
 class Component
 {
@@ -23,12 +49,6 @@ public:
     bool IsEnabled() const {
         return m_isEnabled;
     }
-//    void Enable() {
-//        m_isEnabled = true;
-//    }
-//    void Disable() {
-//        m_isEnabled = false;
-//    }
     
     virtual void ToggleEnabled(bool enabled);
     
@@ -47,6 +67,8 @@ public:
     virtual void Update(float dt);
     virtual void LateUpdate();
     virtual bool ShowGui();
+    virtual void Serialize(std::ofstream& ofs);
+    virtual ComponentType GetComponentType() = 0;
 
 
 

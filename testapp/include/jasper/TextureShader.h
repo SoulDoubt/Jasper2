@@ -24,6 +24,10 @@ public:
 
         LinkShaderProgram();
     }
+
+    ShaderClassType GetShaderClassType() override {
+        return ShaderClassType::TextureShader;
+    }
 };
 
 }

@@ -18,6 +18,7 @@ namespace Jasper
 
 class Shader;
 class Material;
+class Scene;
 
 class Model : public Component
 {
@@ -45,15 +46,19 @@ public:
 
     void SaveToAssetFile(const std::string& filename);
 
-    void Setup();
+    void Setup(Scene* sc);
+    ComponentType GetComponentType() override {
+        return ComponentType::Model;
+    }
 
 private:
     std::string m_filename;
     std::string m_directory;
     Shader* m_shader;
+    std::vector<Mesh*> m_model_meshes;
     bool m_enablePhysics = false;
-    void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode);
-    void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene);
+    void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode, Scene* jScene);
+    void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, Scene* jScene);
     PhysicsWorld* m_physicsWorld = nullptr;
     ResourceManager<Mesh> m_meshManager;
     ResourceManager<Material> m_materialManager;

@@ -23,6 +23,8 @@ private:
     std::string m_name;
 
     std::string m_diffuseTextureFileName;
+    
+    std::string m_shaderName;
 
     void BindTextures() {
         bool hasNormalMap = this->GetTextureNormalMap();
@@ -178,6 +180,11 @@ public:
     }
     
     bool ShowGui();
+    void Serialize(std::ofstream& ofs);
+    
+    std::string GetShaderName(){
+        return m_shaderName;
+    }
 
 
 

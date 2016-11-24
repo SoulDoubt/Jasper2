@@ -13,8 +13,10 @@ public:
     BasicShader();
     ~BasicShader();
 
-    virtual void Initialize() override;
-
+    void Initialize() override;
+    ShaderClassType GetShaderClassType() override {
+        return ShaderClassType::BasicShader;
+    }
 };
 
 }

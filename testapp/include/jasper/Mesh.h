@@ -84,10 +84,14 @@ public:
     explicit Mesh(const std::string& name);
     virtual ~Mesh();
 
-    virtual void Initialize();
-    virtual void Destroy();
+    void Initialize() override;
+    void Destroy() override;
 
     void FlipTextureCoords();
+    
+    ComponentType GetComponentType() override {
+        return ComponentType::Mesh;
+    }
 
     std::vector<Vector3> Positions;
     std::vector<Vector3> Normals;

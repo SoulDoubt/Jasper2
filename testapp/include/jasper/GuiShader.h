@@ -10,6 +10,9 @@ using namespace std;
 class GuiShader : public Shader
 {
     void Initialize() override;
+    ShaderClassType GetShaderClassType() override {
+        return ShaderClassType::GuiShader;
+    }
 };
 
 inline void GuiShader::Initialize()

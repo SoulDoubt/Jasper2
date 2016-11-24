@@ -1,6 +1,7 @@
 #include "PhysicsCollider.h"
 #include "GameObject.h"
 #include "imgui.h"
+#include "AssetSerializer.h"
 
 namespace Jasper
 {
@@ -60,7 +61,6 @@ void PhysicsCollider::Update(float dt)
         Transform t = this->GetCurrentWorldTransform();
         go->SetLocalTransform(t);
     }
-//Component::Update();
 }
 
 void PhysicsCollider::LateUpdate()
@@ -83,8 +83,6 @@ void PhysicsCollider::ToggleEnabled(bool e)
         auto tr = GetGameObject()->GetLocalTransform().GetBtTransform();
         m_rigidBody->setWorldTransform(tr);
         m_defaultMotionState->setWorldTransform(tr);
-        //btVector3 inertia;
-        //m_collisionShape->calculateLocalInertia(this->Mass, inertia);
         m_rigidBody->setRestitution(Restitution);
         m_rigidBody->setFriction(Friction);
         m_rigidBody->activate();
@@ -96,10 +94,6 @@ bool PhysicsCollider::ShowGui()
 {
     Component::ShowGui();
     
-//    bool enabled = m_isEnabled;
-//    if (ImGui::Checkbox("Enabled", &enabled)) {
-//        ToggleEnabled(enabled);
-//    }
     if (ImGui::InputFloat("Mass", &Mass)) {
         this->m_rigidBody->setMassProps(Mass, btVector3(0,0,0));
     }
@@ -111,6 +105,23 @@ bool PhysicsCollider::ShowGui()
     }
     
     return false;
+}
+
+void PhysicsCollider::Serialize(std::ofstream& ofs){
+    // CompontntType    -> int
+    // Mass             -> float
+    // Restitution      -> float
+    // Friction         -> float
+    // HalfExtents      -> Vector3
+    
+    using namespace AssetSerializer;
+    
+    ComponentType ty = GetComponentType();
+    ofs.write(CharPtr(&ty), sizeof(ty));
+    ofs.write(CharPtr(&Mass), sizeof(Mass));
+    ofs.write(CharPtr(&Restitution), sizeof(Restitution));
+    ofs.write(CharPtr(&Friction), sizeof(Friction));
+    ofs.write(CharPtr(m_halfExtents.AsFloatPtr()), sizeof(Vector3));
 }
 
 

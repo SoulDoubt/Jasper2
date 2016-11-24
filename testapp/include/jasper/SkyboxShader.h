@@ -19,6 +19,10 @@ public:
     virtual void SetProjectionMatrix(const Matrix4& proj) override;
     virtual void SetViewMatrix(const Matrix4& view) override;
 
+    ShaderClassType GetShaderClassType() override {
+        return ShaderClassType::SkyboxShader;
+    }
+
 };
 
 }

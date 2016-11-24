@@ -83,6 +83,10 @@ public:
     }
 
     Shader* GetShaderByName(std::string name);
+    Material* GetMaterialByName(std::string name);
+    
+    void Deserialize(const std::string& filepath);
+    void Serialize(const std::string& filepath);
 
     Renderer* GetRenderer() const {
         return m_renderer.get();

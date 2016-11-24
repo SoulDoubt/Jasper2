@@ -13,6 +13,7 @@
 #include "ConvexHullCollider.h"
 #include "CylinderCollider.h"
 #include "SphereCollider.h"
+#include "Scene.h"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -35,7 +36,7 @@ Model::~Model()
 
 }
 
-void Model::Setup()
+void Model::Setup(Scene* jScene)
 {
     Assimp::Importer importer;
     printf("Loading model: %s\n", m_filename.c_str());
@@ -48,14 +49,14 @@ void Model::Setup()
 
     m_directory = m_filename.substr(0, m_filename.find_last_of("/"));
 
-    ProcessAiSceneNode(scene, scene->mRootNode);
+    ProcessAiSceneNode(scene, scene->mRootNode, jScene);
 
     //auto meshes = this->GetComponentsByType<Mesh>();
-    auto& meshes = m_meshManager.GetCache();
+    auto& meshes = m_model_meshes;
     int sz = meshes.size();
     printf("\nLoaded %d meshes in model: %s", sz, this->GetName().c_str());
-    uint numTris = 0;
-    uint numVerts = 0;
+    //uint numTris = 0;
+    //uint numVerts = 0;
     MaxExtents = { -100000.0f, -1000000.0f, -1000000.0f };
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
@@ -114,7 +115,7 @@ void Model::Setup()
         //Vector3 meshOrigin = { (mesh->GetMinExtents().x + mesh->GetMaxExtents().x) / 2.f, (mesh->GetMinExtents().y + mesh->GetMaxExtents().y) / 2.f , (mesh->GetMinExtents().z + mesh->GetMaxExtents().z) / 2.f };
         //auto child = make_unique<GameObject>("child_" + std::to_string(i));
         //child->GetLocalTransform().Position = meshOrigin;
-        GetGameObject()->AttachNewComponent<MeshRenderer>(mesh.get(), mesh->m_material);
+        GetGameObject()->AttachNewComponent<MeshRenderer>(mesh, mesh->m_material);
         //this->AttachChild(move(child));
         i++;
     }
@@ -130,26 +131,27 @@ void Model::Initialize()
 
 }
 
-void Model::ProcessAiSceneNode(const aiScene* scene, aiNode* node)
+void Model::ProcessAiSceneNode(const aiScene* scene, aiNode* node, Scene* jScene)
 {
     for (uint i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        ProcessAiMesh(mesh, scene);
+        ProcessAiMesh(mesh, scene, jScene);
     }
 
     for (uint i = 0; i < node->mNumChildren; i++) {
-        ProcessAiSceneNode(scene, node->mChildren[i]);
+        ProcessAiSceneNode(scene, node->mChildren[i], jScene);
     }
 
 
 
 }
 
-void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
+void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jScene)
 {
     string meshName = "";
     aiMesh->mName != aiString("") ? meshName = aiMesh->mName.C_Str() : meshName = "unnamed_model_mesh";
-    auto m = m_meshManager.CreateInstance<Mesh>(meshName);
+    auto m = jScene->GetMeshCache().CreateInstance<Mesh>(meshName);
+    m_model_meshes.push_back(m);
     //auto m = this->AttachNewComponent<Mesh>();
     m->Positions.reserve(aiMesh->mNumVertices);
     m->Normals.reserve(aiMesh->mNumVertices);
@@ -210,14 +212,14 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene)
         string texturePath = m_directory + "/" + textureFileName;
         if (texString.length > 0) {
             printf("Looking for texture: %s in model.", textureFileName.c_str());
-            auto existingMat = std::find_if(std::begin(m_materialManager.GetCache()), std::end(m_materialManager.GetCache()),
+            auto existingMat = std::find_if(std::begin(jScene->GetMaterialCache().GetCache()), std::end(jScene->GetMaterialCache().GetCache()),
             [&](const std::unique_ptr<Material>& mm) {
                 return mm->GetName() == matName.C_Str();
             });
-            if (existingMat != std::end(m_materialManager.GetCache())) {
+            if (existingMat != std::end(jScene->GetMaterialCache().GetCache())) {
                 myMaterial = existingMat->get();
             } else {
-                myMaterial = m_materialManager.CreateInstance<Material>(m_shader, matName.C_Str());
+                myMaterial = jScene->GetMaterialCache().CreateInstance<Material>(m_shader, matName.C_Str());
 
                 aiColor3D diffuse, ambient, specular;
                 float shine;

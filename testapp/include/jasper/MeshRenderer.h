@@ -32,6 +32,8 @@ protected:
     unsigned m_vaoID;
     int m_elementCount = 0;
     Material* m_material;
+    std::string mesh_name;
+    std::string material_name;
 
 public:
 
@@ -46,12 +48,15 @@ public:
 
     virtual void Render();
 
-    virtual void Destroy() override;
-    virtual void Awake() override;
-    virtual void Start() override;
-    virtual void FixedUpdate() override;
-    virtual void Update(float dt) override;
-    virtual void LateUpdate() override;
+    void Destroy() override;
+    void Awake() override;
+    void Start() override;
+    void FixedUpdate() override;
+    void Update(float dt) override;
+    void LateUpdate() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::MeshRenderer;
+    }
 
 };
 

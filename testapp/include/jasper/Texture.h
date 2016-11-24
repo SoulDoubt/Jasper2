@@ -21,6 +21,10 @@ public:
 
     bool Load(std::string filename);
     bool Load(const unsigned char* data, int width, int height, uint format);
+    
+    std::string GetFilename() const{
+        return m_filename;
+    }
 
     virtual unsigned TextureID() const {
         return m_textureID;
@@ -32,6 +36,7 @@ public:
 private:
 
     unsigned m_textureID;
+    std::string m_filename;
 };
 
 class CubemapTexture : public Texture

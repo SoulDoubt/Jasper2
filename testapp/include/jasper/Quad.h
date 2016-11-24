@@ -21,8 +21,11 @@ public:
     Quad(const std::string& name);
     explicit Quad(const std::string& name, const Vector2& size, AxisAlignment align);
     Quad(const std::string& name, const Vector2& size, int repeatU, int repeatV, AxisAlignment align);
-    Quad(const std::string& name, const Vector3& normal, const Vector3& point);
+    Quad(const std::string& name, const Vector3& normal, const Vector3& point);    
     ~Quad();
+    ComponentType GetComponentType() override {
+        return ComponentType::Quad;
+    }
 
     void Initialize() override;
     void Destroy() override;

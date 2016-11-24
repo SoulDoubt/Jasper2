@@ -24,6 +24,9 @@ public:
     void FixedUpdate() override {}
     void Update(float dt) override {}
     void LateUpdate() override {}
+    ComponentType GetComponentType() override {
+        return ComponentType::ScriptComponent;
+    }
 
 };
 
@@ -43,6 +46,9 @@ public:
     void FixedUpdate()override {}
     void Update(float dt) override;
     void LateUpdate()override {}
+    ComponentType GetComponentType() override {
+        return ComponentType::DefaultScript;
+    }
 
 };
 
@@ -69,6 +75,9 @@ public:
     void Update(float dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::RotateAboutPointScript;
+    }
 
 
 private:
@@ -96,6 +105,10 @@ public:
     void Update(float dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::LauncherScript;
+    }
+
 
     Vector3 Force = {0.0f, 500.0f, 0.0f};
 
@@ -117,14 +130,16 @@ public:
     DestroyScript(std::string name) : ScriptComponent(name) {}
     ~DestroyScript() {}
 
-    virtual void Initialize() override {}
-    virtual void Destroy()override {}
-    virtual void Awake()override {}
-    virtual void Start()override {}
-    virtual void FixedUpdate()override {}
-    virtual void Update(float dt) override;
-
-    virtual void LateUpdate()override {}
+    void Initialize() override {}
+    void Destroy()override {}
+    void Awake()override {}
+    void Start()override {}
+    void FixedUpdate()override {}
+    void Update(float dt) override;
+    void LateUpdate()override {}
+    ComponentType GetComponentType() override {
+     return ComponentType::DestroyScript;
+    }
 };
 
 class RotateInPlaceScript : public ScriptComponent
@@ -144,6 +159,9 @@ public:
     void FixedUpdate() override {}
     void Update(float dt) override;
     void LateUpdate() override {}
+    ComponentType GetComponentType() override {
+     return ComponentType::RotateInPlaceScript;
+    }
 
 private:
 

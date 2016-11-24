@@ -16,6 +16,10 @@ public:
 
     void Initialize() override;
 
+    ShaderClassType GetShaderClassType() override {
+        return ShaderClassType::LitShader;
+    }
+
     void GetDirectionalLightUniformLocations() override;
     void SetDirectionalLightUniforms(const DirectionalLight* dl) override;
 

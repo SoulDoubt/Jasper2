@@ -12,8 +12,11 @@ public:
     Triangle(const std::string& name);
     ~Triangle();
 
-    virtual void Initialize() override;
-    virtual void Destroy() override;
+    void Initialize() override;
+    void Destroy() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::Triangle;
+    }
 
 };
 }

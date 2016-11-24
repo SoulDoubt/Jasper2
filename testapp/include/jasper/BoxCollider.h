@@ -15,6 +15,13 @@ public:
     ~BoxCollider();
 
     void Awake() override;
+    ComponentType GetComponentType() override {
+        return ComponentType::BoxCollider;
+    }
+    
+    void Serialize(std::ofstream& ofs){
+        PhysicsCollider::Serialize(ofs);
+    }
 };
 
 }

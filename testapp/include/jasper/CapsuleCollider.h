@@ -16,6 +16,7 @@ public:
     ~CapsuleCollider();
 
     void Awake() override;
+    
 };
 
 } // namespace Jasper
