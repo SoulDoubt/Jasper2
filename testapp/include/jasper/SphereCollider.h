@@ -15,7 +15,7 @@ public:
     ~SphereCollider();
 
     void Awake() override;
-    ComponentType GetComponentType() override{
+    ComponentType GetComponentType() const override{
         return ComponentType::SphereCollider;
     }
 };
