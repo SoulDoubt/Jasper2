@@ -45,7 +45,7 @@ public:
         Scale = { 1.0f, 1.0f, 1.0f };
     }
 
-    btTransform GetBtTransform() {
+    btTransform GetBtTransform() const {
         btTransform btt;
         btVector3 pos = { Position.x, Position.y, Position.z };
         btQuaternion q = btQuaternion(Orientation.x, Orientation.y, Orientation.z, Orientation.w);
