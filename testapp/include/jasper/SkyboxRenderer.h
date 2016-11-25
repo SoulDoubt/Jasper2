@@ -17,7 +17,7 @@ public:
     ~SkyboxRenderer();
     void Update(float dt) override;
     void Render() override;
-    ComponentType GetComponentType() {
+    ComponentType GetComponentType() const override {
         return ComponentType::SkyboxRenderer;
     }
 
