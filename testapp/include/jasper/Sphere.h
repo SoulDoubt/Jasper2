@@ -15,7 +15,7 @@ public:
 
     void Initialize() override;
     void Destroy() override;
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::Sphere;
     }
 
