@@ -54,7 +54,7 @@ public:
     void FixedUpdate() override;
     void Update(float dt) override;
     void LateUpdate() override;
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::MeshRenderer;
     }
     
