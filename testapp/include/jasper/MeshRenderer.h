@@ -57,6 +57,22 @@ public:
     ComponentType GetComponentType() override {
         return ComponentType::MeshRenderer;
     }
+    
+    std::string GetMeshName() const {
+        return mesh_name;
+    }
+    
+    std::string GetMaterialName() const {
+        return material_name;
+    }
+    
+    void SetMeshName(const std::string& name) {
+        mesh_name = mesh_name;
+    }
+    
+    void SetMaterialName(const std::string& name) {
+        material_name = name;
+    }
 
 };
 
