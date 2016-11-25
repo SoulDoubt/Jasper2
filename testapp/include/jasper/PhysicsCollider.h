@@ -47,17 +47,17 @@ public:
     
     void ToggleEnabled(bool enabled) override;
 
-    PhysicsWorld* GetPhysicsWorld() {
+    PhysicsWorld* GetPhysicsWorld() const {
         return m_world;
     }
-    btRigidBody* GetRigidBody() {
+    btRigidBody* GetRigidBody() const {
         return m_rigidBody;
     }
-    btCollisionShape* GetCollisionShape() {
+    btCollisionShape* GetCollisionShape() const {
         return m_collisionShape;
     }
 
-    btTransform GetDebugTransform() {
+    btTransform GetDebugTransform() const {
         btTransform trans;
         m_rigidBody->getMotionState()->getWorldTransform(trans);
         return trans;
