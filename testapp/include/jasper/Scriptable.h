@@ -24,7 +24,7 @@ public:
     void FixedUpdate() override {}
     void Update(float dt) override {}
     void LateUpdate() override {}
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::ScriptComponent;
     }
 
@@ -46,7 +46,7 @@ public:
     void FixedUpdate()override {}
     void Update(float dt) override;
     void LateUpdate()override {}
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::DefaultScript;
     }
 
@@ -75,7 +75,7 @@ public:
     void Update(float dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::RotateAboutPointScript;
     }
 
@@ -105,7 +105,7 @@ public:
     void Update(float dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::LauncherScript;
     }
 
@@ -137,7 +137,7 @@ public:
     void FixedUpdate()override {}
     void Update(float dt) override;
     void LateUpdate()override {}
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
      return ComponentType::DestroyScript;
     }
 };
@@ -159,7 +159,7 @@ public:
     void FixedUpdate() override {}
     void Update(float dt) override;
     void LateUpdate() override {}
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
      return ComponentType::RotateInPlaceScript;
     }
 
