@@ -17,6 +17,10 @@ public:
 
     void Awake() override;
     
+    ComponentType GetComponentType() const override {
+        return ComponentType::CapsuleCollider;
+    }
+    
 };
 
 } // namespace Jasper
