@@ -13,7 +13,7 @@ class PlaneCollider :
 public:
     PlaneCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
     ~PlaneCollider();
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::PlaneCollider;
     }
     void Serialize(std::ofstream& ofs) override {
