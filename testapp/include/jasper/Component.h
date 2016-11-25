@@ -53,7 +53,7 @@ public:
     virtual void ToggleEnabled(bool enabled);
     
     void SetGameObject(GameObject* go);
-    GameObject* GetGameObject();
+    GameObject* GetGameObject() const;
 
 
 
@@ -68,7 +68,7 @@ public:
     virtual void LateUpdate();
     virtual bool ShowGui();
     virtual void Serialize(std::ofstream& ofs);
-    virtual ComponentType GetComponentType() = 0;
+    virtual ComponentType GetComponentType() const = 0;
 
 
 
@@ -117,7 +117,7 @@ inline void Component::SetGameObject(GameObject* go)
     m_gameObject = go;
 }
 
-inline GameObject* Component::GetGameObject()
+inline GameObject* Component::GetGameObject() const
 {
     return m_gameObject;
 }
