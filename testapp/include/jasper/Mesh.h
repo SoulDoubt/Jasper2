@@ -89,7 +89,7 @@ public:
 
     void FlipTextureCoords();
     
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::Mesh;
     }
 
