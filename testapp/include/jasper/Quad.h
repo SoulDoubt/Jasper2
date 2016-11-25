@@ -23,7 +23,7 @@ public:
     Quad(const std::string& name, const Vector2& size, int repeatU, int repeatV, AxisAlignment align);
     Quad(const std::string& name, const Vector3& normal, const Vector3& point);    
     ~Quad();
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::Quad;
     }
 
