@@ -47,7 +47,7 @@ public:
     void SaveToAssetFile(const std::string& filename);
 
     void Setup(Scene* sc);
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::Model;
     }
 
