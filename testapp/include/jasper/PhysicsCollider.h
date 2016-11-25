@@ -29,7 +29,7 @@ public:
     explicit PhysicsCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
     virtual ~PhysicsCollider();
     
-    ComponentType GetComponentType() override {
+    ComponentType GetComponentType() const override {
         return ComponentType::PhysicsCollider;
     }
 
