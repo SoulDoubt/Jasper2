@@ -39,7 +39,7 @@ public:
 
     PhysicsDebugDrawer* debugDrawer;
 
-    btDiscreteDynamicsWorld* GetBtWorld() {
+    btDiscreteDynamicsWorld* GetBtWorld() const {
         return m_world;
     }
 
