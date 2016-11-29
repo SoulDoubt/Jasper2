@@ -63,9 +63,6 @@ public:
     float Yaw() const;
     Angles ToEulerAngles() const;
     
-    
-
-
     float Length() const;
 
     float x, y, z, w;
@@ -73,6 +70,10 @@ public:
     static Quaternion FromAxisAndAngle(const Vector3& axis, float angle);
 
     float* AsFloatPtr() {
+        return &x;
+    }
+    
+    const float* AsFloatPtr() const {
         return &x;
     }
 };

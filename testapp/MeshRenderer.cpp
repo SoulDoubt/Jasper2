@@ -8,6 +8,7 @@
 #include "Texture.h"
 #include "PhysicsCollider.h"
 #include "Lights.h"
+#include "AssetSerializer.h"
 #include <iostream>
 
 namespace Jasper
@@ -111,6 +112,24 @@ void MeshRenderer::Awake()
 
     glBindVertexArray(0);
     GLERRORCHECK;
+}
+
+void MeshRenderer::Serialize(std::ofstream& ofs) const
+{
+    // basically all we want to store is the component type, the mesh name, and the material name
+    // when constructing from serialization data we can use those names to pull the mesh and materials out
+    // of the scene's caches and use those to construct the mesh renderer.
+
+    using namespace AssetSerializer;
+
+    const ComponentType ty = GetComponentType();
+    ofs.write(ConstCharPtr(&ty), sizeof(ty));
+    size_t meshnamesize = mesh_name.size();
+    ofs.write(ConstCharPtr(&meshnamesize), sizeof(meshnamesize));
+    ofs.write(mesh_name.c_str(), meshnamesize);
+    size_t matnamesize = material_name.size();
+    ofs.write(ConstCharPtr(&matnamesize), sizeof(matnamesize));
+    ofs.write(material_name.c_str(), matnamesize);
 }
 
 void MeshRenderer::Start() {}

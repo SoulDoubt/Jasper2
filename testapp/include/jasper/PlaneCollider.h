@@ -11,12 +11,9 @@ class PlaneCollider :
     public PhysicsCollider
 {
 public:
-    PlaneCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
+    PlaneCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
     ~PlaneCollider();
-    ComponentType GetComponentType() const override {
-        return ComponentType::PlaneCollider;
-    }
-    void Serialize(std::ofstream& ofs) override {
+    void Serialize(std::ofstream& ofs) const override {
         PhysicsCollider::Serialize(ofs);
     }
 

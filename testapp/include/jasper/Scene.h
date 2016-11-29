@@ -104,6 +104,8 @@ public:
 
     //Material* GetMaterialByName(const std::string& name);
     //Mesh*     GetMeshByName(const std::string& name);
+    
+    void SerializeGameObject(const GameObject* go, std::ofstream& ofs);
 
     ResourceManager<Material>& GetMaterialCache() {
         return m_materialManager;

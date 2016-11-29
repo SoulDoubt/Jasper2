@@ -70,18 +70,43 @@ void Scene::Serialize(const std::string& filepath){
     auto& shaderCache = m_shaderManager.GetCache();
     size_t shaderCount = shaderCache.size();
     ofs.write(CharPtr(&shaderCount), sizeof(shaderCount));
-    for (auto& shader : m_shaderManager.GetCache()){ 
+    for (const auto& shader : m_shaderManager.GetCache()){ 
         SerializeShader(ofs, shader.get());
     }
     
     // now the materials
     size_t materialCount = m_materialManager.GetCache().size();
     ofs.write(CharPtr(&materialCount), sizeof(materialCount));
-    for (auto& material : m_materialManager.GetCache()){
+    for (const auto& material : m_materialManager.GetCache()){
         SerializeMaterial(ofs, material.get());
     }
     
+    //serialize GameObjects
+    SerializeGameObject(m_rootNode.get(), ofs);
+    
     ofs.close();
+    
+}
+
+void Scene::SerializeGameObject(const GameObject* go, std::ofstream& ofs){
+    using namespace AssetSerializer;
+    // write the game object name
+    // write the transform 
+    // write the number of children
+    // write each child (recursively);
+    const string name = go->GetName();
+    size_t namesize = name.size();
+    ofs.write(CharPtr(&namesize), sizeof(namesize));
+    ofs.write(name.c_str(), namesize);
+    Transform t = go->GetWorldTransform();
+    ofs.write(CharPtr(t.Position.AsFloatPtr()), sizeof(t.Position));
+    ofs.write(CharPtr(t.Orientation.AsFloatPtr()), sizeof(t.Orientation));
+    //not the components for this game object
+    const size_t componentsize = go->Components().size();
+    ofs.write(ConstCharPtr(&componentsize), sizeof(componentsize));
+    for (const auto& cmp : go->Components()){
+        cmp->Serialize(ofs);
+    }
     
 }
 
@@ -95,7 +120,13 @@ void Scene::Deserialize(const std::string& filepath){
     size_t shadercount;
     ifs.read(CharPtr(&shadercount), sizeof(shadercount));
     for (int i = 0; i < shadercount; i++){
-        
+        AssetSerializer::ConstructShader(ifs, this);
+    }
+    
+    size_t materialcount;
+    ifs.read(CharPtr(&materialcount), sizeof(materialcount));
+    for (int i = 0; i < materialcount; i++){
+        AssetSerializer::ConstructMaterial(ifs, this);
     }
     
     ifs.close();
@@ -246,29 +277,33 @@ void Scene::Initialize()
     m_rootNode->Initialize();
     
     Serialize("scenedata.scene");
+    Deserialize("scenedata.scene");
 }
 
 Shader* Scene::GetShaderByName(std::string name)
 {
-    auto res = find_if(begin(m_shaderManager.GetCache()), end(m_shaderManager.GetCache()),
-    [&](const std::unique_ptr<Shader>& c) {
-        return c->GetName() == name;
-    });
-    if (res != end(m_shaderManager.GetCache())) {
-        return res->get();
-    }
-    return nullptr;
+//    auto res = find_if(begin(m_shaderManager.GetCache()), end(m_shaderManager.GetCache()),
+//    [&](const std::unique_ptr<Shader>& c) {
+//        return c->GetName() == name;
+//    });
+//    if (res != end(m_shaderManager.GetCache())) {
+//        return res->get();
+//    }
+//    return nullptr;
+    return m_shaderManager.GetResourceByName(name);
+    
 }
 
 Material* Scene::GetMaterialByName(std::string name){
-    auto res = find_if(begin(m_materialManager.GetCache()), end(m_materialManager.GetCache()), 
-    [&](const std::unique_ptr<Material>& mat){
-       return mat->GetName() == name; 
-    });
-    if (res != end(m_materialManager.GetCache())){
-        return res->get();
-    }
-    return nullptr;
+//    auto res = find_if(begin(m_materialManager.GetCache()), end(m_materialManager.GetCache()), 
+//    [&](const std::unique_ptr<Material>& mat){
+//       return mat->GetName() == name; 
+//    });
+//    if (res != end(m_materialManager.GetCache())){
+//        return res->get();
+//    }
+//    return nullptr;
+    return m_materialManager.GetResourceByName(name);
 }
 
 void Scene::AddGameObject(std::unique_ptr<GameObject> go)

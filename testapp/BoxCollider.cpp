@@ -5,16 +5,17 @@
 namespace Jasper
 {
 
-BoxCollider::BoxCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world)
+BoxCollider::BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
     :PhysicsCollider(name, mesh, world)
 {
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Box;
 
 }
 
-BoxCollider::BoxCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world)
+BoxCollider::BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     :PhysicsCollider(name, halfExtents, world)
 {
-
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Box;
 }
 
 

@@ -102,14 +102,22 @@ public:
     Texture* GetTextureNormalMap() {
         return m_normalMap.get();
     }
+    
+    const Texture* GetTextureNormalMap() const {
+        return m_normalMap.get();
+    }
 
     Texture* GetTextureSpecularMap() {
+        return m_specularMap.get();
+    }
+    
+    const Texture* GetTextureSpecularMap() const {
         return m_specularMap.get();
     }
 
     void SetTextureDiffuse(std::string filename) {
         auto tex = std::make_unique<Texture>();
-        tex->Load(filename);
+        tex->Load(std::move(filename));
         m_texture = std::move(tex);
         m_diffuseTextureFileName = filename;
     }
@@ -175,14 +183,22 @@ public:
         return m_name;
     }
     
-    void SetName(const std::string& name){
-        m_name = name;
+    std::string GetName() const {
+        return m_name;
+    }
+    
+    void SetName(std::string name){
+        m_name = std::move(name);
     }
     
     bool ShowGui();
     void Serialize(std::ofstream& ofs);
     
     std::string GetShaderName(){
+        return m_shaderName;
+    }
+    
+    std::string GetShaderName() const {
         return m_shaderName;
     }
 

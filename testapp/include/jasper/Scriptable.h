@@ -13,7 +13,7 @@ class ScriptComponent : public Component
 
 public:
 
-    ScriptComponent(std::string name): Component(name) {}
+    ScriptComponent(std::string name): Component(std::move(name)) {}
 
     ~ScriptComponent() {}
 

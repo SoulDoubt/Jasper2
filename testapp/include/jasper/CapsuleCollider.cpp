@@ -2,14 +2,16 @@
 #include "GameObject.h"
 #include "Mesh.h"
 
-Jasper::CapsuleCollider::CapsuleCollider(const std::string & name, Mesh * mesh, PhysicsWorld * world)
+Jasper::CapsuleCollider::CapsuleCollider(std::string name, Mesh * mesh, PhysicsWorld * world)
     : PhysicsCollider(name, mesh, world)
 {
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
 }
 
-Jasper::CapsuleCollider::CapsuleCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world)
+Jasper::CapsuleCollider::CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : PhysicsCollider(name, halfExtents, world)
 {
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
 }
 
 Jasper::CapsuleCollider::~CapsuleCollider()

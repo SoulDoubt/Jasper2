@@ -10,14 +10,12 @@ class BoxCollider :
     public PhysicsCollider
 {
 public:
-    explicit BoxCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
-    explicit BoxCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
+    explicit BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~BoxCollider();
 
     void Awake() override;
-    ComponentType GetComponentType() const override {
-        return ComponentType::BoxCollider;
-    }
+    
     
     void Serialize(std::ofstream& ofs){
         PhysicsCollider::Serialize(ofs);

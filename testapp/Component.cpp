@@ -53,7 +53,7 @@ bool Component::ShowGui()
     return false;
 }
 
-void Component::Serialize(std::ofstream& ofs){
+void Component::Serialize(std::ofstream& ofs) const {
     
 }
 

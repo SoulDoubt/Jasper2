@@ -10,7 +10,7 @@ using namespace std;
 class GuiShader : public Shader
 {
     void Initialize() override;
-    ShaderClassType GetShaderClassType() override {
+    ShaderClassType GetShaderClassType() const override {
         return ShaderClassType::GuiShader;
     }
 };

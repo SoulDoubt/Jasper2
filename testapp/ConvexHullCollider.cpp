@@ -4,10 +4,10 @@
 namespace Jasper
 {
 
-ConvexHullCollider::ConvexHullCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world)
+ConvexHullCollider::ConvexHullCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : PhysicsCollider(name, halfExtents, world)
 {
-
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Cylinder;
 }
 
 void ConvexHullCollider::Awake()

@@ -4,10 +4,10 @@
 namespace Jasper
 {
 
-PlaneCollider::PlaneCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world)
+PlaneCollider::PlaneCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
     :PhysicsCollider(name, mesh, world)
 {
-
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Plane;
 
 }
 

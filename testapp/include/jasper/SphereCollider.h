@@ -10,14 +10,14 @@ class SphereCollider :
     public PhysicsCollider
 {
 public:
-    SphereCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
-    SphereCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
+    SphereCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    SphereCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~SphereCollider();
 
     void Awake() override;
-    ComponentType GetComponentType() const override{
-        return ComponentType::SphereCollider;
-    }
+//    ComponentType GetComponentType() const override{
+//        return ComponentType::PhysicsCollider;
+//    }
 };
 
 }

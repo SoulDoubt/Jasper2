@@ -12,18 +12,12 @@ class GameObject;
 //class std::ofstream;
 
 enum class ComponentType{
-    BoxCollider,
-    SphereCollider,
-    CapsuleCollider,
-    ConvexHullCollider,
-    PlaneCollider,
     MeshRenderer,
     DestroyScript,
     DefaultScript,
     RotateAboutPointScript,
     RotateInPlaceScript,
     LauncherScript,
-    CylinderCollider,
     Mesh,
     Cube,
     Quad,
@@ -67,7 +61,7 @@ public:
     virtual void Update(float dt);
     virtual void LateUpdate();
     virtual bool ShowGui();
-    virtual void Serialize(std::ofstream& ofs);
+    virtual void Serialize(std::ofstream& ofs) const;
     virtual ComponentType GetComponentType() const = 0;
 
 
@@ -96,7 +90,7 @@ private:
 
 inline Component::Component(std::string name)
 {
-    m_name = name;
+    m_name = std::move(name);
     m_isEnabled = true;
     m_gameObject = nullptr;
 }
@@ -108,7 +102,7 @@ inline std::string Component::GetName() const
 
 inline void Component::SetName(std::string name)
 {
-    m_name = name;
+    m_name = std::move(name);
 }
 
 

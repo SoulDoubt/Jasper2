@@ -8,15 +8,16 @@ namespace Jasper
 
 using namespace std;
 
-PhysicsCollider::PhysicsCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world)
-    :Component(name), m_world(world), m_mesh(mesh)
+PhysicsCollider::PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
+    :Component(std::move(name)), m_world(world), m_mesh(mesh)
 {
-
+    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
 }
 
-PhysicsCollider::PhysicsCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world)
-    : Component(name), m_world(world), m_halfExtents(halfExtents)
+PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
+    : Component(std::move(name)), m_world(world), m_halfExtents(halfExtents)
 {
+    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
 }
 
 
@@ -27,6 +28,7 @@ PhysicsCollider::~PhysicsCollider()
 
 void PhysicsCollider::Initialize()
 {
+    
 
 }
 
@@ -107,8 +109,9 @@ bool PhysicsCollider::ShowGui()
     return false;
 }
 
-void PhysicsCollider::Serialize(std::ofstream& ofs){
+void PhysicsCollider::Serialize(std::ofstream& ofs) const{
     // CompontntType    -> int
+    // collider type    -> enum
     // Mass             -> float
     // Restitution      -> float
     // Friction         -> float
@@ -118,10 +121,12 @@ void PhysicsCollider::Serialize(std::ofstream& ofs){
     
     ComponentType ty = GetComponentType();
     ofs.write(CharPtr(&ty), sizeof(ty));
-    ofs.write(CharPtr(&Mass), sizeof(Mass));
-    ofs.write(CharPtr(&Restitution), sizeof(Restitution));
-    ofs.write(CharPtr(&Friction), sizeof(Friction));
-    ofs.write(CharPtr(m_halfExtents.AsFloatPtr()), sizeof(Vector3));
+    PHYSICS_COLLIDER_TYPE colliderType = GetColliderType();
+    ofs.write(ConstCharPtr(&colliderType), sizeof(colliderType));
+    ofs.write(ConstCharPtr(&Mass), sizeof(Mass));
+    ofs.write(ConstCharPtr(&Restitution), sizeof(Restitution));
+    ofs.write(ConstCharPtr(&Friction), sizeof(Friction));
+    ofs.write(ConstCharPtr(m_halfExtents.AsFloatPtr()), sizeof(Vector3));
 }
 
 

@@ -11,16 +11,13 @@ class CapsuleCollider : public PhysicsCollider
 
 public:
 
-    explicit CapsuleCollider(const std::string& name, Mesh* mesh, PhysicsWorld* world);
-    explicit CapsuleCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
+    explicit CapsuleCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~CapsuleCollider();
 
     void Awake() override;
-    
-    ComponentType GetComponentType() const override {
-        return ComponentType::CapsuleCollider;
-    }
-    
+
+
 };
 
 } // namespace Jasper

@@ -14,7 +14,7 @@ public:
     ~BasicShader();
 
     void Initialize() override;
-    ShaderClassType GetShaderClassType() override {
+    ShaderClassType GetShaderClassType() const override {
         return ShaderClassType::BasicShader;
     }
 };

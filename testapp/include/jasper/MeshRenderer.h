@@ -45,6 +45,7 @@ public:
 
     explicit MeshRenderer(Mesh* mesh, Material* material);
     ~MeshRenderer();
+    
 
     virtual void Render();
 
@@ -54,6 +55,9 @@ public:
     void FixedUpdate() override;
     void Update(float dt) override;
     void LateUpdate() override;
+    
+    void Serialize(std::ofstream& ofs) const override;
+    
     ComponentType GetComponentType() const override {
         return ComponentType::MeshRenderer;
     }
@@ -66,12 +70,12 @@ public:
         return material_name;
     }
     
-    void SetMeshName(const std::string& name) {
-        mesh_name = mesh_name;
+    void SetMeshName(std::string name) {
+        mesh_name = std::move(mesh_name);
     }
     
-    void SetMaterialName(const std::string& name) {
-        material_name = name;
+    void SetMaterialName(std::string name) {
+        material_name = std::move(name);
     }
 
 };

@@ -16,7 +16,9 @@
      
 #define NON_COPYABLE(X)   X(const X&) = delete; \
     X& operator=(const X&) = delete;            \
-    X(X&&) = default;
+    X(X&&) = default;                           \
+    X& operator=(X&&) = default;
+    
 
 using uint = unsigned int;
 

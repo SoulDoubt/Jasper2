@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <typeinfo>
-#include <map>
+#include <unordered_map>
 #include <typeindex>
 #include <functional>
 #include <vector>
@@ -27,20 +27,20 @@ class GameObject
 public:
 
 
-    using GroupedComponentMap = std::map<std::type_index, std::vector<std::unique_ptr<Component>>>;
+    using GroupedComponentMap = std::unordered_map<std::type_index, std::vector<std::unique_ptr<Component>>>;
 
     //GameObject();
-    GameObject(const std::string& name);
+    GameObject(const std::string name);
     GameObject(GameObject&& oth) = default;
     virtual ~GameObject();
 
     Transform GetWorldTransform() const;
 
     std::string GetName() const;
-    void SetName(std::string name);
+    void SetName(const std::string name);
 
     std::string GetTag() const;
-    void SetTag(std::string tag);
+    void SetTag(const std::string tag);
 
     const std::vector<std::unique_ptr<GameObject>>& Children() const;
 
@@ -49,6 +49,11 @@ public:
     }
 
     std::vector<std::unique_ptr<Component>>& Components();
+    
+    const std::vector<std::unique_ptr<Component>>& Components() const {
+        return m_components;
+    }
+    
 
     Transform GetLocalTransform() const;
 
@@ -169,9 +174,9 @@ protected:
 //	//Initialize();
 //}
 
-inline GameObject::GameObject(const std::string& name) : m_components(), m_children(), m_transform()
+inline GameObject::GameObject(std::string name) : m_components(), m_children(), m_transform()
 {
-    m_name = name;
+    m_name = std::move(name);
     m_tag = "";
     m_parent = nullptr;
     m_transform.SetIdentity();
@@ -186,7 +191,7 @@ inline std::string GameObject::GetName() const
 
 inline void GameObject::SetName(std::string name)
 {
-    m_name = name;
+    m_name = std::move(name);
 }
 
 inline std::string GameObject::GetTag() const
@@ -196,7 +201,7 @@ inline std::string GameObject::GetTag() const
 
 inline void GameObject::SetTag(std::string tag)
 {
-    m_tag = tag;
+    m_tag = std::move(tag);
 }
 
 inline const std::vector<std::unique_ptr<GameObject>>& GameObject::Children() const

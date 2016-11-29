@@ -27,6 +27,8 @@ void SerializeMesh(ofstream& ofs, Mesh* mesh)
     // 3) COunt of Normals
     // 4) Normal Data
     // and so on in that fashion
+
+
     int posc = mesh->Positions.size();
     int texc = mesh->TexCoords.size();
     int norc = mesh->Normals.size();
@@ -53,9 +55,7 @@ void SerializeMesh(ofstream& ofs, Mesh* mesh)
 }
 
 
-
-
-void SerializeMaterial(std::ofstream& ofs, Material* mat)
+void SerializeMaterial(std::ofstream& ofs, const Material* mat)
 {
     using namespace AssetSerializer;
 
@@ -63,10 +63,10 @@ void SerializeMaterial(std::ofstream& ofs, Material* mat)
     size_t nameSize = name.size();
     ofs.write(CharPtr(&nameSize), sizeof(nameSize));
     ofs.write(name.c_str(), nameSize * sizeof(char));
-    ofs.write(CharPtr(mat->Ambient.AsFloatPtr()), sizeof(Vector3));
-    ofs.write(CharPtr(mat->Diffuse.AsFloatPtr()), sizeof(Vector3));
-    ofs.write(CharPtr(mat->Specular.AsFloatPtr()), sizeof(Vector3));
-    ofs.write(CharPtr(&(mat->Shine)), sizeof(float));
+    ofs.write(ConstCharPtr(mat->Ambient.AsFloatPtr()), sizeof(Vector3));
+    ofs.write(ConstCharPtr(mat->Diffuse.AsFloatPtr()), sizeof(Vector3));
+    ofs.write(ConstCharPtr(mat->Specular.AsFloatPtr()), sizeof(Vector3));
+    ofs.write(ConstCharPtr(&(mat->Shine)), sizeof(float));
 
     string shaderName = mat->GetShaderName();
     size_t shaderNameLength = shaderName.size();
@@ -108,11 +108,7 @@ void ConstructMaterial(std::ifstream& ifs, Scene* scene)
     ifs.read(namebuff, namelen);
     string matName = string(namebuff);
     printf("Deserialized Material Name: %s\n", matName.c_str());
-    Material* cachedMaterial = scene->GetMaterialByName(matName);
-    if (cachedMaterial) {
-        printf("Material already in cache: %s\n", matName.c_str());
-        return;
-    }
+
 
     Vector3 ambient, diffuse, specular;
     float shine;
@@ -120,12 +116,12 @@ void ConstructMaterial(std::ifstream& ifs, Scene* scene)
     ifs.read(CharPtr(&diffuse), sizeof(diffuse));
     ifs.read(CharPtr(&specular), sizeof(specular));
     ifs.read(CharPtr(&shine), sizeof(shine));
-    
-    string shaderName = "";
+
     size_t sns;
     ifs.read(CharPtr(&sns), sizeof(sns));
     char snbuff[sns];
     ifs.read(snbuff, sns);
+    string shaderName = string(snbuff);
 
     string diffuseMapPath = "";
     size_t dms;
@@ -161,11 +157,34 @@ void ConstructMaterial(std::ifstream& ifs, Scene* scene)
         printf("Deserialized Specular Map Path: %s\n", specMapPath.c_str());
     }
 
+    Material* cachedMaterial = scene->GetMaterialByName(matName);
+    if (cachedMaterial) {
+        printf("Material already in cache: %s\n", matName.c_str());
+        return;
+    }
 
+    Shader* mShader = scene->GetShaderByName(shaderName);
+    if (!mShader) {
+        printf("Shader %s not found in cache, unable to load material %s\n", shaderName.c_str(), matName.c_str());
+        return;
+    }
+
+    Material* mm = scene->GetMaterialCache().CreateInstance<Material>(mShader, matName);
+    mm->Ambient = ambient;
+    mm->Diffuse = diffuse;
+    mm->Specular = specular;
+    mm->Shine = shine;
+    mm->SetTextureDiffuse(diffuseMapPath);
+    if (hasNormalMap) {
+        mm->SetTextureNormalMap(normalMapPath);
+    }
+    if (hasSpecMap) {
+        mm->SetTextureSpecularMap(specMapPath);
+    }
 
 }
 
-void SerializeShader(std::ofstream& ofs, Shader* shader)
+void SerializeShader(std::ofstream& ofs, const Shader* shader)
 {
     // really all we need to store is the type enum and the name
     ShaderClassType ty = shader->GetShaderClassType();
@@ -186,13 +205,13 @@ void ConstructShader(std::ifstream& ifs, Scene* scene)
     ifs.read(namebuff, namelen);
     string name = string(namebuff);
     printf("Deserializing shader name: %s\n", name.c_str());
-    
+
     Shader* s = scene->GetShaderByName(name);
-    if (s){
+    if (s) {
         printf("Shader already in tha cache: %s\n", name.c_str());
         return;
     }
-    
+
     switch (typ) {
     case ShaderClassType::BasicShader :
         scene->GetShaderCache().CreateInstance<BasicShader>();
