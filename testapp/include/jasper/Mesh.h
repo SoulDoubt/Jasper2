@@ -72,6 +72,14 @@ struct Vertex {
 
 };
 
+enum class MeshType{
+    Arbitrary,
+    Cube,
+    Sphere,
+    Quad,
+    Triangle
+};
+
 
 class Mesh : public Component
 {
