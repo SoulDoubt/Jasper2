@@ -95,12 +95,12 @@ void Scene::SerializeGameObject(const GameObject* go, std::ofstream& ofs){
     // write the number of children
     // write each child (recursively);
     const string name = go->GetName();
-    size_t namesize = name.size();
-    ofs.write(CharPtr(&namesize), sizeof(namesize));
+    const size_t namesize = name.size();
+    ofs.write(ConstCharPtr(&namesize), sizeof(namesize));
     ofs.write(name.c_str(), namesize);
-    Transform t = go->GetWorldTransform();
-    ofs.write(CharPtr(t.Position.AsFloatPtr()), sizeof(t.Position));
-    ofs.write(CharPtr(t.Orientation.AsFloatPtr()), sizeof(t.Orientation));
+    const Transform t = go->GetWorldTransform();
+    ofs.write(ConstCharPtr(t.Position.AsFloatPtr()), sizeof(t.Position));
+    ofs.write(ConstCharPtr(t.Orientation.AsFloatPtr()), sizeof(t.Orientation));
     //not the components for this game object
     const size_t componentsize = go->Components().size();
     ofs.write(ConstCharPtr(&componentsize), sizeof(componentsize));
@@ -108,9 +108,13 @@ void Scene::SerializeGameObject(const GameObject* go, std::ofstream& ofs){
         cmp->Serialize(ofs);
     }
     
+    // now write the children recursively
+    size_t childsize = go->Children().size();
+    ofs.write(ConstCharPtr(&childsize), sizeof(childsize));
     for (const auto& child : go->Children()){
-        SerializeGameObject(go->get(), ofs);
+        SerializeGameObject(child.get(), ofs);
     }
+    
 }
 
 void Scene::Deserialize(const std::string& filepath){

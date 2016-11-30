@@ -100,6 +100,10 @@ public:
     ComponentType GetComponentType() const override {
         return ComponentType::Mesh;
     }
+    
+    MeshType GetMeshType() const {
+        return MeshType::Arbitrary;
+    }
 
     std::vector<Vector3> Positions;
     std::vector<Vector3> Normals;

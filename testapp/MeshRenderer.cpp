@@ -27,6 +27,8 @@ MeshRenderer::MeshRenderer(Mesh* mesh, Material* material) : Component("mesh_ren
     m_mesh = mesh;
     m_mesh->IncrementRendererCount();
     m_material = material;
+    mesh_name = mesh->GetName();
+    material_name = material->GetName();
 }
 
 MeshRenderer::~MeshRenderer()
