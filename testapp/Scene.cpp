@@ -108,6 +108,9 @@ void Scene::SerializeGameObject(const GameObject* go, std::ofstream& ofs){
         cmp->Serialize(ofs);
     }
     
+    for (const auto& child : go->Children()){
+        SerializeGameObject(go->get(), ofs);
+    }
 }
 
 void Scene::Deserialize(const std::string& filepath){
