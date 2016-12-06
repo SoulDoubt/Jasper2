@@ -26,9 +26,6 @@ class GameObject
 {
 public:
 
-
-    using GroupedComponentMap = std::unordered_map<std::type_index, std::vector<std::unique_ptr<Component>>>;
-
     //GameObject();
     GameObject(const std::string name);
     GameObject(GameObject&& oth) = default;
@@ -43,7 +40,7 @@ public:
     void SetTag(const std::string tag);
 
     const std::vector<std::unique_ptr<GameObject>>& Children() const;
-
+    
     std::vector<std::unique_ptr<GameObject>>& Children() {
         return m_children;
     }
@@ -88,6 +85,7 @@ public:
     GameObject& AttachNewChild(const std::string& name);
 
     std::unique_ptr<GameObject> DetachChild(const GameObject& child);
+    std::unique_ptr<GameObject> DetachChild(const GameObject* child);
 
 
     Component* FindComponentByName(std::string name);
@@ -114,7 +112,7 @@ public:
     Scene* GetScene() const;
 
     template<typename T>
-    std::vector<std::unique_ptr<Component>>* FindComponentsByType();
+    std::vector<Component*> FindComponentsByType();
 
     template<typename T, typename... Args>
     T* AttachNewComponent(Args&&... args);
@@ -145,7 +143,6 @@ private:
     std::vector<std::unique_ptr<Component>> m_components;
     std::vector<std::unique_ptr<GameObject>> m_children;
 
-    GroupedComponentMap m_groupedComponents;
 
 
 protected:
@@ -261,21 +258,20 @@ inline Component* GameObject::FindComponentByID(int id)
 }
 
 template<typename T>
-inline  std::vector<std::unique_ptr<Component>>* GameObject::FindComponentsByType()
+inline  std::vector<Component*> GameObject::FindComponentsByType()
 {
 
     static_assert(std::is_base_of<Component, T>::value, "Type Paramater must derive from Component.");
-
-    if (m_groupedComponents.size() == 0) {
-        return nullptr;
-    }
-    const std::type_index id(typeid(T));
-    for (auto& group : m_groupedComponents) {
-        if (group.first == id) {
-            return &m_groupedComponents[id];
+    std::vector<Component*> ret;
+    for (auto& c : m_components){
+        if (T* found = dynamic_cast<T*>(c.get())){
+            ret.push_back(found);
         }
     }
-    return nullptr;
+    return ret;
+    
+    
+    
 }
 
 template<typename T, typename... Args>

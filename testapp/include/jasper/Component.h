@@ -9,9 +9,10 @@ namespace Jasper
 {
 
 class GameObject;
-//class std::ofstream;
+//class std::ofstream
 
 enum class ComponentType{
+    None,
     MeshRenderer,
     DestroyScript,
     DefaultScript,
@@ -62,7 +63,9 @@ public:
     virtual void LateUpdate();
     virtual bool ShowGui();
     virtual void Serialize(std::ofstream& ofs) const;
-    virtual ComponentType GetComponentType() const = 0;
+    virtual ComponentType GetComponentType() const {
+        return ComponentType::None;
+    }
 
 
 

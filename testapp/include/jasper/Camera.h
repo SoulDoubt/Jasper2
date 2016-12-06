@@ -13,7 +13,7 @@ namespace Jasper
 
 class PhysicsWorld;
 
-class Camera : public GameObject
+class Camera //: public GameObject
 {
 public:
 
@@ -22,7 +22,8 @@ public:
         FIRST_PERSON,
         FLYING
     };
-
+    
+    
     explicit Camera(CameraType type);
     virtual ~Camera();
 
@@ -43,7 +44,8 @@ public:
     Vector3 GetViewDirection() const {
         return m_viewVector;
     }
-
+    
+    Transform m_transform;
     Quaternion m_orientation;
     Vector3 m_position;
 

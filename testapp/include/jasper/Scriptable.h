@@ -24,13 +24,19 @@ public:
     void FixedUpdate() override {}
     void Update(float dt) override {}
     void LateUpdate() override {}
+    void Serialize(std::ofstream& ofs) const override;
     ComponentType GetComponentType() const override {
         return ComponentType::ScriptComponent;
     }
 
 };
 
-class DefaultScript: public ScriptComponent
+inline void ScriptComponent::Serialize(std::ofstream& ofs) const {
+    // just write the component name and type for now, the
+    
+}
+
+class DefaultScript final : public ScriptComponent
 {
 
 public:
@@ -52,7 +58,7 @@ public:
 
 };
 
-class RotateAboutPointScript : public ScriptComponent
+class RotateAboutPointScript final: public ScriptComponent
 {
 
 public:
@@ -89,7 +95,7 @@ private:
 
 };
 
-class LauncherScript: public ScriptComponent
+class LauncherScript final : public ScriptComponent
 {
 
 public:
@@ -123,7 +129,7 @@ private:
     void LaunchCube();
 };
 
-class DestroyScript: public ScriptComponent
+class DestroyScript final : public ScriptComponent
 {
 public:
     DestroyScript() : ScriptComponent("destroy_script") {}
@@ -142,7 +148,7 @@ public:
     }
 };
 
-class RotateInPlaceScript : public ScriptComponent
+class RotateInPlaceScript final : public ScriptComponent
 {
 public:
     RotateInPlaceScript(const Vector3& axis, float degsPerSecond)

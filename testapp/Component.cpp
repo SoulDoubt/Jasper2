@@ -1,5 +1,6 @@
 #include "Component.h"
 #include "imgui.h"
+#include "AssetSerializer.h"
 
 namespace Jasper
 {
@@ -54,6 +55,10 @@ bool Component::ShowGui()
 }
 
 void Component::Serialize(std::ofstream& ofs) const {
+    using namespace AssetSerializer;
+    size_t namesize = m_name.size();
+    ofs.write(ConstCharPtr(&namesize), sizeof(namesize));
+    ofs.write(m_name.data(), sizeof(char) * namesize);
     
 }
 

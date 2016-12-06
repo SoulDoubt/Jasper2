@@ -99,7 +99,6 @@ std::unique_ptr<Component> GameObject::DetachComponent(Component& comp)
 
 unique_ptr<GameObject> GameObject::DetachChild(const GameObject& child)
 {
-
     auto found = find_if(begin(m_children), end(m_children),
     [&child](const unique_ptr<GameObject>& ch) {
         return ch.get() == &child;
@@ -114,6 +113,25 @@ unique_ptr<GameObject> GameObject::DetachChild(const GameObject& child)
         return nullptr;
     }
 }
+
+unique_ptr<GameObject> GameObject::DetachChild(const GameObject* child)
+{
+    auto found = find_if(begin(m_children), end(m_children),
+    [&child](const unique_ptr<GameObject>& ch) {
+        return ch.get() == child;
+    });
+
+    if (found != end(m_children)) {
+        auto result = move(*found);
+        result->SetParemt(nullptr);
+        m_children.erase(found);
+        return result;
+    } else {
+        return nullptr;
+    }
+}
+
+
 
 GameObject& GameObject::AttachNewChild(const std::string& name)
 {
