@@ -101,9 +101,11 @@ public:
         return ComponentType::Mesh;
     }
     
-    MeshType GetMeshType() const {
+    virtual MeshType GetMeshType() const {
         return MeshType::Arbitrary;
     }
+
+	void Serialize(std::ofstream& ofs) const override;
 
     std::vector<Vector3> Positions;
     std::vector<Vector3> Normals;

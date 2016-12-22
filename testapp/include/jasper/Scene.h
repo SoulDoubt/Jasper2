@@ -41,6 +41,10 @@ public:
         return m_rootNode.get();
     }
 
+	void Initialize();
+
+	void InitializeManual();
+
     void AddGameObject(std::unique_ptr<GameObject> go);
 
     void DestroyGameObject(GameObject* go);
@@ -105,7 +109,12 @@ public:
     //Material* GetMaterialByName(const std::string& name);
     //Mesh*     GetMeshByName(const std::string& name);
     
-    void SerializeGameObject(const GameObject* go, std::ofstream& ofs);
+    void SerializeGameObject(const GameObject* go, std::ofstream& ofs);	
+	void DeserializeGameObject(std::ifstream& ifs, GameObject* parent);
+
+	void DebugDrawPhysicsWorld();
+
+	
 
     ResourceManager<Material>& GetMaterialCache() {
         return m_materialManager;
@@ -158,7 +167,7 @@ private:
 
     std::vector<ScriptComponent> m_scripts;
 
-    void Initialize();
+   
 
 
 };

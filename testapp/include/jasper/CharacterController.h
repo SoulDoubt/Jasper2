@@ -2,8 +2,8 @@
 #define _JASPER_CHARACTER_CONTROLLER_H_
 
 #include "GameObject.h"
-#include <bullet/BulletDynamics/Character/btKinematicCharacterController.h>
-#include <bullet/BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletDynamics/Character/btKinematicCharacterController.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "PhysicsWorld.h"
 
 class btConvexShape;

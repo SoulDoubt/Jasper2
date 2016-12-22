@@ -54,9 +54,9 @@ public:
 
 inline std::string Matrix3::ToString() const
 {
-    auto r0 = mat[0].ToString();
-    auto r1 = mat[1].ToString();
-    auto r2 = mat[2].ToString();
+    const auto r0 = mat[0].ToString();
+    const auto r1 = mat[1].ToString();
+    const auto r2 = mat[2].ToString();
     return r0 + "\n" + r1 + "\n" + r2 + "\n";
 }
 
@@ -155,34 +155,34 @@ inline Matrix3 Matrix3::operator*(const Matrix3& o) const
     const Vector3& tc = mat[2];
 
     Vector3 oa = Vector3(o.mat[0].x, o.mat[1].x, o.mat[2].x);
-    float aa = ta.Dot(oa);
+    const float aa = ta.Dot(oa);
     ret.mat[0].x = aa;
 
     Vector3 ob = Vector3(o.mat[0].y, o.mat[1].y, o.mat[2].y);
     float tab = ta.Dot(ob);
     ret.mat[0].y = tab;
 
-    Vector3 oc = Vector3(o.mat[0].z, o.mat[1].z, o.mat[2].z);
+    const Vector3 oc = Vector3(o.mat[0].z, o.mat[1].z, o.mat[2].z);
 
-    float tac = ta.Dot(oc);
+    const float tac = ta.Dot(oc);
     ret.mat[0].z = tac;
 
-    float tba = tb.Dot(oa);
+    const float tba = tb.Dot(oa);
     ret.mat[1].x = tba;
 
-    float tbb = tb.Dot(ob);
+    const float tbb = tb.Dot(ob);
     ret.mat[1].y = tbb;
 
-    float tbc = tb.Dot(oc);
+    const float tbc = tb.Dot(oc);
     ret.mat[1].z = tbc;
 
-    float tca = tc.Dot(oa);
+    const float tca = tc.Dot(oa);
     ret.mat[2].x = tca;
 
-    float tcb = tc.Dot(ob);
+    const float tcb = tc.Dot(ob);
     ret.mat[2].y = tcb;
 
-    float tcc = tc.Dot(oc);
+    const float tcc = tc.Dot(oc);
     ret.mat[2].z = tcc;
 
     return ret;
@@ -206,9 +206,9 @@ inline Matrix3 operator*(const float f, const Matrix3& m)
 
 inline float Matrix3::Determinant() const
 {
-    float a = (mat[1].y * mat[2].z) - (mat[1].z * mat[2].y);
-    float b = (mat[1].x * mat[2].z) - (mat[1].z * mat[2].x);
-    float c = (mat[1].x * mat[2].y) - (mat[1].y * mat[2].x);
+    const float a = (mat[1].y * mat[2].z) - (mat[1].z * mat[2].y);
+    const float b = (mat[1].x * mat[2].z) - (mat[1].z * mat[2].x);
+    const float c = (mat[1].x * mat[2].y) - (mat[1].y * mat[2].x);
     return (mat[0].x * a) - (mat[0].y * b) + (mat[0].z * c);
 }
 
@@ -223,9 +223,9 @@ inline Matrix3 Matrix3::Transposed() const
 
 inline Matrix3& Matrix3::Transpose()
 {
-    Vector3 m0 = { mat[0].x, mat[1].x, mat[2].x };
-    Vector3 m1 = { mat[0].y, mat[1].y, mat[2].y };
-    Vector3 m2 = { mat[0].z, mat[1].z, mat[2].z };
+    const Vector3 m0 = { mat[0].x, mat[1].x, mat[2].x };
+    const Vector3 m1 = { mat[0].y, mat[1].y, mat[2].y };
+    const Vector3 m2 = { mat[0].z, mat[1].z, mat[2].z };
     mat[0] = m0;
     mat[1] = m1;
     mat[2] = m2;
@@ -301,10 +301,10 @@ public:
 
 
     std::string ToString() const {
-        auto r0 = mat[0].ToString();
-        auto r1 = mat[1].ToString();
-        auto r2 = mat[2].ToString();
-        auto r3 = mat[3].ToString();
+        const auto r0 = mat[0].ToString();
+        const auto r1 = mat[1].ToString();
+        const auto r2 = mat[2].ToString();
+        const auto r3 = mat[3].ToString();
         return r0 + "\n" + r1 + "\n" + r2 + "\n" + r3 + "\n";
     }
 
@@ -312,15 +312,15 @@ public:
     void CreateOrthographicProjection(const float left, const float right, const float bottom, const float top, const float near, const float far);
 
     Matrix4& operator*=(const Matrix4& b) {
-        Vector4 tx = mat[0];
-        Vector4 ty = mat[1];
-        Vector4 tz = mat[2];
-        Vector4 tw = mat[3];
+        const Vector4 tx = mat[0];
+        const Vector4 ty = mat[1];
+        const Vector4 tz = mat[2];
+        const Vector4 tw = mat[3];
 
-        Vector4 b0 = Vector4(b.mat[0].x, b.mat[1].x, b.mat[2].x, b.mat[3].x);
-        Vector4 b1 = Vector4(b.mat[0].y, b.mat[1].y, b.mat[2].y, b.mat[3].y);
-        Vector4 b2 = Vector4(b.mat[0].z, b.mat[1].z, b.mat[2].z, b.mat[3].z);
-        Vector4 b3 = Vector4(b.mat[0].w, b.mat[1].w, b.mat[2].w, b.mat[3].w);
+        const Vector4 b0 = Vector4(b.mat[0].x, b.mat[1].x, b.mat[2].x, b.mat[3].x);
+        const Vector4 b1 = Vector4(b.mat[0].y, b.mat[1].y, b.mat[2].y, b.mat[3].y);
+        const Vector4 b2 = Vector4(b.mat[0].z, b.mat[1].z, b.mat[2].z, b.mat[3].z);
+        const Vector4 b3 = Vector4(b.mat[0].w, b.mat[1].w, b.mat[2].w, b.mat[3].w);
 
         mat[0].x = tx.Dot(b0);
         mat[0].y = tx.Dot(b1);
@@ -356,10 +356,10 @@ public:
     }
 
     Matrix4& Transpose() {
-        Vector4 m0 = { mat[0].x, mat[1].x, mat[2].x, mat[3].x };
-        Vector4 m1 = { mat[0].y, mat[1].y, mat[2].y, mat[3].y };
-        Vector4 m2 = { mat[0].z, mat[1].z, mat[2].z, mat[3].z };
-        Vector4 m3 = { mat[0].w, mat[1].w, mat[2].w, mat[3].w };
+        const Vector4 m0 = { mat[0].x, mat[1].x, mat[2].x, mat[3].x };
+        const Vector4 m1 = { mat[0].y, mat[1].y, mat[2].y, mat[3].y };
+        const Vector4 m2 = { mat[0].z, mat[1].z, mat[2].z, mat[3].z };
+        const Vector4 m3 = { mat[0].w, mat[1].w, mat[2].w, mat[3].w };
         mat[0] = m0;
         mat[1] = m1;
         mat[2] = m2;
@@ -391,15 +391,15 @@ inline Matrix4 operator*(const Matrix4& a, const Matrix4& b)
 
     Matrix4 m;
 
-    Vector4 tx = a.mat[0];
-    Vector4 ty = a.mat[1];
-    Vector4 tz = a.mat[2];
-    Vector4 tw = a.mat[3];
-
-    Vector4 b0 = Vector4(b.mat[0].x, b.mat[1].x, b.mat[2].x, b.mat[3].x);
-    Vector4 b1 = Vector4(b.mat[0].y, b.mat[1].y, b.mat[2].y, b.mat[3].y);
-    Vector4 b2 = Vector4(b.mat[0].z, b.mat[1].z, b.mat[2].z, b.mat[3].z);
-    Vector4 b3 = Vector4(b.mat[0].w, b.mat[1].w, b.mat[2].w, b.mat[3].w);
+    const Vector4 tx = a.mat[0];
+    const Vector4 ty = a.mat[1];
+    const Vector4 tz = a.mat[2];
+    const Vector4 tw = a.mat[3];
+	
+    const Vector4 b0 = Vector4(b.mat[0].x, b.mat[1].x, b.mat[2].x, b.mat[3].x);
+    const Vector4 b1 = Vector4(b.mat[0].y, b.mat[1].y, b.mat[2].y, b.mat[3].y);
+    const Vector4 b2 = Vector4(b.mat[0].z, b.mat[1].z, b.mat[2].z, b.mat[3].z);
+    const Vector4 b3 = Vector4(b.mat[0].w, b.mat[1].w, b.mat[2].w, b.mat[3].w);
 
     m.mat[0].x = tx.Dot(b0);
     m.mat[0].y = tx.Dot(b1);
@@ -455,31 +455,31 @@ inline float Matrix4::Determinant() const
 
 inline Matrix4 Matrix4::Inverted() const
 {
-    float det = Determinant();
+    const float det = Determinant();
     if (fabsf(det) < MATRIX_INVERSE_EPSILON) {
         // not invertible, return identity
         return Matrix4();
     }
 
     Matrix4 inv;
-    det = 1.0f / det;
+    const float invdet = 1.0f / det;
 
-    inv.mat[0][0] = Det3(*this, 1, 2, 3, 1, 2, 3) * det;
-    inv.mat[0][1] = -Det3(*this, 0, 2, 3, 1, 2, 3) * det;
-    inv.mat[0][2] = Det3(*this, 0, 1, 3, 1, 2, 3) * det;
-    inv.mat[0][3] = -Det3(*this, 0, 1, 2, 1, 2, 3) * det;
-    inv.mat[1][0] = -Det3(*this, 1, 2, 3, 0, 2, 3) * det;
-    inv.mat[1][1] = Det3(*this, 0, 2, 3, 0, 2, 3) * det;
-    inv.mat[1][2] = -Det3(*this, 0, 1, 3, 0, 2, 3) * det;
-    inv.mat[1][3] = Det3(*this, 0, 1, 2, 0, 2, 3) * det;
-    inv.mat[2][0] = Det3(*this, 1, 2, 3, 0, 1, 3) * det;
-    inv.mat[2][1] = -Det3(*this, 0, 2, 3, 0, 1, 3) * det;
-    inv.mat[2][2] = Det3(*this, 0, 1, 3, 0, 1, 3) * det;
-    inv.mat[2][3] = -Det3(*this, 0, 1, 2, 0, 1, 3) * det;
-    inv.mat[3][0] = -Det3(*this, 1, 2, 3, 0, 1, 2) * det;
-    inv.mat[3][1] = Det3(*this, 0, 2, 3, 0, 1, 2) * det;
-    inv.mat[3][2] = -Det3(*this, 0, 1, 3, 0, 1, 2) * det;
-    inv.mat[3][3] = Det3(*this, 0, 1, 2, 0, 1, 2) * det;
+    inv.mat[0][0] = Det3(*this, 1, 2, 3, 1, 2, 3) * invdet;
+    inv.mat[0][1] = -Det3(*this, 0, 2, 3, 1, 2, 3) * invdet;
+    inv.mat[0][2] = Det3(*this, 0, 1, 3, 1, 2, 3) * invdet;
+    inv.mat[0][3] = -Det3(*this, 0, 1, 2, 1, 2, 3) * invdet;
+    inv.mat[1][0] = -Det3(*this, 1, 2, 3, 0, 2, 3) * invdet;
+    inv.mat[1][1] = Det3(*this, 0, 2, 3, 0, 2, 3) * invdet;
+    inv.mat[1][2] = -Det3(*this, 0, 1, 3, 0, 2, 3) * invdet;
+    inv.mat[1][3] = Det3(*this, 0, 1, 2, 0, 2, 3) * invdet;
+    inv.mat[2][0] = Det3(*this, 1, 2, 3, 0, 1, 3) * invdet;
+    inv.mat[2][1] = -Det3(*this, 0, 2, 3, 0, 1, 3) * invdet;
+    inv.mat[2][2] = Det3(*this, 0, 1, 3, 0, 1, 3) * invdet;
+    inv.mat[2][3] = -Det3(*this, 0, 1, 2, 0, 1, 3) * invdet;
+    inv.mat[3][0] = -Det3(*this, 1, 2, 3, 0, 1, 2) * invdet;
+    inv.mat[3][1] = Det3(*this, 0, 2, 3, 0, 1, 2) * invdet;
+    inv.mat[3][2] = -Det3(*this, 0, 1, 3, 0, 1, 2) * invdet;
+    inv.mat[3][3] = Det3(*this, 0, 1, 2, 0, 1, 2) * invdet;
 
     return inv;
 
@@ -503,7 +503,7 @@ inline Matrix3 Matrix4::NormalMatrix() const
     // result by the inverse of the determinant, but we
     // would need to ensure we normalize any vectors transformed by this matrix...
     float det = rotation.Determinant();
-    float invdet = 1.0f / det;
+    const float invdet = 1.0f / det;
 
     Matrix3 normal;
     normal.mat[0] = rotation.mat[1].Cross(rotation.mat[2]);

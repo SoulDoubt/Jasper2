@@ -1,12 +1,12 @@
 #include "Quad.h"
+#include <AssetSerializer.h>
 
 namespace Jasper
 {
 
 Quad::Quad(const std::string& name) : Mesh(name)
 {
-    m_size = { 0.5f, 0.5f };
-    Initialize();
+    m_size = { 0.5f, 0.5f };    
     FlipTextureCoords();
 }
 
@@ -16,7 +16,6 @@ Quad::Quad(const std::string& name, const Vector2& size, Quad::AxisAlignment ali
     m_size = size;
     m_repeatU = 1;
     m_repeatV = 1;
-    Initialize();
     FlipTextureCoords();
 }
 
@@ -41,11 +40,21 @@ Quad::~Quad()
     Destroy();
 }
 
+void Quad::Serialize(std::ofstream & ofs) const
+{
+	using namespace AssetSerializer;
+	Mesh::Serialize(ofs);
+	ofs.write(ConstCharPtr(m_size.AsFloatPtr()), sizeof(m_size));
+	ofs.write(ConstCharPtr(&m_alignment), sizeof(m_alignment));
+	ofs.write(ConstCharPtr(&m_repeatU), sizeof(m_repeatU));
+	ofs.write(ConstCharPtr(&m_repeatV), sizeof(m_repeatV));		
+}
+
 void Quad::Initialize()
 {
 
-    float x = m_size.x;
-    float y = m_size.y;
+    const float x = m_size.x;
+    const float y = m_size.y;
 
     Vertex v0, v1, v2, v3;
 

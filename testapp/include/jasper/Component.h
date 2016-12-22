@@ -18,15 +18,11 @@ enum class ComponentType{
     DefaultScript,
     RotateAboutPointScript,
     RotateInPlaceScript,
-    LauncherScript,
-    Mesh,
-    Cube,
-    Quad,
+    LauncherScript,            
     Model,
+	Mesh,
     PhysicsCollider,
-    SkyboxRenderer,
-    Triangle,
-    Sphere,
+    SkyboxRenderer,        
     ScriptComponent
 };
 
@@ -63,6 +59,7 @@ public:
     virtual void LateUpdate();
     virtual bool ShowGui();
     virtual void Serialize(std::ofstream& ofs) const;
+
     virtual ComponentType GetComponentType() const {
         return ComponentType::None;
     }

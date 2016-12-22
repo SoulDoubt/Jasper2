@@ -27,7 +27,7 @@ enum class PHYSICS_COLLIDER_TYPE
 class PhysicsCollider :	public Component
 {
 public:
-    explicit PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    //explicit PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     virtual ~PhysicsCollider();
 
@@ -64,6 +64,8 @@ public:
         m_rigidBody->getMotionState()->getWorldTransform(trans);
         return trans;
     }
+
+	void SetScale(const Vector3& scale);
 
     void SetWorldTransform(const btTransform& trans) {
         m_rigidBody->getMotionState()->setWorldTransform(trans);

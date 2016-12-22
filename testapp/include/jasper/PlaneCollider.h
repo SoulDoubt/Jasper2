@@ -11,13 +11,14 @@ class PlaneCollider :
     public PhysicsCollider
 {
 public:
-    PlaneCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld* world);
     ~PlaneCollider();
-    void Serialize(std::ofstream& ofs) const override {
-        PhysicsCollider::Serialize(ofs);
-    }
+	void Serialize(std::ofstream& ofs) const override;
 
     void Awake() override;
+
+	Vector3 Normal;
+	float Constant;
     
 };
 

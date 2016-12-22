@@ -1,8 +1,8 @@
 #include "Model.h"
 
-#include <assimp/scene.h>
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
+#include <assimp\scene.h>
+#include <assimp\Importer.hpp>
+#include <assimp\postprocess.h>
 
 #include "Common.h"
 #include "Mesh.h"
@@ -38,6 +38,7 @@ Model::~Model()
 
 void Model::Setup(Scene* jScene)
 {
+	
     Assimp::Importer importer;
     printf("Loading model: %s\n", m_filename.c_str());
     const aiScene* scene = importer.ReadFile(m_filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs);
@@ -53,10 +54,9 @@ void Model::Setup(Scene* jScene)
 
     //auto meshes = this->GetComponentsByType<Mesh>();
     auto& meshes = m_model_meshes;
-    int sz = meshes.size();
+    size_t sz = meshes.size();
     printf("\nLoaded %d meshes in model: %s", sz, this->GetName().c_str());
-    //uint numTris = 0;
-    //uint numVerts = 0;
+
     MaxExtents = { -100000.0f, -1000000.0f, -1000000.0f };
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
@@ -115,12 +115,12 @@ void Model::Setup(Scene* jScene)
         //Vector3 meshOrigin = { (mesh->GetMinExtents().x + mesh->GetMaxExtents().x) / 2.f, (mesh->GetMinExtents().y + mesh->GetMaxExtents().y) / 2.f , (mesh->GetMinExtents().z + mesh->GetMaxExtents().z) / 2.f };
         //auto child = make_unique<GameObject>("child_" + std::to_string(i));
         //child->GetLocalTransform().Position = meshOrigin;
-        GetGameObject()->AttachNewComponent<MeshRenderer>(mesh, mesh->m_material);
+        GetGameObject()->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mesh->m_material);
         //this->AttachChild(move(child));
         i++;
     }
     //SaveToAssetFile("modelSave.bin");
-    OutputMeshData();
+    //OutputMeshData();
     printf("\nModel Contains %d Vertices and %d Triangles and %d Materials.", VertCount, TriCount, m_materialManager.GetCache().size());
 
 }
@@ -148,8 +148,10 @@ void Model::ProcessAiSceneNode(const aiScene* scene, aiNode* node, Scene* jScene
 
 void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jScene)
 {
+	static int num = 0;
     string meshName = "";
-    aiMesh->mName != aiString("") ? meshName = aiMesh->mName.C_Str() : meshName = "unnamed_model_mesh";
+    aiMesh->mName != aiString("") ? meshName = aiMesh->mName.C_Str() : meshName = "unnamed_model_mesh_" + std::to_string(num);
+	num++;
     auto m = jScene->GetMeshCache().CreateInstance<Mesh>(meshName);
     m_model_meshes.push_back(m);
     //auto m = this->AttachNewComponent<Mesh>();
@@ -250,6 +252,7 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jSc
                 texString.Clear();
                 mat->GetTexture(aiTextureType::aiTextureType_SPECULAR, 0, &texString);
                 if (texString.length > 0) {
+
                     myMaterial->SetTextureSpecularMap(m_directory + "/" + texString.C_Str());
                 }
             }

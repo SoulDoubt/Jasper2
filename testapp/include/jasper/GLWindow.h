@@ -78,6 +78,12 @@ private:
     GuiGLHandles m_guiHandles;
     Matrix4 m_guiMatrix;
 
+	void DrawMainMenu();
+	void DrawDebugWindow();
+	void DrawGameObjectEditor();
+
+	bool m_showGui;
+
 
 
 };

@@ -3,7 +3,7 @@
 
 #include "Common.h"
 #include "matrix.h"
-#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 namespace Jasper
 {

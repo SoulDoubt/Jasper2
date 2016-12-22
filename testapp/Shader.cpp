@@ -59,7 +59,7 @@ void Shader::PrintAttribsAndUniforms()
 
 void Shader::Initialize()
 {
-    string msg = "Initializing " + m_name + " shader...\n";
+    const string msg = "Initializing " + m_name + " shader...\n";
     printf("%s\n", msg.c_str());
     m_programID = 0;
     m_programID = glCreateProgram();
@@ -87,7 +87,7 @@ int Shader::GetAttributeLocation(const char* name)
 
 void Shader::SetAttributeArray(const char* name, GLenum type, const void* values, int tupleSize, int stride)
 {
-    int location = GetAttributeLocation(name);
+    const int location = GetAttributeLocation(name);
     if (location > -1) {
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, tupleSize, type, GL_TRUE, stride, values);
@@ -143,7 +143,7 @@ void Shader::AddShader(std::string filename, ShaderType t)
             logType = "GEOMETRY";
         }
 
-        GLuint shaderID = glCreateShader(st);
+        const GLuint shaderID = glCreateShader(st);
         glShaderSource(shaderID, 1, &source, NULL);
         free(file_contents);
         glCompileShader(shaderID);
@@ -261,48 +261,48 @@ int Shader::TangentAttributeLocation()
 
 inline void Shader::SetModelViewMatrix(const Matrix4 & mvm)
 {
-    GLERRORCHECK;
-    int loc = glGetUniformLocation(m_programID, "mvMatrix");
+    //GLERRORCHECK;
+    const int loc = glGetUniformLocation(m_programID, "mvMatrix");
     if (loc > -1)
         glUniformMatrix4fv(loc, 1, m_transpose, mvm.AsFloatPtr());
-    GLERRORCHECK;
+    //GLERRORCHECK;
 }
 
 inline void Shader::SetModelViewProjectionMatrix(const Matrix4 & mvp)
 {
-    GLERRORCHECK;
-    int loc = glGetUniformLocation(m_programID, "mvpMatrix");
+    //GLERRORCHECK;
+    const int loc = glGetUniformLocation(m_programID, "mvpMatrix");
     if (loc > -1)
         glUniformMatrix4fv(loc, 1, m_transpose, mvp.AsFloatPtr());
-    GLERRORCHECK;
+    //GL/ERRORCHECK;
 }
 
 inline void Shader::SetNormalMatrix(const Matrix3 & normal)
 {
-    GLERRORCHECK;
-    int loc = glGetUniformLocation(m_programID, "normalMatrix");
+    //GLERRORCHECK;
+    const int loc = glGetUniformLocation(m_programID, "normalMatrix");
     if (loc > -1)
         glUniformMatrix3fv(loc, 1, m_transpose, normal.AsFloatPtr());
-    GLERRORCHECK;
+    //GLERRORCHECK;
 }
 
 inline void Shader::SetModelMatrix(const Matrix4& model)
 {
-    GLERRORCHECK;
-    int location = glGetUniformLocation(m_programID, "modelMatrix");
+    //GLERRORCHECK;
+    const int location = glGetUniformLocation(m_programID, "modelMatrix");
     if (location > -1)
         glUniformMatrix4fv(location, 1, m_transpose, model.AsFloatPtr());
-    GLERRORCHECK;
+    //GLERRORCHECK;
 }
 
 inline void Shader::SetViewMatrix(const Matrix4 & view)
 {
-    GLERRORCHECK;
-    int loc = glGetUniformLocation(m_programID, "viewMatrix");
+    //GLERRORCHECK;
+    const int loc = glGetUniformLocation(m_programID, "viewMatrix");
     if (loc > -1) {
         glUniformMatrix4fv(loc, 1, m_transpose, view.AsFloatPtr());
     }
-    GLERRORCHECK;
+    //GLERRORCHECK;
 }
 
 void Shader::GetDirectionalLightUniformLocations()
@@ -372,16 +372,16 @@ void Shader::SetMaterialUniforms(const Material* m)
 
 void Shader::SetCameraPosition(const Vector3& cp)
 {
-    GLERRORCHECK;
-    int loc = glGetUniformLocation(ProgramID(), "cameraPosition");
+    //GLERRORCHECK;
+    const int loc = glGetUniformLocation(ProgramID(), "cameraPosition");
     if (loc > -1)
         glUniform3fv(loc, 1, cp.AsFloatPtr());
-    GLERRORCHECK;
+    //GLERRORCHECK;
 }
 
 void Shader::SetTransformUniforms(const Transform & trans)
 {
-    uint id = ProgramID();
+    const uint id = ProgramID();
     Quaternion q = trans.Orientation;
     uint positionLoc = glGetUniformLocation(id, "transform.position");
     uint orientationLoc = glGetUniformLocation(id, "transform.orientation");

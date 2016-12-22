@@ -1,5 +1,5 @@
 #include "CharacterController.h"
-#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 namespace Jasper
 {

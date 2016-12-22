@@ -8,6 +8,15 @@
 namespace Jasper
 {
 
+	enum class ScriptType {
+		None,
+		RotateltInPlace,
+		Default,
+		Destroy,
+		RotateAboutPoint,
+		Launcher
+	};
+
 class ScriptComponent : public Component
 {
 
@@ -25,16 +34,17 @@ public:
     void Update(float dt) override {}
     void LateUpdate() override {}
     void Serialize(std::ofstream& ofs) const override;
+	virtual void Deserialize(std::ifstream& ifs) {}
     ComponentType GetComponentType() const override {
         return ComponentType::ScriptComponent;
     }
 
+	virtual ScriptType GetScriptType() const {
+		return ScriptType::None;
+	}
+
 };
 
-inline void ScriptComponent::Serialize(std::ofstream& ofs) const {
-    // just write the component name and type for now, the
-    
-}
 
 class DefaultScript final : public ScriptComponent
 {
@@ -52,9 +62,11 @@ public:
     void FixedUpdate()override {}
     void Update(float dt) override;
     void LateUpdate()override {}
-    ComponentType GetComponentType() const override {
-        return ComponentType::DefaultScript;
-    }
+
+	ScriptType GetScriptType() const override{
+		return ScriptType::Default;
+	}
+   
 
 };
 
@@ -62,6 +74,10 @@ class RotateAboutPointScript final: public ScriptComponent
 {
 
 public:
+
+	RotateAboutPointScript(std::string name) : ScriptComponent(name), m_axis(), m_point(), m_degreesPerSec(0.f){
+		
+	}
 
     RotateAboutPointScript(const Vector3& point, const Vector3& axis, const float degsPerSecond)
         : ScriptComponent("rotate_light_script"), m_point(point), m_axis(axis), m_degreesPerSec(degsPerSecond) {
@@ -80,10 +96,39 @@ public:
     void FixedUpdate()override {}
     void Update(float dt) override;
     void LateUpdate()override {}
-    bool ShowGui() override;
-    ComponentType GetComponentType() const override {
-        return ComponentType::RotateAboutPointScript;
-    }
+    bool ShowGui() override;    
+
+	void Serialize(std::ofstream& ofs) const override;
+	void Deserialize(std::ifstream& ifs) override;
+	
+	ScriptType GetScriptType() const override {
+		return ScriptType::RotateAboutPoint;
+	}
+
+	Vector3 Point() const {
+		return m_point;
+	}
+
+	Vector3& Point() {
+		return m_point;
+	}
+
+	void SetPoint(Vector3 p) {
+		m_point = std::move(p);
+	}
+
+	Vector3 Axis() const {
+		return m_axis;
+	}
+
+	Vector3& Axis() {
+		return m_axis;
+	}
+
+	void SetAxis(Vector3 a) {
+		m_axis = std::move(a);
+	}
+	
 
 
 private:
@@ -111,10 +156,13 @@ public:
     void Update(float dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
-    ComponentType GetComponentType() const override {
-        return ComponentType::LauncherScript;
-    }
+    
+	ScriptType GetScriptType() const override {
+		return ScriptType::Launcher;
+	}
 
+	void Serialize(std::ofstream& ofs) const override;
+	
 
     Vector3 Force = {0.0f, 500.0f, 0.0f};
 
@@ -143,9 +191,16 @@ public:
     void FixedUpdate()override {}
     void Update(float dt) override;
     void LateUpdate()override {}
-    ComponentType GetComponentType() const override {
-     return ComponentType::DestroyScript;
-    }
+    
+	ScriptType GetScriptType() const override {
+		return ScriptType::Destroy;
+	}
+
+	void Serialize(std::ofstream& ofs) const override;
+
+	float TimeToLive;
+
+
 };
 
 class RotateInPlaceScript final : public ScriptComponent

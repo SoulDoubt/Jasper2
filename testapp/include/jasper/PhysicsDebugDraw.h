@@ -1,7 +1,7 @@
 #ifndef _PHYSICS_DEBUG_DRAW_H_
 #define _PHYSICS_DEBUG_DRAW_H_
 
-#include <bullet/LinearMath/btIDebugDraw.h>
+#include <LinearMath/btIDebugDraw.h>
 #include <GL/glew.h>
 #include "matrix.h"
 #include "GLBuffer.h"

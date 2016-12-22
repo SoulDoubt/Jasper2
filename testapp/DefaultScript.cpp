@@ -3,6 +3,7 @@
 #include "PhysicsCollider.h"
 #include "Scene.h"
 #include <chrono>
+#include "AssetSerializer.h"
 
 using namespace std::chrono;
 
@@ -42,13 +43,25 @@ void DestroyScript::Update(float dt)
 {
     auto go = GetGameObject();
     auto current = std::chrono::high_resolution_clock::now();
-    auto awakeTime = this->GetGameObject()->TimeAwakened;
+    const auto awakeTime = this->GetGameObject()->TimeAwakened;
 
-    auto elapsed = std::chrono::duration_cast<milliseconds>(current - awakeTime).count();
+    const auto elapsed = std::chrono::duration_cast<milliseconds>(current - awakeTime).count();
 
     if (elapsed > 60000) {
         go->GetScene()->DestroyGameObject(go);
     }
+}
+
+void ScriptComponent::Serialize(std::ofstream& ofs) const {
+	using namespace AssetSerializer;
+	Component::Serialize(ofs);
+	ScriptType st = GetScriptType();
+	ofs.write(ConstCharPtr(&st), sizeof(st));
+}
+
+void DestroyScript::Serialize(std::ofstream & ofs) const
+{
+	ScriptComponent::Serialize(ofs);
 }
 
 }

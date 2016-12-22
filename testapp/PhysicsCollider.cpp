@@ -8,11 +8,11 @@ namespace Jasper
 
 using namespace std;
 
-PhysicsCollider::PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
-    :Component(std::move(name)), m_world(world), m_mesh(mesh)
-{
-    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
-}
+//PhysicsCollider::PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
+//    :Component(std::move(name)), m_world(world), m_mesh(mesh)
+//{
+//    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
+//}
 
 PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : Component(std::move(name)), m_world(world), m_halfExtents(halfExtents)
@@ -92,6 +92,12 @@ void PhysicsCollider::ToggleEnabled(bool e)
     Component::ToggleEnabled(e);
 }
 
+void PhysicsCollider::SetScale(const Vector3 & scale)
+{
+	m_collisionShape->setLocalScaling(scale.AsBtVector3());
+	m_world->GetBtWorld()->updateSingleAabb(m_rigidBody);
+}
+
 bool PhysicsCollider::ShowGui()
 {
     Component::ShowGui();
@@ -119,8 +125,7 @@ void PhysicsCollider::Serialize(std::ofstream& ofs) const{
     
     using namespace AssetSerializer;
     
-    ComponentType ty = GetComponentType();
-    ofs.write(CharPtr(&ty), sizeof(ty));
+	Component::Serialize(ofs);
     PHYSICS_COLLIDER_TYPE colliderType = GetColliderType();
     ofs.write(ConstCharPtr(&colliderType), sizeof(colliderType));
     ofs.write(ConstCharPtr(&Mass), sizeof(Mass));

@@ -30,13 +30,18 @@ bool Texture::Load(std::string filename)
     if (image) {
         printf("Loaded texture from: %s\n", filename.c_str());
 
+		int format, type;
+		GLenum texture_target = GL_TEXTURE_2D;
+		glGetInternalformativ(texture_target, GL_RGBA8, GL_TEXTURE_IMAGE_FORMAT, 1, &format);
+		glGetInternalformativ(texture_target, GL_RGBA8, GL_TEXTURE_IMAGE_TYPE, 1, &type);
+
         glGenTextures(1, &m_textureID);
         glBindTexture(GL_TEXTURE_2D, m_textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, force_linear, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -58,7 +63,7 @@ bool Texture::Load(const unsigned char * data, int width, int height, GLenum for
         glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture(GL_TEXTURE_2D, 0);
         GLERRORCHECK;
@@ -71,27 +76,37 @@ bool Texture::Load(const unsigned char * data, int width, int height, GLenum for
 
 void Texture::Bind()
 {
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &m_previouslyBound);
     glBindTexture(GL_TEXTURE_2D, m_textureID);
 }
 
 void Texture::Release()
 {
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_previouslyBound);
+
 }
 
 
 
-bool CubemapTexture::Load(const std::string & posx, const std::string & negx, const std::string & posy, const std::string & negy, const std::string & posz, const std::string & negz)
+bool CubemapTexture::Load(std::string posx, std::string negx, std::string posy, std::string negy, std::string posz, std::string negz)
 {
-    string files[6] = { posx, negx, posy, negy, posz, negz };
+	m_fileNames.emplace_back(move(posx));
+	m_fileNames.emplace_back(move(negx));
+	m_fileNames.emplace_back(move(posy));
+	m_fileNames.emplace_back(move(negy));
+	m_fileNames.emplace_back(move(posz));
+	m_fileNames.emplace_back(move(negz));
+    //string files[6] = { posx, negx, posy, negy, posz, negz };
     glGenTextures(1, &m_cubemapID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapID);
 
-    for (int i = 0; i < 6; ++i) {
+	int i = 0;
+    for (const auto& file: m_fileNames) {
         int x, y, comp;
-        auto image = stbi_load(files[i].c_str(), &x, &y, &comp, STBI_rgb_alpha);
+        auto image = stbi_load(file.c_str(), &x, &y, &comp, STBI_rgb_alpha);
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB_ALPHA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
         delete image;
+		i++;
     }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -111,12 +126,13 @@ CubemapTexture::~CubemapTexture()
 
 void CubemapTexture::Bind()
 {
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &m_previouslyBound);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubemapID);
 }
 
 void CubemapTexture::Release()
-{
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+{	
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_previouslyBound);
 }
 
 }

@@ -12,7 +12,7 @@ template<typename T>
 class ResourceManager
 {
 
-    using Cache = std::vector<std::unique_ptr<T>>;
+using Cache = std::vector<std::unique_ptr<T>>;
 
 private:
 
@@ -26,9 +26,7 @@ public:
 
     template<typename U, typename... Args>
     U* CreateInstance(Args&&... args) {
-        if (!std::is_base_of<T, U>::value) {
-            return nullptr;
-        }
+		static_assert(std::is_base_of<T, U>::value, "Instance creation must be of correct type");        
         std::unique_ptr<U> instance = std::make_unique<U>(std::forward<Args>(args)...);
         U* ret = instance.get();
         m_cache.push_back(std::move(instance));
@@ -55,19 +53,23 @@ public:
         return m_cache;
     }
 
-    T* GetLatestInstanceAdded() {
+	const Cache& GetCache() const {
+		return m_cache;
+	}
+
+    T* GetLatestInstanceAdded() const {
         if (m_cache.size() > 0) {
             return m_cache[m_cache.size() - 1].get();
         }
         return nullptr;
     }
 
-    T* GetInstance(int index) {
+    T* GetInstance(int index) const {
         assert(index < m_cache.size());
         return m_cache[index].get();
     }
 
-    size_t GetSize() {
+    const size_t GetSize() const {
         return m_cache.size();
     }
 };

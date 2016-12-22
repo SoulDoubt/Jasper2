@@ -7,30 +7,26 @@
 #include "imgui.h"
 
 #include <typeinfo>
-
-//#define GLFW_EXPOSE_NATIVE_WIN32
-//#define GLFW_EXPOSE_NATIVE_WGL
-//#include <GLFW\glfw3native.h>
-
 #include <chrono>
+#include <filesystem>
 
-#include <unistd.h>
 
-int main(int argc, char** argv)
-{
 
-    char pathBuff[1024];
-    getcwd(pathBuff, 1024);
-    printf("CWD is: %s\n", pathBuff);
-
-    std::unique_ptr<Jasper::GLWindow> window = std::make_unique<Jasper::GLWindow>(1280, 720, "Jasper");
-    window->Init();
-    window->InitializeScene();
-    window->RunLoop();
-
-    SDL_Quit();
-    return 0;
-}
+//int main(/*int argc, char** argv*/)
+//{
+//
+//    //char pathBuff[1024];
+//    //getcwd(pathBuff, 1024);
+//    //printf("CWD is: %s\n", pathBuff);
+//
+//    /*std::unique_ptr<Jasper::GLWindow> window = std::make_unique<Jasper::GLWindow>(1280, 720, "Jasper");
+//    window->Init();
+//    window->InitializeScene();
+//    window->RunLoop();
+//
+//    SDL_Quit();*/
+//    return 0;
+//}
 
 
 namespace Jasper
@@ -49,6 +45,8 @@ bool ROTATING_UP = 0;
 bool ROTATING_DOWN = 0;
 
 bool MOUSE_MOVE = 0;
+
+bool SHOW_GUI = false;
 
 
 GLWindow* g_glWindow;
@@ -189,7 +187,7 @@ void GLWindow::RunLoop()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m_scene->Update(dt);
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        {
+        if (SHOW_GUI){
             DrawGui();
         }
 
@@ -218,6 +216,87 @@ bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
     return false;
 }
 
+namespace fs = std::experimental::filesystem;
+
+void GLWindow::DrawMainMenu() {
+	if (ImGui::BeginMainMenuBar()) {
+		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("Save")) {
+				m_scene->Serialize("../scenes/scenedata.scene");
+			}
+			if (ImGui::MenuItem("Open")) {
+				for (auto& f : fs::directory_iterator("../scenes")) {
+					fs::path p(f);
+					std::cout << fs::absolute(p) << "\n";
+				}
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMainMenuBar();
+	}
+}
+
+void GLWindow::DrawDebugWindow() {
+	const Camera& camera = m_scene->GetCamera();
+	Vector3 cameraPosition = camera.GetPosition();
+	Vector3 cameraDirection = camera.GetViewDirection();
+	const Renderer* renderer = m_scene->GetRenderer();
+
+	ImGui::Begin("Debug");
+
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
+	ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
+	ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
+	ImGui::Text("Physics: %.6f ms", m_scene->PhysicsFrameTime);
+	ImGui::Text("Update: %.6f ms", m_scene->UpdateFrameTime);
+	ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);
+
+	ImGui::End();
+}
+
+void GLWindow::DrawGameObjectEditor() {
+	ImGui::Begin("Game Object Hierarchy");
+	ImGui::Columns(2);
+
+	struct funcs
+	{
+
+		static void ShowDetails(GameObject* go) {
+			ImGui::NextColumn();
+			go->ShowGui();
+			ImGui::NextColumn();
+		}
+
+		static void ShowGameObject(GameObject* go) {
+			
+			const void* id = (const void*)go;
+			//ImGui::PushID(id);
+			ImGui::AlignFirstTextHeightToWidgets();
+			bool node_open = ImGui::TreeNode(id, go->GetName().data());			
+			if (node_open) {
+				ShowDetails(go);
+				for (auto& child : go->Children()) {
+					ShowGameObject(child.get());
+				}
+				
+				ImGui::TreePop();
+			}					
+		}
+
+		
+	};
+	
+	auto root = m_scene->GetRootNode();
+	funcs::ShowGameObject(root);
+	
+		
+	
+	ImGui::Columns(1);
+	ImGui::End();
+
+}
+
 void GLWindow::DrawGui()
 {
     static bool handleButtonClick = 0;
@@ -230,91 +309,15 @@ void GLWindow::DrawGui()
     Vector3 cameraDirection = camera.GetViewDirection();
     const Renderer* renderer = m_scene->GetRenderer();
 
-    ImGui::Begin("Debug");
+	DrawMainMenu();
 
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
-    ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
-    ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
-    ImGui::Text("Physics: %.6f ms", m_scene->PhysicsFrameTime);
-    ImGui::Text("Update: %.6f ms", m_scene->UpdateFrameTime);
-    ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);
+	DrawDebugWindow();    
 
-    ImGui::End();
+	DrawGameObjectEditor();
 
     auto rootNode = m_scene->GetRootNode();
 
-    ImGui::Begin("Game Object Hierarchy");
-
-    //DrawGameObjectGuiNode(rootNode);
-    
-    ImGui::Columns(2);
-    ImGui::Separator();
-    ImGui::AlignFirstTextHeightToWidgets();
-    DrawGameObjectGuiNode(rootNode);
-    if (game_object_under_edit){
-        ImGui::NextColumn();
-        game_object_under_edit->ShowGui();        
-    }
-    ImGui::Columns(1);
-    //ImGui::TreePop();
-
-//    if (ImGui::TreeNode("Game Objects")) {
-//        if (ImGui::TreeNode(rootNode->GetName().data())) {
-//            if (ImGui::BeginPopupContextItem("item context menu")) {
-//                if (ImGui::Selectable("Add New Child")) {
-//                    showNewGameObjectWindow ^= 1;
-//                    goAddParent = rootNode;
-//                }
-//                ImGui::EndPopup();
-//            }
-//            auto& children = rootNode->Children();
-//            unsigned i = 0;
-//            GameObject* goToDelete = nullptr;
-//
-//            for (auto& child : children) {
-//                if (ImGui::TreeNode((void*)(uintptr_t)i, child->GetName().data())) {
-//                    if (ImGui::BeginPopupContextItem("item context menu")) {
-//                        if (ImGui::Selectable("Delete")) {
-//                            goToDelete = child.get();
-//                        }
-//                        if (ImGui::Selectable("Add New Child")) {
-//                            showNewGameObjectWindow ^= 1;
-//                            goAddParent = child.get();
-//                        }
-//                        ImGui::EndPopup();
-//                    }
-//                    child->ShowGui();
-//                    auto& components = child->Components();
-//                    unsigned j = 0;
-//                    for (auto& cmp : components) {
-//                        //auto typ = typeid(cmp).name();
-//                        if (ImGui::TreeNode((void*)(uintptr_t)j, cmp->GetName().data())) {
-//                            cmp->ShowGui();
-//                            ImGui::TreePop();
-//                        }
-//                        j++;
-//                    }
-//                    ImGui::TreePop();
-//                }
-//                i++;
-//            }
-//            if (goToDelete) {
-//                m_scene->DestroyGameObject(goToDelete);
-//            }
-//            ImGui::TreePop();
-//        }
-//        ImGui::TreePop();
-//
-//    }
-
-//    if (ImGui::TreeNode("Logging")) {
-//        ImGui::TextWrapped("The logging API redirects all text output so you can easily capture the content of a window or a block. Tree nodes can be automatically expanded. You can also call ImGui::LogText() to output directly to the log without a visual output.");
-//        ImGui::LogButtons();
-//        //ImGui::TreePop();
-//    }
-    ImGui::End();
-
+        
     ImGui::Begin("Shaders & Materials");
     auto& shaders = m_scene->GetShaderCache();
     vector<string> shaderNames;
@@ -385,8 +388,8 @@ bool GLWindow::CreateMaterialEditorGui(Material* material)
 void GLWindow::InitializeScene()
 {
     m_scene = make_unique<Scene>(Width, Height);
-    m_scene->Awake();
-    //glfwSetWindowUserPointer(m_window, m_scene.get());
+	m_scene->Initialize();
+    m_scene->Awake();    
 }
 
 void GLWindow::InitializeGui()
@@ -421,10 +424,10 @@ void GLWindow::InitializeGui()
     io.ClipboardUserData = nullptr;
 
 #ifdef _WIN32
-    SDL_SysWMinfo wmInfo;
-    SDL_VERSION(&wmInfo.version);
-    SDL_GetWindowWMInfo(window, &wmInfo);
-    io.ImeWindowHandle = wmInfo.info.win.window;
+    //SDL_SysWMinfo wmInfo;
+    //SDL_VERSION(&wmInfo.version);
+    //SDL_GetWindowWMInfo(window, &wmInfo);
+    //io.ImeWindowHandle = wmInfo.info.win.window;
 #else
     (void)window;
 
@@ -449,9 +452,9 @@ void GLWindow::InitializeGui()
     m_guiHandles.IndexBuffer->Create();
 
     m_guiHandles.PositionBuffer->Bind();
-    int positionLocation = m_guiHandles.GuiShader->PositionAttributeLocation();
-    int texCoordLocation = m_guiHandles.GuiShader->TexCoordAttributeLocation();
-    int colorLocation = m_guiHandles.GuiShader->ColorsAttributeLocation();
+    const int positionLocation = m_guiHandles.GuiShader->PositionAttributeLocation();
+    const int texCoordLocation = m_guiHandles.GuiShader->TexCoordAttributeLocation();
+    const int colorLocation = m_guiHandles.GuiShader->ColorsAttributeLocation();
     m_guiHandles.GuiShader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(ImDrawVert, pos), 2, sizeof(ImDrawVert));
     m_guiHandles.GuiShader->SetAttributeArray(texCoordLocation, GL_FLOAT, (void*)offsetof(ImDrawVert, uv), 2, sizeof(ImDrawVert));
     m_guiHandles.GuiShader->SetAttributeArray(colorLocation, GL_UNSIGNED_BYTE, (void*)offsetof(ImDrawVert, col), 4, sizeof(ImDrawVert), true);
@@ -535,7 +538,7 @@ void GLWindow::GuiNewFrame()
     io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
 
     // Setup time step
-    Uint32	time = SDL_GetTicks();
+    const Uint32	time = SDL_GetTicks();
     double current_time = time / 1000.0;
     io.DeltaTime = gui_time > 0.0 ? (float)(current_time - gui_time) : (float)(1.0f / 60.0f);
     gui_time = current_time;
@@ -577,8 +580,8 @@ void ResizeWindow(int w, int h, Scene* scene)
 void GLWindow::RenderGui(ImDrawData* draw_data)
 {
     ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
+    const int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
+    const int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
         return;
     draw_data->ScaleClipRects(io.DisplayFramebufferScale);
@@ -634,7 +637,7 @@ void GLWindow::RenderGui(ImDrawData* draw_data)
     auto shader = m_guiHandles.GuiShader.get();
     shader->Bind();
     shader->SetModelViewProjectionMatrix(m_guiMatrix);
-    int dl = glGetUniformLocation(shader->ProgramID(), "colorMap");
+    const int dl = glGetUniformLocation(shader->ProgramID(), "colorMap");
     if (dl > -1) {
         glUniform1i(dl, 0);
     }
@@ -759,6 +762,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         if (evt.key.keysym.scancode == SDL_SCANCODE_D) {
             STRAFING_RIGHT = true;
         }
+		if (evt.key.keysym.scancode == SDL_SCANCODE_GRAVE) {
+			SHOW_GUI = !SHOW_GUI;
+		}
         break;
     case SDL_KEYUP:
         if (evt.key.keysym.scancode == SDL_SCANCODE_W) {

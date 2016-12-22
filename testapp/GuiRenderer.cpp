@@ -15,6 +15,6 @@ GuiRenderer::GuiRenderer(Scene* scene)
 }
 void GuiRenderer::Render() {}
 void GuiRenderer::Initialize() {}
-bool GuiRenderer::CreateDeviceObjects() {}
-bool GuiRenderer::InitializeImGui() {}
+bool GuiRenderer::CreateDeviceObjects() { return false; }
+bool GuiRenderer::InitializeImGui() { return false; }
 }

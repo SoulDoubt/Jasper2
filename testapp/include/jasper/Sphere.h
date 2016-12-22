@@ -15,9 +15,14 @@ public:
 
     void Initialize() override;
     void Destroy() override;
+
     ComponentType GetComponentType() const override {
-        return ComponentType::Sphere;
+        return ComponentType::Mesh;
     }
+
+	MeshType GetMeshType() const override {
+		return MeshType::Sphere;
+	}
 
     unsigned m_latLines = 24;
     unsigned m_longLines = 24;

@@ -18,8 +18,8 @@ FontShader::~FontShader()
 
 void FontShader::Initialize()
 {
-    string vsFile = "../Shaders/font_vert.glsl";
-    string fsFile = "../Shaders/font_frag.glsl";
+    const string vsFile = "../Shaders/font_vert.glsl";
+    const string fsFile = "../Shaders/font_frag.glsl";
 
     AddShader(vsFile, ShaderType::VERTEX);
     AddShader(fsFile, ShaderType::FRAGMENT);

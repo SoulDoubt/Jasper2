@@ -1,5 +1,4 @@
-#ifndef _CUBE_MESH_H_
-#define _CUBE_MESH_H_
+#pragma once
 
 #include "Mesh.h"
 
@@ -21,9 +20,15 @@ public:
     void Initialize() override;
     void Destroy() override;
     ComponentType GetComponentType() const override {
-        return ComponentType::Cube;   
+        return ComponentType::Mesh;   
     }
 
+	MeshType GetMeshType() const override {
+		return MeshType::Cube;
+	}
+
+	void Serialize(std::ofstream& ofs) const override;
+	
     void SetTextureRepeat(float u, float v) {
         m_repeatU = u;
         m_repeatV = v;
@@ -48,5 +53,6 @@ protected:
     float m_repeatU = 1.f;
     float m_repeatV = 1.f;
 };
+
 }
-#endif // _CUBE_MESH_H_
+

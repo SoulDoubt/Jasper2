@@ -1,5 +1,4 @@
-#ifndef _JASPER_CAPSULE_COLLIDER_H_
-#define _JASPER_CAPSULE_COLLIDER_H_
+#pragma once
 
 #include "PhysicsCollider.h"
 
@@ -11,8 +10,8 @@ class CapsuleCollider : public PhysicsCollider
 
 public:
 
-    explicit CapsuleCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
-    explicit CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    //CapsuleCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~CapsuleCollider();
 
     void Awake() override;
@@ -22,4 +21,3 @@ public:
 
 } // namespace Jasper
 
-#endif // _JASPER_CAPSULE_COLLIDER_H_

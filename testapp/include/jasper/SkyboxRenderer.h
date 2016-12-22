@@ -11,7 +11,7 @@ class SkyboxRenderer :
     public MeshRenderer
 {
 public:
-    explicit SkyboxRenderer(Mesh* mesh, Material* mat);
+    explicit SkyboxRenderer(std::string name, Mesh* mesh, Material* mat);
     SkyboxRenderer(const SkyboxRenderer& o) = delete;
     SkyboxRenderer& operator=(const SkyboxRenderer& o) = delete;
     ~SkyboxRenderer();
@@ -20,7 +20,7 @@ public:
     ComponentType GetComponentType() const override {
         return ComponentType::SkyboxRenderer;
     }
-
+	void Serialize(std::ofstream& ofs) const override;
 
 };
 

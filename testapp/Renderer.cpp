@@ -38,10 +38,10 @@ void Renderer::SetFrameInvariants(Material* material)
     // lights
     Shader* shader = material->GetShader();
     //auto projectionMatrix = m_scene->ProjectionMatrix();
-    auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
-    auto pointLight = m_scene->GetGameObjectByName("p_light");
-    auto directionalLight = m_scene->GetGameObjectByName("d_light");
-    auto cameraPosition = m_scene->GetCamera().GetWorldTransform().Position;
+    const auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
+    const auto pointLight = m_scene->GetGameObjectByName("p_light");
+    const auto directionalLight = m_scene->GetGameObjectByName("d_light");
+    const auto cameraPosition = m_scene->GetCamera().GetWorldTransform().Position;
 
     shader->SetViewMatrix(viewMatrix);
     shader->SetCameraPosition(cameraPosition);
@@ -107,8 +107,8 @@ void Renderer::RenderShadowMap()
 void Renderer::RenderScene()
 {
     GLERRORCHECK;
-    auto projMatrix = m_scene->ProjectionMatrix();
-    auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
+    const auto projMatrix = m_scene->ProjectionMatrix();
+    const auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
     for (auto& mr : m_renderers) {
         
         if (!mr->IsEnabled()) continue;
@@ -118,10 +118,10 @@ void Renderer::RenderScene()
         material->Bind();
         SetFrameInvariants(material);
         SetMaterialUniforms(material);
-        auto transform = mr->GetGameObject()->GetWorldTransform();
-        auto modelMatrix = transform.TransformMatrix();
-        auto mvpMatrix = projMatrix * viewMatrix * modelMatrix;
-        auto normMatrix = modelMatrix.NormalMatrix();
+        const auto transform = mr->GetGameObject()->GetWorldTransform();
+        const auto modelMatrix = transform.TransformMatrix();
+        const auto mvpMatrix = projMatrix * viewMatrix * modelMatrix;
+        const auto normMatrix = modelMatrix.NormalMatrix();
         material->GetShader()->SetModelMatrix(modelMatrix);
         material->GetShader()->SetModelViewProjectionMatrix(mvpMatrix);
         material->GetShader()->SetNormalMatrix(normMatrix);
@@ -187,4 +187,5 @@ void Renderer::ProcessGameObject(const GameObject* root)
         ProcessGameObject(child.get());
     }
 }
+
 }

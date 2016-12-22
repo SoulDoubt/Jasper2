@@ -3,12 +3,11 @@
 namespace Jasper
 {
 
-#define PI 3.14159265359
+#define PI 3.14159265359f
 
 
 Sphere::Sphere(const std::string& name, float radius) : Mesh(name), m_radius(radius)
-{
-    Initialize();
+{    
 }
 
 Sphere::~Sphere()
@@ -42,7 +41,6 @@ void Sphere::Initialize()
         Indices.push_back(i + 1);
     }
 
-    //CalculateFaceNormals();
     CalculateExtents();
 
 }

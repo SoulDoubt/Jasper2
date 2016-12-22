@@ -15,8 +15,12 @@ public:
     void Initialize() override;
     void Destroy() override;
     ComponentType GetComponentType() const override {
-        return ComponentType::Triangle;
+        return ComponentType::Mesh;
     }
+
+	MeshType GetMeshType() const override {
+		return MeshType::Triangle;
+	}
 
 };
 }

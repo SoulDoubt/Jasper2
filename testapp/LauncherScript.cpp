@@ -21,6 +21,12 @@ bool LauncherScript::ShowGui(){
     return false;
 }
 
+void LauncherScript::Serialize(std::ofstream & ofs) const
+{
+	ScriptComponent::Serialize(ofs);
+
+}
+
 void LauncherScript::Update(float dt)
 {
     auto gameObject = GetGameObject();
@@ -54,8 +60,8 @@ void LauncherScript::LaunchTeapot()
     auto pw = scene->GetPhysicsWorld();
     auto shader = scene->GetShaderByName("Lit_Shader");
 
-    auto transform = gameObject->GetWorldTransform();
-    auto rootNode = gameObject->GetScene()->GetRootNode();
+    const auto transform = gameObject->GetWorldTransform();
+    const auto rootNode = gameObject->GetScene()->GetRootNode();
 
     GameObject* model = rootNode->AttachNewChild<GameObject>("teapot_model");
     model->AttachNewComponent<Model>("teapot", "../models/teapot/teapot.obj", shader, true, pw);
@@ -70,8 +76,8 @@ void LauncherScript::LaunchTeapot()
 
     scene->GetRenderer()->RegisterGameObject(model);
 
-    btVector3 junk = {0.f, 0.f, 0.f};
-    collider->GetRigidBody()->applyForce(Force.AsBtVector3(), junk);
+    const btVector3 offset = {0.f, 0.f, 0.f};
+    collider->GetRigidBody()->applyForce(Force.AsBtVector3(), offset);
 
     launch_count++;
 }
@@ -96,10 +102,10 @@ void LauncherScript::LaunchSphere()
         mesh->SetName("launch_sphere");
     }
 
-    sphere->AttachNewComponent<MeshRenderer>(mesh, mat);
+    sphere->AttachNewComponent<MeshRenderer>("launched_sphere_renderer", mesh, mat);
     sphere->SetLocalTransform(transform);
 
-    auto collider = sphere->AttachNewComponent<SphereCollider>("Sphere_collider", mesh, pw);
+    auto collider = sphere->AttachNewComponent<SphereCollider>("Sphere_collider", mesh->GetHalfExtents(), pw);
     collider->Mass = 1.0f;
     collider->Restitution = 0.56f;
     sphere->AttachNewComponent<DestroyScript>("Destroy_Script");
@@ -134,10 +140,10 @@ void LauncherScript::LaunchCube()
         //mesh->CalculateFaceNormals();
     }
 
-    sphere->AttachNewComponent<MeshRenderer>(mesh, mat);
+    sphere->AttachNewComponent<MeshRenderer>("launched_cube_renderer", mesh, mat);
     sphere->SetLocalTransform(transform);
 
-    auto collider = sphere->AttachNewComponent<BoxCollider>("cube_collider", mesh, pw);
+    auto collider = sphere->AttachNewComponent<BoxCollider>("cube_collider", mesh->GetHalfExtents(), pw);
     collider->Mass = 10.0f;
     collider->Restitution = 0.96f;
     sphere->AttachNewComponent<DestroyScript>("Destroy_Script");

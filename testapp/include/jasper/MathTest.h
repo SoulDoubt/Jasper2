@@ -1,7 +1,7 @@
 #ifndef _JASPER_MATH_TEST_H_
 #define _JASPER_MATH_TEST_H_
 
-#include <bullet\btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include "vector.h"
 #include "matrix.h"
 #include "quaternion.h"

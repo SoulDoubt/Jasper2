@@ -3,6 +3,7 @@
 
 #include "Common.h"
 #include <string>
+#include <vector>
 
 namespace Jasper
 {
@@ -33,6 +34,9 @@ public:
     virtual void Bind();
     virtual void Release();
 
+protected:
+	int m_previouslyBound;
+
 private:
 
     unsigned m_textureID;
@@ -44,12 +48,12 @@ class CubemapTexture : public Texture
 
 public:
 
-    bool Load(const std::string& posx,
-              const std::string& negx,
-              const std::string& posy,
-              const std::string& negy,
-              const std::string& posz,
-              const std::string& negz);
+    bool Load(std::string posx,
+              std::string negx,
+              std::string posy,
+              std::string negy,
+              std::string posz,
+              std::string negz);
 
     virtual unsigned TextureID() const override {
         return m_cubemapID;
@@ -60,9 +64,15 @@ public:
     virtual void Bind()override;
     virtual void Release() override;
 
+	const std::vector<std::string> GetFileNames() const {
+		return m_fileNames;
+	}
+
 private:
 
     unsigned m_cubemapID;
+	std::vector<std::string> m_fileNames;
+	
 
 
 

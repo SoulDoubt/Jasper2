@@ -4,6 +4,7 @@
 #include "PhysicsCollider.h"
 #include "Scene.h"
 #include "imgui.h"
+#include "AssetSerializer.h"
 #include <chrono>
 
 namespace Jasper
@@ -27,6 +28,23 @@ bool RotateAboutPointScript::ShowGui(){
     InputFloat("Rate", &m_degreesPerSec);
     
     return false;
+}
+
+void RotateAboutPointScript::Serialize(std::ofstream & ofs) const
+{
+	using namespace AssetSerializer;
+	ScriptComponent::Serialize(ofs);
+	ofs.write(ConstCharPtr(m_point.AsFloatPtr()), sizeof(m_point));
+	ofs.write(ConstCharPtr(m_axis.AsFloatPtr()), sizeof(m_axis));
+	ofs.write(ConstCharPtr(&m_degreesPerSec), sizeof(m_degreesPerSec));
+}
+
+void RotateAboutPointScript::Deserialize(std::ifstream& ifs)
+{
+	using namespace AssetSerializer;
+	ifs.read(CharPtr(&m_point), sizeof(m_point));
+	ifs.read(CharPtr(&m_axis), sizeof(m_axis));
+	ifs.read(CharPtr(&m_degreesPerSec), sizeof(m_degreesPerSec));
 }
 
 }

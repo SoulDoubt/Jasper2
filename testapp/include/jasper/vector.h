@@ -1,5 +1,4 @@
-#ifndef _VECTOR_3_H_
-#define _VECTOR_3_H_
+#pragma once
 
 #include "Common.h"
 #ifndef _USE_MATH_DEFINES
@@ -9,7 +8,7 @@
 #endif
 #include <string>
 
-#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 
 #ifndef DEG_TO_RAD
 #define DEG_TO_RAD(theta) (((float)(M_PI / 180.0f)) * theta)
@@ -27,6 +26,13 @@ struct Vector2 {
     Vector2(float x, float y);
     Vector2() = default;
     std::string ToString() const;
+	float* AsFloatPtr() {
+		return &x;
+	}
+
+	const float* AsFloatPtr() const {
+		return &x;
+	}
 };
 
 inline Vector2::Vector2(float x, float y) : x(x), y(y)
@@ -67,14 +73,14 @@ inline float Length(const Vector2& vec)
 
 inline Vector2 Normalize(const Vector2& vec)
 {
-    float len = Length(vec);
+    const float len = Length(vec);
     return Vector2(vec.x / len, vec.y / len);
 }
 
 inline std::string Vector2::ToString() const
 {
-    std::string xval = std::to_string(x) + "f";
-    std::string yval = std::to_string(y) + "f";
+    const std::string xval = std::to_string(x) + "f";
+    const std::string yval = std::to_string(y) + "f";
     return "(" + xval + "," + yval + ")";
 }
 
@@ -92,7 +98,7 @@ struct Vector3 {
     void Normalize();
     Vector3 Normalized() const;
 
-    btVector3 AsBtVector3() {
+    btVector3 AsBtVector3() const {
         return btVector3(x, y, z);
     }
 
@@ -166,7 +172,7 @@ inline Vector3 operator/(const Vector3& a, const float f)
 
 inline void Vector3::Normalize()
 {
-    float len = this->Length();
+    const float len = this->Length();
     x /= len;
     y /= len;
     z /= len;
@@ -182,7 +188,7 @@ inline Vector3& operator/=(Vector3& a, const Vector3& b)
 
 inline Vector3& operator/=(Vector3& a, const float f)
 {
-    float invf = 1.0f / f;
+    const float invf = 1.0f / f;
     a.x *= invf;
     a.y *= invf;
     a.z *= invf;
@@ -508,4 +514,3 @@ inline Vector4 Normalize(const Vector4& v)
 
 }
 
-#endif

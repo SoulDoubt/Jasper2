@@ -2,11 +2,11 @@
 #include "GameObject.h"
 #include "Mesh.h"
 
-Jasper::CapsuleCollider::CapsuleCollider(std::string name, Mesh * mesh, PhysicsWorld * world)
-    : PhysicsCollider(name, mesh, world)
-{
-    m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
-}
+//Jasper::CapsuleCollider::CapsuleCollider(std::string name, Mesh * mesh, PhysicsWorld * world)
+//    : PhysicsCollider(name, mesh, world)
+//{
+//    m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
+//}
 
 Jasper::CapsuleCollider::CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : PhysicsCollider(name, halfExtents, world)
@@ -37,11 +37,6 @@ void Jasper::CapsuleCollider::Awake()
         halfY = m_halfExtents.y;
         halfZ = m_halfExtents.z;
     }
-    /*halfX *= trans.Scale.x;
-    halfY *= trans.Scale.y;
-    halfZ *= trans.Scale.z;*/
-
-
 
     float radius = std::max(halfX, halfZ);
     if (radius == halfX) {

@@ -13,12 +13,12 @@ void Matrix4::CreatePerspectiveProjection(const float fov, const float aspect, c
         return;
     // Construct the projection.
     Matrix4 m;
-    float radians = (fov / 2.0f) * M_PI / 180.0f;
-    float sine = sinf(radians);
+    const float radians = (fov / 2.0f) * (float)M_PI / 180.0f;
+    const float sine = sinf(radians);
     if (sine == 0.0f)
         return;
-    float cotan = cosf(radians) / sine;
-    float clip = farPlane - nearPlane;
+    const float cotan = cosf(radians) / sine;
+    const float clip = farPlane - nearPlane;
     m.mat[0][0] = cotan / aspect;
     m.mat[0][1] = 0.0f;
     m.mat[0][2] = 0.0f;
@@ -72,36 +72,6 @@ Matrix4 CreateOrtho(const float left, const float right, const float bottom, con
 
 void Matrix4::CreateOrthographicProjection(const float left, const float right, const float bottom, const float top, const float near, const float far)
 {
-    //if (left == right || bottom == top || near == far)
-    //	return;
-
-    //float width = right - left;
-    //float height = top - bottom;
-    //float clip = far - near;
-
-    //Matrix4 m;
-    //m.mat[0].x = 2.0f / width;
-    //m.mat[0].y = 0.f;
-    //m.mat[0].z = 0.f;
-    //m.mat[0].w = 0.f;
-
-    //m.mat[1].x = 0.f;
-    //m.mat[1].y = 2.0f / height;
-    //m.mat[1].z = 0.f;
-    //m.mat[1].w = 0.f;
-
-    //m.mat[2].x = 0.f;
-    //m.mat[2].y = 0.f;
-    //m.mat[2].z = 2.f / clip;
-    //m.mat[2].w = -near / (far - near);
-
-    //m.mat[3].x = 0.f;// -(right + left) / (right - left);
-    //m.mat[3].y = 0.f;//-(top + bottom) / (top - bottom);
-    //m.mat[3].z = 0.f;// -(far + near) / (far - near);
-    //m.mat[3].w = 1.f;
-    //m.Transpose();
-
-    //*this *= m;
 
     Matrix4 m = Matrix4();
     m.mat[0][0] = 2.0f / (right - left);
@@ -132,19 +102,19 @@ void Matrix4::CreateOrthographicProjection(const float left, const float right, 
 Matrix4 Matrix4::FromTransform(const Transform& tr)
 {
 
-    Quaternion q = Normalize(tr.Orientation);
-    auto p = tr.Position;
-    auto scale = tr.Scale;
+    const Quaternion q = Normalize(tr.Orientation);
+    const auto p = tr.Position;
+    const auto scale = tr.Scale;
 
-    float xx = q.x * q.x;
-    float yy = q.y * q.y;
-    float yz = q.y * q.z;
-    float zz = q.z * q.z;
-    float xy = q.x * q.y;
-    float zw = q.z * q.w;
-    float xz = q.x * q.z;
-    float yw = q.y * q.w;
-    float xw = q.x * q.w;
+    const float xx = q.x * q.x;
+    const float yy = q.y * q.y;
+    const float yz = q.y * q.z;
+    const float zz = q.z * q.z;
+    const float xy = q.x * q.y;
+    const float zw = q.z * q.w;
+    const float xz = q.x * q.z;
+    const float yw = q.y * q.w;
+    const float xw = q.x * q.w;
 
     Matrix4 mat;
 

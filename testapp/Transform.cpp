@@ -14,7 +14,7 @@ Transform& Transform::RotateAround(const Vector3& point, const Vector3& axis, co
 {
     auto position = this->Position;
     auto currentRotation = this->Orientation;
-    auto rotation = Quaternion::FromAxisAndAngle(axis, DEG_TO_RAD(degrees));
+    const auto rotation = Quaternion::FromAxisAndAngle(axis, DEG_TO_RAD(degrees));
     auto direction = position - point;
     direction = rotation * direction;
     this->Position = point + direction;

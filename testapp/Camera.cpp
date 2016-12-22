@@ -11,7 +11,7 @@ Vector3 Camera::WORLD_Y_AXIS = Vector3(0.0f, 1.0f, 0.0f);
 Vector3 Camera::WORLD_Z_AXIS = Vector3(0.0f, 0.0f, 1.0f);
 
 
-Camera::Camera(Camera::CameraType type) //: GameObject("camera")
+Camera::Camera(Camera::CameraType type) : GameObject("camera")
 {
 
     m_type = type;
@@ -54,7 +54,7 @@ Matrix4 Camera::GetViewMatrix()
 
     //Transform t = Transform(m_position, m_orientation);
     //Matrix4 vm = Matrix4::FromTransform(t);
-    Matrix4 vm = m_transform.TransformMatrix();
+    const Matrix4 vm = m_transform.TransformMatrix();
     m_localXAxis = Vector3(vm.mat[0].x, vm.mat[1].x, vm.mat[2].x);
     m_localYAxis = Vector3(vm.mat[0].y, vm.mat[1].y, vm.mat[2].y);
     m_localZAxis = Vector3(vm.mat[0].z, vm.mat[1].z, vm.mat[2].z);
@@ -191,11 +191,11 @@ void Camera::Translate(const Vector3& vec)
             /*if () {
             	printf("\nHit Self");
             }*/
-            float epsilon = 0.0001;
-            float min = btMax(epsilon, cb.m_closestHitFraction);
-            current += -forwards * 0.1;
+            const float epsilon = 0.0001;
+            const float min = btMax(epsilon, cb.m_closestHitFraction);
+            //current += -forwards * 0.1;
             btVector3 newPos = current.AsBtVector3();
-            //newPos.setInterpolate3(current.AsBtVector3(), after.AsBtVector3(), min);
+            newPos.setInterpolate3(current.AsBtVector3(), after.AsBtVector3(), min);
             m_transform.Position = Vector3(newPos);
         } else {
             m_transform.Position = after;

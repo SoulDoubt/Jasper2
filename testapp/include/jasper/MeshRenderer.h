@@ -43,18 +43,20 @@ public:
 
     NON_COPYABLE(MeshRenderer);
 
-    explicit MeshRenderer(Mesh* mesh, Material* material);
+    explicit MeshRenderer(std::string name, Mesh* mesh, Material* material);
     ~MeshRenderer();
     
 
     virtual void Render();
 
     void Destroy() override;
+	void Initialize() override;
     void Awake() override;
     void Start() override;
     void FixedUpdate() override;
     void Update(float dt) override;
     void LateUpdate() override;
+	
     
     void Serialize(std::ofstream& ofs) const override;
     

@@ -6,11 +6,11 @@
 namespace Jasper
 {
 
-SphereCollider::SphereCollider(std::string name, Mesh * mesh, PhysicsWorld * world)
-    :PhysicsCollider(name, mesh, world)
-{
-    m_colliderType = PHYSICS_COLLIDER_TYPE::Sphere;
-}
+//SphereCollider::SphereCollider(std::string name, Mesh * mesh, PhysicsWorld * world)
+//    :PhysicsCollider(name, mesh, world)
+//{
+//    m_colliderType = PHYSICS_COLLIDER_TYPE::Sphere;
+//}
 
 SphereCollider::SphereCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     :PhysicsCollider(name, halfExtents, world)

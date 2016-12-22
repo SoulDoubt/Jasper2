@@ -2,7 +2,7 @@
 #define _JASPER_PHYSICS_WORLD_H_
 
 #include "Common.h"
-#include <bullet/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include "PhysicsDebugDraw.h"
 #include <vector>
 

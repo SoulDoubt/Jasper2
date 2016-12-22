@@ -10,8 +10,8 @@ namespace Jasper
 {
 using namespace std;
 
-SkyboxRenderer::SkyboxRenderer(Mesh* mesh, Material* mat) :
-    MeshRenderer(mesh, mat)
+SkyboxRenderer::SkyboxRenderer(std::string name, Mesh* mesh, Material* mat) :
+    MeshRenderer(name, mesh, mat)
 {
 
 }
@@ -29,23 +29,23 @@ void SkyboxRenderer::Update(float dt)
 void SkyboxRenderer::Render()
 {
     SkyboxShader* shader = (SkyboxShader*)m_material->GetShader();
-    int shaderID = shader->ProgramID();
+    const int shaderID = shader->ProgramID();
     shader->Bind();
 
     // we need the current view matrix and projection matrix of the scene
-    auto projection = GetGameObject()->GetScene()->ProjectionMatrix();
-    auto view = GetGameObject()->GetScene()->GetCamera().GetCubemapViewMatrix().Inverted();
+    const auto projection = GetGameObject()->GetScene()->ProjectionMatrix();
+    const auto view = GetGameObject()->GetScene()->GetCamera().GetCubemapViewMatrix().Inverted();
 
     //trix4 view;
     //view.SetToIdentity();
-    auto pv = projection * view;
+    const auto pv = projection * view;
     shader->SetProjectionMatrix(projection);
     shader->SetViewMatrix(view);
 
     glBindVertexArray(m_vaoID);
     glActiveTexture(GL_TEXTURE0 + 0);
     glDepthMask(GL_FALSE);
-    int texID = m_material->GetCubemapTexture()->TextureID();
+    const int texID = m_material->GetCubemapTexture()->TextureID();
     glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
     glDrawElements(GL_TRIANGLES, m_elementCount, GL_UNSIGNED_INT, 0);
     glDepthMask(GL_TRUE);
@@ -53,5 +53,9 @@ void SkyboxRenderer::Render()
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     glBindVertexArray(0);
 
+}
+void SkyboxRenderer::Serialize(std::ofstream & ofs) const
+{
+	MeshRenderer::Serialize(ofs);
 }
 }
