@@ -6,7 +6,6 @@
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "PhysicsWorld.h"
 
-class btConvexShape;
 
 namespace Jasper
 {
@@ -14,29 +13,56 @@ namespace Jasper
 class PhysicsWorld;
 
 
-class CharacterController : public btKinematicCharacterController, public GameObject
+class CharacterController :  public GameObject
 {
 public:
-    CharacterController(btPairCachingGhostObject* ghostObject, btConvexShape* convexShape, btScalar stepHeight, PhysicsWorld* world, const btVector3 up = btVector3(0.f, 1.f, 0.f));
+	CharacterController() : GameObject("player") {
+
+	}
+
+	enum class CameraType
+	{
+		FIRST_PERSON,
+		FLYING
+	};
+
+	void Rotate(float pitch, float roll, float yaw);
+	void Translate(float x, float y, float z);
+	void Translate(const Vector3& vec);
+
+	void Awake() override;
+
+	Vector3 GetPosition() const {
+		return m_transform.Position;
+	}
+
+	
+
+	
     ~CharacterController();
 
-    void debugDraw(btIDebugDraw* debugDrawer) override;
+private : 
 
-    btConvexShape* GetCollisionShape() {
-        return m_convexShape;
-    }
+	PhysicsCollider* m_collider;
+	PhysicsWorld* m_physicsWorld;
 
-    Transform GetGhostWorldTransform() {
-        btTransform btt = m_ghostObject->getWorldTransform();
-        return Transform(btt);
-    }
+	void UpdateVectors();
 
-    void StepPlayer(float dt) {
-        playerStep(m_world->GetBtWorld(), dt);
-    }
+	CameraType m_type;
 
-private:
-    PhysicsWorld* m_world;
+	static Vector3 WORLD_X_AXIS;
+	static Vector3 WORLD_Y_AXIS;
+	static Vector3 WORLD_Z_AXIS;
+
+	Vector3 m_localXAxis;
+	Vector3 m_localYAxis;
+	Vector3 m_localZAxis;
+
+	Vector3 m_viewVector;
+	Vector3 m_upVector;
+	Vector3 m_rightVector;
+
+	float m_accumPitch = 0.f;
 
 
 };

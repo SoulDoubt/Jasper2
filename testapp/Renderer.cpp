@@ -39,8 +39,8 @@ void Renderer::SetFrameInvariants(Material* material)
     Shader* shader = material->GetShader();
     //auto projectionMatrix = m_scene->ProjectionMatrix();
     const auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
-    const auto pointLight = m_scene->GetGameObjectByName("p_light");
-    const auto directionalLight = m_scene->GetGameObjectByName("d_light");
+    const auto pointLight = m_scene->GetGameObjectByName("p_light"s);
+    const auto directionalLight = m_scene->GetGameObjectByName("d_light"s);
     const auto cameraPosition = m_scene->GetCamera().GetWorldTransform().Position;
 
     shader->SetViewMatrix(viewMatrix);
@@ -106,18 +106,25 @@ void Renderer::RenderShadowMap()
 
 void Renderer::RenderScene()
 {
+	static Material* previousMaterial = nullptr;
     GLERRORCHECK;
     const auto projMatrix = m_scene->ProjectionMatrix();
     const auto viewMatrix = m_scene->GetCamera().GetViewMatrix().Inverted();
+	previousMaterial = nullptr;
     for (auto& mr : m_renderers) {
         
         if (!mr->IsEnabled()) continue;
 
         auto material = mr->GetMaterial();
 
-        material->Bind();
-        SetFrameInvariants(material);
-        SetMaterialUniforms(material);
+		if (material != previousMaterial) {
+			previousMaterial = material;
+			material->Bind();
+			SetFrameInvariants(material);
+			SetMaterialUniforms(material);
+		}
+
+        
         const auto transform = mr->GetGameObject()->GetWorldTransform();
         const auto modelMatrix = transform.TransformMatrix();
         const auto mvpMatrix = projMatrix * viewMatrix * modelMatrix;
@@ -126,7 +133,9 @@ void Renderer::RenderScene()
         material->GetShader()->SetModelViewProjectionMatrix(mvpMatrix);
         material->GetShader()->SetNormalMatrix(normMatrix);
         mr->Render();
-        material->Release();
+		if (material != previousMaterial) {
+			material->Release();
+		}
 
     }
 }

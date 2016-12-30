@@ -819,7 +819,7 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 void DoMovement(Scene* scene, double deltaTime)
 {
     Camera& cam = scene->GetCamera();
-    auto player = scene->GetPlayer();
+    auto& player = *(scene->GetPlayer());
     float speed = 7.5f;
     float rotSpeed = 120.0f;
     float moveBy = speed * deltaTime;
@@ -828,41 +828,43 @@ void DoMovement(Scene* scene, double deltaTime)
 
     if (MOVING_FORWARD) {
         //player->StepPlayer(deltaTime);
-        cam.Translate( { 0.0f, 0.0f, -moveBy });
+		player.Translate( { 0.0f, 0.0f, -moveBy });
     }
     if (MOVING_BACKWARD) {
-        cam.Translate( { 0.0f, 0.0f, moveBy });
+		player.Translate( { 0.0f, 0.0f, moveBy });
     }
     if (STRAFING_LEFT) {
-        cam.Translate( { -moveBy, 0.0f, 0.0f });
+		player.Translate( { -moveBy, 0.0f, 0.0f });
     }
     if (STRAFING_RIGHT) {
-        cam.Translate( { moveBy, 0.0f, 0.0f });
+		player.Translate( { moveBy, 0.0f, 0.0f });
     }
     if (ROTATING_LEFT) {
-        cam.Rotate(0.0f, 0.0f, rotBy);
+		player.Rotate(0.0f, 0.0f, rotBy);
     }
     if (ROTATING_RIGHT) {
-        cam.Rotate(0.0f, 0.0f, -rotBy);
+		player.Rotate(0.0f, 0.0f, -rotBy);
     }
     if (ROTATING_UP) {
-        cam.Rotate(rotBy, 0.0f, 0.0f);
+		player.Rotate(rotBy, 0.0f, 0.0f);
     }
     if (ROTATING_DOWN) {
-        cam.Rotate(-rotBy, 0.0f, 0.0f);
+		player.Rotate(-rotBy, 0.0f, 0.0f);
     }
 }
 
 void RotateCameraX(Scene* scene, double deltaTime, float degrees)
 {
-    Camera& cam = scene->GetCamera();
-    cam.Rotate(0.f, 0.f, -degrees);
+    //Camera& cam = scene->GetCamera();
+	auto& player = *(scene->GetPlayer());
+    player.Rotate(0.f, 0.f, -degrees);
 }
 
 void RotateCameraY(Scene* scene, double deltaTime, float degrees)
 {
-    Camera& cam = scene->GetCamera();
-    cam.Rotate(-degrees, 0.f , 0.f);
+    //Camera& cam = scene->GetCamera();
+	auto& player = *(scene->GetPlayer());
+    player.Rotate(-degrees, 0.f , 0.f);
 }
 
 //HWND GLWindow::GetWindowHandle() const

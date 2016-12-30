@@ -1,5 +1,4 @@
-#ifndef _JASPER_PHYSICS_COLLIDER_H_
-#define _JASPER_PHYSICS_COLLIDER_H_
+#pragma once
 
 
 #include "Component.h"
@@ -21,7 +20,8 @@ enum class PHYSICS_COLLIDER_TYPE
     ConvexHull,
     Cylinder,
     Plane,
-    Sphere
+    Sphere,
+	Compound
 };
 
 class PhysicsCollider :	public Component
@@ -90,5 +90,15 @@ protected:
 
 };
 
+class CompoundCollider : public PhysicsCollider {
+
+public:
+	CompoundCollider(std::string name, const std::vector<Mesh*> meshes, PhysicsWorld* world);
+	void Awake() override;
+
+private:
+	std::vector<Mesh*> m_meshes;
+};
+
 } // namespace Jasper
-#endif //_PHYSICS_COLLIDER_H_
+

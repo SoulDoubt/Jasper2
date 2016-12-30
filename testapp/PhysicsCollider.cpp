@@ -2,6 +2,7 @@
 #include "GameObject.h"
 #include "imgui.h"
 #include "AssetSerializer.h"
+#include "Mesh.h"
 
 namespace Jasper
 {
@@ -88,7 +89,10 @@ void PhysicsCollider::ToggleEnabled(bool e)
         m_rigidBody->setRestitution(Restitution);
         m_rigidBody->setFriction(Friction);
         m_rigidBody->activate();
-    }
+	}
+	else {
+		//m_rigidBody->setAc();
+	}
     Component::ToggleEnabled(e);
 }
 
@@ -135,5 +139,51 @@ void PhysicsCollider::Serialize(std::ofstream& ofs) const{
 }
 
 
+
+CompoundCollider::CompoundCollider(std::string name, const std::vector<Mesh*> meshes, PhysicsWorld * world)
+	: PhysicsCollider(name, {0.f, 0.f, 0.f}, world), m_meshes()
+{
+	for (const auto& m : meshes) {
+		m_meshes.push_back(m);
+	}
+
+
+}
+
+void CompoundCollider::Awake()
+{
+	btCompoundShape* compound = new btCompoundShape(true, m_meshes.size());
+	const auto& trans = GetGameObject()->GetLocalTransform();
+	auto btTrans = trans.GetBtTransform();
+	
+	for (const auto m : m_meshes) {
+		const auto extents = m->GetHalfExtents();
+		const float halfX = extents.x;
+		const float halfY = extents.y;
+		const float halfZ = extents.z;
+		float radius = std::max(halfX, halfZ);
+		if (radius == halfX) {
+			radius *= trans.Scale.x;
+		}
+		else {
+			radius *= trans.Scale.y;
+		}
+
+		float height = (halfY)* trans.Scale.y * 2;
+		height = height - (2 * radius);
+
+		compound->addChildShape(btTrans, new btCapsuleShape(radius, height));
+	}
+
+	m_collisionShape = compound;
+	btVector3 inertia;
+	m_collisionShape->calculateLocalInertia(Mass, inertia);
+	m_defaultMotionState = new btDefaultMotionState(btTrans);
+	btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
+	m_rigidBody = new btRigidBody(rbci);
+
+	m_world->AddCollider(this);
+
+}
 
 } // namespace Jasper

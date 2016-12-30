@@ -49,7 +49,7 @@ public:
 
     void DestroyGameObject(GameObject* go);
 
-    GameObject* GetGameObjectByName(std::string name);
+    GameObject* GetGameObjectByName(const std::string& name);
 
     void Update(float dt);
     void Awake();
@@ -63,9 +63,9 @@ public:
         return *m_camera;
     };
 
-    CharacterController* GetPlayer() {
+    /*CharacterController* GetPlayer() {
         return m_player.get();
-    }
+    }*/
 
     void DoLeftClick(double x, double y);
 
@@ -86,8 +86,8 @@ public:
         return m_physicsWorld.get();
     }
 
-    Shader* GetShaderByName(std::string name);
-    Material* GetMaterialByName(std::string name);
+    Shader* GetShaderByName(const std::string& name);
+    Material* GetMaterialByName(const std::string& name);
     
     void Deserialize(const std::string& filepath);
     void Serialize(const std::string& filepath);
@@ -136,6 +136,10 @@ public:
         return m_shaderManager;
     }
 
+	CharacterController* GetPlayer() const {
+		return m_player;
+	}
+
     int m_windowWidth, m_windowHeight;
     
     double PhysicsFrameTime;
@@ -150,6 +154,7 @@ private:
     Matrix4 m_orthoMatrix;
 
     Camera* m_camera;
+	CharacterController* m_player;
 
     std::unique_ptr<PhysicsWorld> m_physicsWorld;
 
@@ -163,7 +168,7 @@ private:
 
     std::unique_ptr<Renderer> m_renderer;
 
-    std::unique_ptr<CharacterController> m_player;
+   // std::unique_ptr<CharacterController> m_player;
 
     std::vector<ScriptComponent> m_scripts;
 

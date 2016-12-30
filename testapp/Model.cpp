@@ -60,28 +60,30 @@ void Model::Setup(Scene* jScene)
     MaxExtents = { -100000.0f, -1000000.0f, -1000000.0f };
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
-    for (auto& m : meshes) {
-        this->TriCount += m->Indices.size() / 3;
-        this->VertCount += m->Positions.size();
-        if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
-        if (m->GetMaxExtents().y > MaxExtents.y) MaxExtents.y = m->GetMaxExtents().y;
-        if (m->GetMaxExtents().z > MaxExtents.z) MaxExtents.z = m->GetMaxExtents().z;
+	for (auto& m : meshes) {
+		this->TriCount += m->Indices.size() / 3;
+		this->VertCount += m->Positions.size();
+		if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
+		if (m->GetMaxExtents().y > MaxExtents.y) MaxExtents.y = m->GetMaxExtents().y;
+		if (m->GetMaxExtents().z > MaxExtents.z) MaxExtents.z = m->GetMaxExtents().z;
 
-        if (m->GetMinExtents().x < MinExtents.x) MinExtents.x = m->GetMinExtents().x;
-        if (m->GetMinExtents().y < MinExtents.y) MinExtents.y = m->GetMinExtents().y;
-        if (m->GetMinExtents().z < MinExtents.z) MinExtents.z = m->GetMinExtents().z;
-    }
-    Vector3 localOrigin = { (MinExtents.x + MaxExtents.x) / 2.f, (MinExtents.y + MaxExtents.y) / 2.f , (MinExtents.z + MaxExtents.z) / 2.f };
-    float epsilon = 0.000001f;
-    if (fabs(localOrigin.x) > epsilon || fabs(localOrigin.y) > epsilon || fabs(localOrigin.z) > epsilon) {
-        for (auto& m : meshes) {
-            for (auto& v : m->Positions) {
-                v -= localOrigin;
-            }
-            m->CalculateExtents();
-        }
-    }
+		if (m->GetMinExtents().x < MinExtents.x) MinExtents.x = m->GetMinExtents().x;
+		if (m->GetMinExtents().y < MinExtents.y) MinExtents.y = m->GetMinExtents().y;
+		if (m->GetMinExtents().z < MinExtents.z) MinExtents.z = m->GetMinExtents().z;
 
+		
+	}
+
+	Vector3 localOrigin = { (MinExtents.x + MaxExtents.x) / 2.f, (MinExtents.y + MaxExtents.y) / 2.f , (MinExtents.z + MaxExtents.z) / 2.f };
+	float epsilon = 0.000001f;
+	if (fabs(localOrigin.x) > epsilon || fabs(localOrigin.y) > epsilon || fabs(localOrigin.z) > epsilon) {
+		for (auto& m : meshes) {
+			for (auto& v : m->Positions) {
+				v -= localOrigin;
+			}
+			m->CalculateExtents();
+		}
+	}
     if (m_enablePhysics) {
         Vector3 hes = { (MaxExtents.x - MinExtents.x) / 2, (MaxExtents.y - MinExtents.y) / 2, (MaxExtents.z - MinExtents.z) / 2 };
         PhysicsCollider* collider = nullptr;
@@ -99,8 +101,18 @@ void Model::Setup(Scene* jScene)
             collider = GetGameObject()->AttachNewComponent<CylinderCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
             break;
         case PHYSICS_COLLIDER_TYPE::ConvexHull:
-            collider = GetGameObject()->AttachNewComponent<ConvexHullCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
-            break;
+		{
+			ConvexHullCollider* cvx = GetGameObject()->AttachNewComponent<ConvexHullCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
+			cvx->InitFromMeshes(meshes);
+			collider = cvx;
+			break;
+		}
+		case PHYSICS_COLLIDER_TYPE::Compound:
+		{
+			CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, meshes, m_physicsWorld);
+			collider = cmp;
+			break;
+		}
         }
         if (collider) {
             collider->Mass = this->Mass;
@@ -267,7 +279,7 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jSc
     if (myMaterial) {
         renderMaterial = myMaterial;
     } else {
-        renderMaterial = m_materialManager.CreateInstance<Material>(m_shader, "jasper_default_material");
+        renderMaterial = jScene->GetMaterialCache().CreateInstance<Material>(m_shader, "jasper_default_material");
         renderMaterial->SetTextureDiffuse("./textures/default.png");
     }
     m->m_material = renderMaterial;

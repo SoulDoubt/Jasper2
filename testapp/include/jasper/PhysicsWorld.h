@@ -30,6 +30,7 @@ public:
     void AddRigidBody(btRigidBody* rb);
     void AddCollider(PhysicsCollider* collider);
     void ConvexSweepTest(btConvexShape* shape, btTransform& from, btTransform& to, btCollisionWorld::ClosestConvexResultCallback& callback);
+	void ContactTest(btCollisionObject* shape, btCollisionWorld::ContactResultCallback& cb);
 
     void DrawPhysicsShape(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color) {
         m_world->debugDrawObject(worldTransform, shape, color);
@@ -58,6 +59,11 @@ private:
 inline void PhysicsWorld::ConvexSweepTest(btConvexShape* shape, btTransform& from, btTransform& to, btCollisionWorld::ClosestConvexResultCallback& callback)
 {
     m_world->convexSweepTest(shape, from, to, callback);
+	
+}
+
+inline void PhysicsWorld::ContactTest(btCollisionObject* shape, btCollisionWorld::ContactResultCallback& cb) {
+	m_world->contactTest(shape, cb);
 }
 
 }

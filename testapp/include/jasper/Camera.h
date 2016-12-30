@@ -71,7 +71,7 @@ private:
     float m_accumPitch = 0.f;
 
     PhysicsWorld* m_physicsWorld = nullptr;
-    CapsuleCollider* m_collider = nullptr;
+    PhysicsCollider* m_collider = nullptr;
 
 };
 

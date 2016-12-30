@@ -35,7 +35,7 @@ void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, co
     debugShader->SetModelViewProjectionMatrix(mvpMatrix);
     glPointSize(3.0f);
     glLineWidth(1.25f);
-    glDrawArrays(GL_POINTS, 0, 2);
+    //glDrawArrays(GL_POINTS, 0, 2);
     glDrawArrays(GL_LINES, 0, 2);
     debugShader->Release();
     vbo.Release();
