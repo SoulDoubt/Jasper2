@@ -36,7 +36,9 @@ public:
 		return m_transform.Position;
 	}
 
-	
+	btVector3 Reflect(const btVector3& direction, const btVector3& normal) {
+		return direction - (btScalar(2.0) * direction.dot(normal)) * normal;
+	}
 
 	
     ~CharacterController();

@@ -10,11 +10,27 @@
 #include "Lights.h"
 #include "AssetSerializer.h"
 #include <iostream>
+#include "imgui.h"
 
 namespace Jasper
 {
 
 using namespace std;
+
+void MeshRenderer::ToggleWireframe(bool wf)
+{
+	{
+		if (wf)
+		{
+			m_polymode0 = GL_FRONT_AND_BACK;
+			m_polymode1 = GL_LINE;
+		}
+		else {
+			m_polymode0 = GL_FRONT;
+			m_polymode1 = GL_FILL;
+		}
+	}
+}
 
 MeshRenderer::MeshRenderer(std::string name, Mesh* mesh, Material* material) : Component(name),
     m_vertexBuffer(GLBuffer::BufferType::VERTEX),
@@ -131,6 +147,15 @@ void MeshRenderer::Serialize(std::ofstream& ofs) const
     ofs.write(material_name.data(), matnamesize);
 }
 
+bool MeshRenderer::ShowGui()
+{	
+	Component::ShowGui();
+	if (ImGui::Checkbox("Wireframe", &m_wireframe)) {
+		ToggleWireframe(m_wireframe);
+	}	
+	return false;
+}
+
 void MeshRenderer::Start() {}
 
 void MeshRenderer::FixedUpdate() {}
@@ -147,8 +172,12 @@ void MeshRenderer::Render()
 {
 
     GLERRORCHECK;
+	GLint poly_mode[2];
+	glGetIntegerv(GL_POLYGON_MODE, poly_mode);	
     glBindVertexArray(m_vaoID);
+	glPolygonMode(GL_FRONT, m_polymode1);
     glDrawElements(GL_TRIANGLES, m_elementCount, GL_UNSIGNED_INT, 0);
+	glPolygonMode(GL_FRONT, poly_mode[0]);
     GLERRORCHECK;
     glBindVertexArray(0);
 

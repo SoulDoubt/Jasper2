@@ -9,7 +9,7 @@ namespace Jasper
 PlaneCollider::PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld * world) :
 	PhysicsCollider(name, Vector3(), world), Normal(normal), Constant(constant)
 {	
-	m_colliderType = PHYSICS_COLLIDER_TYPE::Plane;
+	m_colliderType = PHYSICS_COLLIDER_TYPE::Plane;	
 }
 
 PlaneCollider::~PlaneCollider()

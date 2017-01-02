@@ -38,6 +38,7 @@ private:
 
     void ProcessGameObject(const GameObject* go);
     void SortByMaterial();
+	void SortByTransparancy();
     void ReleaseTextures();
     void SetFrameInvariants(Material* material);
     void SetMaterialUniforms(Material* material);

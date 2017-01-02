@@ -27,42 +27,68 @@ private:
 	std::string m_shaderName;
 
 	void BindTextures() {
-		bool hasNormalMap = this->GetTextureNormalMap();
+		
 		auto shader = this->GetShader();
-		if (hasNormalMap) {
-			int dl = glGetUniformLocation(shader->ProgramID(), "colorMap");
+		if (this->GetTextureNormalMap()) {
+			
 			int nl = glGetUniformLocation(shader->ProgramID(), "normalMap");
-			if (dl > -1) {
-				glUniform1i(dl, 0);
-			}
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_normal_map");		
+			glUniform1i(exists, 1);
 			if (nl > -1) {
 				glUniform1i(nl, 1);
 			}
 			glActiveTexture(GL_TEXTURE0 + 1);
 			m_normalMap->Bind();
-
+		}
+		else {
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_normal_map");
+			glUniform1i(exists, 0);
+			glActiveTexture(GL_TEXTURE0 + 1);
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 		if (this->GetTextureSpecularMap()) {
 			int sl = glGetUniformLocation(shader->ProgramID(), "specularMap");
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_specular_map");
+			glUniform1i(exists, 1);
 			if (sl > -1) {
 				glUniform1i(sl, 2);
 			}
 			glActiveTexture(GL_TEXTURE0 + 2);
 			m_specularMap->Bind();
 		}
+		else {
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_specular_map");
+			glUniform1i(exists, 0);
+			glActiveTexture(GL_TEXTURE0 + 2);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
 		if (this->GetTextureDiffuseMap()) {
+			int dl = glGetUniformLocation(shader->ProgramID(), "colorMap");
+			if (dl > -1) {
+				glUniform1i(dl, 0);
+			}
 			glActiveTexture(GL_TEXTURE0 + 0);
-			m_texture->Bind();
+			m_texture->Bind();			
+		}
+		else {
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
 
 	void ReleaseTextures() {
-		glActiveTexture(GL_TEXTURE0);
+		/*glActiveTexture(GL_TEXTURE0);
 		if (m_texture) m_texture->Release();
 		glActiveTexture(GL_TEXTURE0 + 1);
 		if (m_normalMap) m_normalMap->Release();
 		glActiveTexture(GL_TEXTURE0 + 2);
-		if (m_specularMap) m_specularMap->Release();
+		if (m_specularMap) m_specularMap->Release();*/
+		glActiveTexture(GL_TEXTURE0 + 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 public:
@@ -88,6 +114,8 @@ public:
 	Vector3 Diffuse;
 	Vector3 Specular;
 	float Shine;
+
+	bool IsTransparent = false;
 
 	bool IsBound() const {
 		return m_isBound;

@@ -25,4 +25,11 @@ void BasicShader::Initialize()
     LinkShaderProgram();
 }
 
+void BasicShader::SetColor(Vector4 color)
+{
+	int loc = glGetUniformLocation(this->ProgramID(), "vertColor");
+	glUniform4f(loc, color.x, color.y, color.z, color.w);
+
+}
+
 }

@@ -114,6 +114,8 @@ public:
     std::vector<Vector4> Tangents;
     std::vector<Vector3> Bitangents;
 
+	Vector4 Color;
+
 
     void AddVertex(const Vertex& vertex);
 

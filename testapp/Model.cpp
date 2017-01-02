@@ -18,6 +18,7 @@
 #include <iostream>
 #include <fstream>
 #include "AssetSerializer.h"
+#include "VHACD.h"
 
 namespace Jasper
 {
@@ -60,7 +61,7 @@ void Model::Setup(Scene* jScene)
     MaxExtents = { -100000.0f, -1000000.0f, -1000000.0f };
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
-	for (auto& m : meshes) {
+	for (auto m : meshes) {
 		this->TriCount += m->Indices.size() / 3;
 		this->VertCount += m->Positions.size();
 		if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
@@ -82,6 +83,7 @@ void Model::Setup(Scene* jScene)
 				v -= localOrigin;
 			}
 			m->CalculateExtents();
+			
 		}
 	}
     if (m_enablePhysics) {
@@ -109,7 +111,14 @@ void Model::Setup(Scene* jScene)
 		}
 		case PHYSICS_COLLIDER_TYPE::Compound:
 		{
-			CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, meshes, m_physicsWorld);
+			vector<unique_ptr<btConvexHullShape>> hulls;
+			for (auto m : meshes) {
+				ConvexDecompose(m, hulls, jScene);				
+			}
+			printf("Created %d convex hulls in model.\n", hulls.size());
+			CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, hulls, m_physicsWorld);
+			
+			
 			collider = cmp;
 			break;
 		}
@@ -286,6 +295,112 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jSc
     //auto mr = this->AttachNewComponent<MeshRenderer>(m, renderMaterial);
 
     printf("Loaded Model Mesh\n");
+
+}
+
+class MyCallback : public VHACD::IVHACD::IUserCallback
+{
+public:
+	MyCallback(void) {}
+	~MyCallback() {};
+	void Update(const double  overallProgress,
+		const double          stageProgress,
+		const double          operationProgress,
+		const char * const    stage,
+		const char * const    operation)
+	{
+		cout << (int)(overallProgress + 0.5) << "% "
+			<< "[ " << stage << " " << (int)(stageProgress + 0.5) << "% ] "
+			<< operation << " "  << (int)(operationProgress + 0.5) << "%" << endl;
+	};
+};
+
+void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene)
+{	
+	using namespace VHACD;
+	MyCallback mcallback;
+	IVHACD::Parameters params;
+	params.m_resolution = 100000;
+	params.m_depth = 20;
+	params.m_concavity = 0.01;
+	params.m_planeDownsampling = 8;
+	params.m_convexhullDownsampling = 8;
+	params.m_alpha = 0.05;
+	params.m_beta = 0.05;
+	params.m_gamma = 0.0015;
+	params.m_pca = 0;
+	params.m_mode = 0; // 0: voxel-based (recommended), 1: tetrahedron-based
+	params.m_maxNumVerticesPerCH = 64;
+	params.m_minVolumePerCH = 0.01;
+	params.m_callback = &mcallback;
+	params.m_logger = 0;
+	
+	
+	IVHACD* cdInterface = CreateVHACD();
+	int tsz = mesh->Indices.size();
+	int* tris = new int[tsz];
+	for (int i = 0; i < tsz; ++i) {
+		tris[i] = (int)mesh->Indices[i];
+	}
+		
+	float* positions = reinterpret_cast<float*>(&(mesh->Positions[0]));
+	int numIndices = mesh->Indices.size() / 3;
+	int numPositions = mesh->Positions.size();
+	bool res = cdInterface->Compute(positions, 3, numPositions, tris, 3, numIndices, params);
+	if (res) {
+		auto debugShader = scene->GetShaderCache().GetResourceByName("Basic_Shader"s);
+		auto mat = scene->GetMaterialCache().CreateInstance<Material>(debugShader, "ch_material");
+		mat->IsTransparent = true;
+		uint nConvexHulls = cdInterface->GetNConvexHulls();
+		
+		IVHACD::ConvexHull ch;
+		for (unsigned int p = 0; p < nConvexHulls; ++p)
+		{
+			
+			cdInterface->GetConvexHull(p, ch); // get the p-th convex-hull information			
+			std::unique_ptr<btConvexHullShape> bhull = make_unique<btConvexHullShape>(nullptr, 0);
+
+			//interfaceVHACD->GetConvexHull(p, ch); // get the p-th convex-hull information
+			Mesh* testMesh = scene->GetMeshCache().CreateInstance<Mesh>("ch_" + std::to_string(p));
+			float dr = ((float)rand() / (RAND_MAX));
+			float dg = ((float)rand() / (RAND_MAX));
+			float db = ((float)rand() / (RAND_MAX));
+			testMesh->Color = { dr, dg, db, 0.95f };
+			for (unsigned int v = 0, idx = 0; v < ch.m_nPoints; ++v, idx += 3)
+			{
+				Vector3 vp = Vector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);
+				testMesh->Positions.push_back(vp);				
+				btVector3 vv = btVector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);
+				bhull->addPoint(vv);
+			}
+			
+			for (unsigned int t = 0, idx = 0; t < ch.m_nTriangles; ++t, idx += 3)
+			{
+				testMesh->Indices.push_back(ch.m_triangles[idx]);
+				testMesh->Indices.push_back(ch.m_triangles[idx + 1]);
+				testMesh->Indices.push_back(ch.m_triangles[idx + 2]);
+				
+			}
+			
+			
+			auto go = GetGameObject();
+			go->AttachNewComponent<MeshRenderer>("ch_renderer_" + to_string(p), testMesh, mat);
+			
+			
+
+			
+
+		
+						
+			shapes.emplace_back(move(bhull));			
+
+		}
+	}
+
+	delete[] tris;
+	//delete[] pos;
+	cdInterface->Clean();
+	cdInterface->Release();	
 
 }
 

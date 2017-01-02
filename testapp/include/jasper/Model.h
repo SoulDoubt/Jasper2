@@ -62,6 +62,7 @@ private:
     PhysicsWorld* m_physicsWorld = nullptr;
     ResourceManager<Mesh> m_meshManager;
     ResourceManager<Material> m_materialManager;
+	void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
 
     NON_COPYABLE(Model);
 

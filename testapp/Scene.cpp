@@ -17,6 +17,7 @@
 #include "SphereCollider.h"
 #include <fstream>
 #include "AssetSerializer.h"
+#include <random>
 
 #include <typeinfo>
 #include <typeindex>
@@ -247,6 +248,9 @@ void Scene::DebugDrawPhysicsWorld() {
 			dt.setIdentity();
 			for (auto collider : phys) {
 				if (collider->GetColliderType() != PHYSICS_COLLIDER_TYPE::ConvexHull) {
+					m_physicsWorld->debugDrawer->debugShader->Bind();
+					Vector4 color = collider->GetDebugColor();
+					reinterpret_cast<BasicShader*>(m_physicsWorld->debugDrawer->debugShader)->SetColor(color);
 					m_physicsWorld->DrawPhysicsShape(dt, collider->GetCollisionShape(), { 1.f, 1.f, 1.f });
 				}
 			}
@@ -306,12 +310,12 @@ void Scene::InitializeManual() {
 	m_rootNode->SetScene(this);
 
 	m_player = m_rootNode->AttachNewChild<CharacterController>();
-	m_player->AttachNewComponent<CapsuleCollider>("camera_collider", Vector3(1.f, 2.f, 1.f), m_physicsWorld.get());
+	//m_player->AttachNewComponent<CapsuleCollider>("player_collider"s, Vector3(0.75f, 1.82f, 0.75f), m_physicsWorld.get());
 	m_camera = m_player->AttachNewChild<Camera>(Camera::CameraType::FLYING);
-	m_camera->GetLocalTransform().Position = { 0.f, 0.f, 3.f };
+	m_camera->GetLocalTransform().Position = { 0.f, 0.f, 0.f };
 	//m_camera->SetPhysicsWorld(m_physicsWorld.get());
 	
-	m_player->GetLocalTransform().Position = { 0.0f, 8.0f, 0.0f };
+	m_player->GetLocalTransform().Position = { 10.0f, 5.0f, 0.0f };
 
 	// perform actual game object initialization
 
@@ -389,12 +393,14 @@ void Scene::InitializeManual() {
 	//launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
 
 	auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
-	auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-	mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Box;
+	auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/teapot/teapot.obj"s, defaultShader, true, m_physicsWorld.get());
+	mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Compound;
+	model->GetLocalTransform().Scale = { 0.06f, 0.06f, 0.06f };
 	mdl->Setup(this);
-	//model->GetLocalTransform().Scale = { 0.035f, 0.035f, 0.035f };
+	
 	auto collider = model->GetComponentByType<PhysicsCollider>();
 	if (collider) {
+		//collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
 		collider->Mass = 20.f;
 	}
 	////model->getlocaltransform().uniformscale(0.02f);
@@ -426,6 +432,7 @@ void Scene::InitializeManual() {
 
 void Scene::Initialize() {
 
+	srand(time(nullptr));
 	m_physicsWorld = make_unique<PhysicsWorld>(this);
 	m_physicsWorld->Initialize();
 
@@ -434,6 +441,7 @@ void Scene::Initialize() {
 	Resize(m_windowWidth, m_windowHeight);
 
 	auto debugShader = m_shaderManager.CreateInstance<BasicShader>();
+	debugShader->SetColor(Vector4(0.f, 1.f, 0.f, 1.0f));
 	m_physicsWorld->debugDrawer->debugShader = debugShader;
 	m_physicsWorld->debugDrawer->Initialize();
 
@@ -441,7 +449,7 @@ void Scene::Initialize() {
 	//Deserialize("../scenes/scenedata.scene");
 	m_renderer->Initialize();
 	m_rootNode->Initialize();
-	Serialize("../scenes/scenedata.scene");
+	//Serialize("../scenes/scenedata.scene");
 }
 
 Shader* Scene::GetShaderByName(const std::string& name) {

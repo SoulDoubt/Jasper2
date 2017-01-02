@@ -17,6 +17,8 @@ public:
     ShaderClassType GetShaderClassType() const override {
         return ShaderClassType::BasicShader;
     }
+
+	void SetColor(Vector4 color);
 };
 
 }

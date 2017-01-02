@@ -25,7 +25,8 @@ enum class GameObjectType
 	Default,
 	Camera,
 	PointLight,
-	DirectionalLight
+	DirectionalLight,
+	CharacterController
 };
 
 class GameObject

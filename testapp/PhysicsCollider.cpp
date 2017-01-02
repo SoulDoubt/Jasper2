@@ -4,6 +4,7 @@
 #include "AssetSerializer.h"
 #include "Mesh.h"
 
+
 namespace Jasper
 {
 
@@ -19,6 +20,10 @@ PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, P
     : Component(std::move(name)), m_world(world), m_halfExtents(halfExtents)
 {
     m_colliderType = PHYSICS_COLLIDER_TYPE::None;
+	float dr = ((float)rand() / (RAND_MAX));
+	float dg = ((float)rand() / (RAND_MAX));
+	float db = ((float)rand() / (RAND_MAX));
+	debugColor = Vector4(dr, dg, db, 1.f);
 }
 
 
@@ -139,44 +144,27 @@ void PhysicsCollider::Serialize(std::ofstream& ofs) const{
 }
 
 
-
-CompoundCollider::CompoundCollider(std::string name, const std::vector<Mesh*> meshes, PhysicsWorld * world)
-	: PhysicsCollider(name, {0.f, 0.f, 0.f}, world), m_meshes()
+CompoundCollider::CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld * world)
+	: PhysicsCollider(name, { 0.f, 0.f, 0.f }, world), m_hulls()
 {
-	for (const auto& m : meshes) {
-		m_meshes.push_back(m);
+	for (auto& hull : hulls) {
+		m_hulls.emplace_back(move(hull));
 	}
-
-
 }
 
 void CompoundCollider::Awake()
 {
-	btCompoundShape* compound = new btCompoundShape(true, m_meshes.size());
+	btCompoundShape* compound = new btCompoundShape(true, m_hulls.size());
 	const auto& trans = GetGameObject()->GetLocalTransform();
 	auto btTrans = trans.GetBtTransform();
 	
-	for (const auto m : m_meshes) {
-		const auto extents = m->GetHalfExtents();
-		const float halfX = extents.x;
-		const float halfY = extents.y;
-		const float halfZ = extents.z;
-		float radius = std::max(halfX, halfZ);
-		if (radius == halfX) {
-			radius *= trans.Scale.x;
-		}
-		else {
-			radius *= trans.Scale.y;
-		}
-
-		float height = (halfY)* trans.Scale.y * 2;
-		height = height - (2 * radius);
-
-		compound->addChildShape(btTrans, new btCapsuleShape(radius, height));
+	for (const auto& hull : m_hulls) {		
+		compound->addChildShape(btTrans, hull.get());
 	}
 
 	m_collisionShape = compound;
 	btVector3 inertia;
+	m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
 	m_collisionShape->calculateLocalInertia(Mass, inertia);
 	m_defaultMotionState = new btDefaultMotionState(btTrans);
 	btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);

@@ -34,6 +34,7 @@ struct ContactCallback : public btCollisionWorld::ContactResultCallback {
 		btVector3 pt; // will be set to point of collision relative to body
 		if (colObj0->m_collisionObject == body) {
 			pt = cp.m_localPointA;
+			
 			ContactPoint = pt;
 			hit = true;
 		}
@@ -53,6 +54,9 @@ Vector3 CharacterController::WORLD_Z_AXIS = Vector3(0.0f, 0.0f, 1.0f);
 
 void CharacterController::Rotate(float pitch, float roll, float yaw)
 {
+	if (pitch != 0.f) {
+
+	}
 	m_accumPitch += pitch;
 	//btQuaternion orientation = btt.getRotation();
 	Quaternion orientation = m_transform.Orientation;
@@ -79,10 +83,9 @@ void CharacterController::Rotate(float pitch, float roll, float yaw)
 	}
 
 	if (yaw != 0.f) {
-		//yrot = btQuaternion(WORLD_Y_AXIS.AsBtVector3(), DEG_TO_RAD(yaw));
+		
 		yrot = Quaternion::FromAxisAndAngle(WORLD_Y_AXIS, DEG_TO_RAD(yaw));
-		orientation = yrot * orientation;
-		//qo = yr * qo;
+		orientation = yrot * orientation;		
 	}
 	//btt.setRotation(orientation);
 	m_transform.Orientation = orientation;
@@ -115,8 +118,7 @@ void CharacterController::Translate(const Vector3 & vec)
 	else {
 		forwards = m_viewVector;
 	}
-	auto& current = m_transform.Position;
-	//auto& current = btt.getOrigin();
+	auto& current = m_transform.Position;	
 
 	if (m_collider) {
 		//btVector3 after = current;
@@ -133,11 +135,28 @@ void CharacterController::Translate(const Vector3 & vec)
 
 		auto me = m_collider->GetRigidBody();
 
+		auto myshape = static_cast<btConvexShape*>(m_collider->GetCollisionShape());
+		auto cb = btCollisionWorld::ClosestConvexResultCallback(from.getOrigin(), to.getOrigin());
+		m_physicsWorld->ConvexSweepTest(myshape, from, to, cb);
+
+		if (cb.hasHit()) {
+			if (cb.m_hitCollisionObject != me) {
+				auto frac = cb.m_closestHitFraction;
+				auto point = cb.m_hitPointWorld;
+				auto norm = cb.m_hitNormalWorld;
+				int i = 0;
+				
+			}
+			
+		}
 		ContactCallback conb = ContactCallback(me, from, to);
 
 		m_physicsWorld->ContactTest(me, conb);
 
 		if (conb.HasHit()) {
+			btVector3 dir = to.getOrigin() - from.getOrigin();
+			btVector3 condir = conb.ContactPoint - from.getOrigin();
+			
 			const float epsilon = 0.0001;
 			//const float min = btMax(epsilon, conb.ContactPoint);
 			//current += -forwards * 0.1;
@@ -189,7 +208,7 @@ void CharacterController::Awake()
 {
 	GameObject::Awake();
 	m_collider = GetComponentByType<CapsuleCollider>();
-	m_physicsWorld = m_collider->GetPhysicsWorld();
+	//m_physicsWorld = m_collider->GetPhysicsWorld();
 	/*if (!m_collider) {
 	m_collider = new CapsuleCollider("camera_collider", Vector3(1.0f, 2.0f, 1.0f), m_physicsWorld);
 	}*/

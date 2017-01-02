@@ -441,6 +441,10 @@ public:
         return x * o.x + y * o.y + z * o.z + w * o.w;
     }
 
+	Vector3 Reflect(const Vector3& direction, const Vector3& normal) {
+		return direction - (2.0f * direction.Dot(normal)) * normal;
+	}
+
     float& operator[](int index) {
         return (&x)[index];
     }

@@ -1,5 +1,7 @@
 #include "PhysicsDebugDraw.h"
 #include "Scene.h"
+#include "BasicShader.h"
+
 
 namespace Jasper
 {
@@ -30,6 +32,7 @@ void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, co
 
     glBindVertexArray(vao);
     debugShader->Bind();
+	
     vbo.Bind();
     vbo.Allocate(&vecs, 2 * sizeof(Vector3));
     debugShader->SetModelViewProjectionMatrix(mvpMatrix);

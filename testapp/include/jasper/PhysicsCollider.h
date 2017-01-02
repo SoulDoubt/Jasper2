@@ -4,6 +4,7 @@
 #include "Component.h"
 #include "PhysicsWorld.h"
 #include "Transform.h"
+#include <memory>
 
 
 
@@ -71,11 +72,15 @@ public:
         m_rigidBody->getMotionState()->setWorldTransform(trans);
     }
 
+	Vector4 GetDebugColor() const {
+		return debugColor;
+	}
+
     float Mass = 0.f;
     float Restitution = 0.5f;
     float Friction = 0.75f;
 
-    PHYSICS_COLLIDER_TYPE GetColliderType() const {
+    virtual PHYSICS_COLLIDER_TYPE GetColliderType() const {
         return m_colliderType;
     }
 
@@ -87,17 +92,23 @@ protected:
     btRigidBody* m_rigidBody;
     Vector3 m_halfExtents;
     PHYSICS_COLLIDER_TYPE m_colliderType;
+	Vector4 debugColor;
 
 };
 
 class CompoundCollider : public PhysicsCollider {
 
 public:
-	CompoundCollider(std::string name, const std::vector<Mesh*> meshes, PhysicsWorld* world);
+	CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld* world);
 	void Awake() override;
 
+	PHYSICS_COLLIDER_TYPE GetColliderType() const override {
+		return PHYSICS_COLLIDER_TYPE::Compound;
+	}
+	
+
 private:
-	std::vector<Mesh*> m_meshes;
+	std::vector<std::unique_ptr<btConvexHullShape>> m_hulls;
 };
 
 } // namespace Jasper

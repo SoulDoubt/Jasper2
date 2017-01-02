@@ -4,6 +4,7 @@
 #include "Material.h"
 #include "GLError.h"
 #include <algorithm>
+#include "BasicShader.h"
 
 #include "GBuffer.h"
 
@@ -25,7 +26,9 @@ void Renderer::Initialize()
     const auto root = m_scene->GetRootNode();
     ProcessGameObject(root);
     SortByMaterial();
+	SortByTransparancy();
 
+	int i = 0;
     // create a framebuffer for shadow mapping...
     //CreateShadowMapObjects();
 }
@@ -132,6 +135,9 @@ void Renderer::RenderScene()
         material->GetShader()->SetModelMatrix(modelMatrix);
         material->GetShader()->SetModelViewProjectionMatrix(mvpMatrix);
         material->GetShader()->SetNormalMatrix(normMatrix);
+		if (BasicShader* bs = dynamic_cast<BasicShader*>(material->GetShader())) {
+			bs->SetColor(mr->GetMesh()->Color);
+		}
         mr->Render();
 		if (material != previousMaterial) {
 			material->Release();
@@ -175,8 +181,18 @@ void Renderer::SortByMaterial()
         const Material* mata = a->GetMaterial();
         const Material* matb = b->GetMaterial();
 
-        return mata > matb;
+        return (mata > matb);
     });
+}
+
+void Renderer::SortByTransparancy()
+{
+	sort(begin(m_renderers), end(m_renderers), [&](const MeshRenderer* a, const MeshRenderer* b) {
+		const Material* mata = a->GetMaterial();
+		const Material* matb = b->GetMaterial();
+
+		return mata->IsTransparent && matb->IsTransparent;
+	});
 }
 
 void Renderer::ReleaseTextures()
