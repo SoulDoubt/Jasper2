@@ -166,6 +166,8 @@ void GLWindow::RunLoop()
 
         high_resolution_clock::time_point currentTime = high_resolution_clock::now();
         auto timeDiff = duration_cast<nanoseconds>(currentTime - previousTime);
+		auto td = duration_cast<seconds>(currentTime - previousTime);
+		double ddd = td.count();
         previousTime = currentTime;
         double timeDelta = timeDiff.count();
         double dt = timeDelta / 1000000000;
@@ -784,6 +786,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         if (evt.button.button == SDL_BUTTON_RIGHT) {
             MOUSE_MOVE = true;
         }
+		if (evt.button.button == SDL_BUTTON_LEFT) {
+			scene->DoLeftClick(0,0);
+		}
         break;
     case SDL_MOUSEBUTTONUP:
         if (evt.button.button == SDL_BUTTON_RIGHT) {

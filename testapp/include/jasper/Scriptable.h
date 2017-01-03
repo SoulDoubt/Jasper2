@@ -14,7 +14,8 @@ namespace Jasper
 		Default,
 		Destroy,
 		RotateAboutPoint,
-		Launcher
+		Launcher,
+		Shooter
 	};
 
 class ScriptComponent : public Component
@@ -153,9 +154,11 @@ public:
     void Awake()override {}
     void Start()override {}
     void FixedUpdate()override {}
-    void Update(float dt) override;
+	void Update(float dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
+
+	
     
 	ScriptType GetScriptType() const override {
 		return ScriptType::Launcher;
@@ -163,7 +166,7 @@ public:
 
 	void Serialize(std::ofstream& ofs) const override;
 	
-
+	Vector3 launchDirection = { 0.f, 1.f, 0.f };
     Vector3 Force = {0.0f, 500.0f, 0.0f};
 
 private:
@@ -175,6 +178,54 @@ private:
     void LaunchTeapot();
     void LaunchSphere();
     void LaunchCube();
+};
+
+class ShooterScript final : public ScriptComponent
+{
+
+public:
+
+	struct RayHit {
+		btVector3 from;
+		btVector3 to;
+	};
+
+	ShooterScript() : ScriptComponent("launcher_script") {}
+	ShooterScript(std::string name) : ScriptComponent(name) {}
+	~ShooterScript() {}
+
+	std::vector<RayHit> RayHits;
+
+	void Initialize() override {}
+	void Destroy()override {}
+	void Awake()override {}
+	void Start()override {}
+	void FixedUpdate()override {}
+	void Update(float dt) override {}
+	void LateUpdate()override;
+	bool ShowGui() override { return false; }
+
+	void Shoot();
+	void ShootRay();
+
+	ScriptType GetScriptType() const override {
+		return ScriptType::Shooter;
+	}
+
+	void Serialize(std::ofstream& ofs) const override {}
+
+	Vector3 Direction = { 0.f, 1.f, 0.f };
+	float Force = 500.f;
+
+private:
+
+	int launch_interval = 500;
+	std::chrono::high_resolution_clock::time_point time_last_launch;
+	int launch_count = 0;
+
+	void LaunchTeapot();
+	void LaunchSphere();
+	void LaunchCube();
 };
 
 class DestroyScript final : public ScriptComponent

@@ -21,6 +21,8 @@ bool LauncherScript::ShowGui(){
     return false;
 }
 
+
+
 void LauncherScript::Serialize(std::ofstream & ofs) const
 {
 	ScriptComponent::Serialize(ofs);

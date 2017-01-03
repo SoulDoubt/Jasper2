@@ -310,12 +310,14 @@ void Scene::InitializeManual() {
 	m_rootNode->SetScene(this);
 
 	m_player = m_rootNode->AttachNewChild<CharacterController>();
-	//m_player->AttachNewComponent<CapsuleCollider>("player_collider"s, Vector3(0.75f, 1.82f, 0.75f), m_physicsWorld.get());
+	m_player->AttachNewComponent<CapsuleCollider>("player_collider"s, Vector3(0.75f, 1.82f, 0.75f), m_physicsWorld.get());
 	m_camera = m_player->AttachNewChild<Camera>(Camera::CameraType::FLYING);
-	m_camera->GetLocalTransform().Position = { 0.f, 0.f, 0.f };
+	m_camera->GetLocalTransform().Position = { 0.f, 0.f, 6.f };
 	//m_camera->SetPhysicsWorld(m_physicsWorld.get());
 	
 	m_player->GetLocalTransform().Position = { 10.0f, 5.0f, 0.0f };
+	auto sh = m_player->AttachNewComponent<ShooterScript>();
+	sh->Force = 50;
 
 	// perform actual game object initialization
 
@@ -323,6 +325,7 @@ void Scene::InitializeManual() {
 	auto skybox = m_rootNode->AttachNewChild<GameObject>("skybox");
 	auto skyboxMesh = m_meshManager.CreateInstance<Cube>("skybox_cube_mesh", Vector3(100.0f, 100.0f, 100.0f), true);
 	skyboxMesh->SetCubemap(true); // we want to render the inside of the cube
+	skyboxMesh->Initialize();
 	auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
 	auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader, "skybox_material");
 	string posx = "../textures/darkskies/darkskies_lf.tga"s;
@@ -373,6 +376,11 @@ void Scene::InitializeManual() {
 	//floorP->Serialize(serializer);
 	floorMaterial->Ambient = { 0.0f, 0.0f, 0.0f };
 
+	auto basic = m_shaderManager.GetResourceByName("basic_shader"s);
+	auto red = m_materialManager.CreateInstance<Material>(basic, "red_material"s);
+	
+
+
 	// wall
 	/*auto wall = m_rootNode->AttachNewChild<GameObject>("wall_0");
 	auto wallMesh = m_meshManager.CreateInstance<Cube>("wall_mesh", Vector3(50.f, 50.0f, 3.0f), 10.f, 10.f);
@@ -393,9 +401,9 @@ void Scene::InitializeManual() {
 	//launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
 
 	auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
-	auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/teapot/teapot.obj"s, defaultShader, true, m_physicsWorld.get());
+	auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/mathias/mathias.obj"s, defaultShader, true, m_physicsWorld.get());
 	mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Compound;
-	model->GetLocalTransform().Scale = { 0.06f, 0.06f, 0.06f };
+	//model->GetLocalTransform().Scale = { 0.2f, 0.2f, 0.2f };
 	mdl->Setup(this);
 	
 	auto collider = model->GetComponentByType<PhysicsCollider>();
@@ -513,16 +521,19 @@ void Scene::Update(float dt) {
 	double ut = updateMili.count();
 	this->UpdateFrameTime = ut;
 	// after update the scene is ready for rendering...
+	m_rootNode->LateUpdate();
 	const auto renderStart = high_resolution_clock::now();
 	m_renderer->RenderScene();
+	
 	const auto renderEnd = high_resolution_clock::now();
 	const auto renderTime = duration_cast<nanoseconds>(renderEnd - renderStart);
 	long long rt = renderTime.count();
 	this->RendererFrameTime = (double)rt / 1000000.0;
 
-#ifdef DEBUG_DRAW_PHYSICS   
-	DebugDrawPhysicsWorld();
-#endif
+	debug_draw_physics = true;
+	if (debug_draw_physics) {
+		DebugDrawPhysicsWorld();
+	}
 
 }
 
@@ -557,7 +568,9 @@ GameObject* Scene::CreateEmptyGameObject(std::string name, GameObject* parent) {
 }
 
 void Scene::DoLeftClick(double x, double y) {
-	printf("\n Mouse Click at: %f.2, %f.2", x, y);
+	//if (!m_)
+	auto sh = m_player->GetComponentByType<ShooterScript>();
+	sh->ShootRay();
 }
 
 void Scene::DestroyGameObject(std::unique_ptr<GameObject> object) {

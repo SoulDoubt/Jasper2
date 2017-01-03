@@ -146,6 +146,10 @@ public:
     double UpdateFrameTime;
     double RendererFrameTime;
 
+	Matrix4 GetProjectionMatrix() const {
+		return m_projectionMatrix;
+	}
+
 private:
 
     std::unique_ptr<GameObject> m_rootNode;
@@ -171,6 +175,8 @@ private:
    // std::unique_ptr<CharacterController> m_player;
 
     std::vector<ScriptComponent> m_scripts;
+
+	bool debug_draw_physics = true;
 
    
 

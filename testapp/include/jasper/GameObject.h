@@ -172,6 +172,8 @@ protected:
 	void UpdateChildren(float dt);
 	virtual void DestroyCurrent();
 	void DestroyChildren();
+	virtual void LateUpdateCurrent();
+	void LateUpdateChildren();
 
 
 };
@@ -182,6 +184,18 @@ protected:
 //	m_parent = nullptr;
 //	//Initialize();
 //}
+
+inline void GameObject::LateUpdateCurrent() {
+	for (auto& cmp : m_components) {
+		cmp->LateUpdate();
+	}
+}
+
+inline void GameObject::LateUpdateChildren() {
+	for (auto& child : m_children) {
+		child->LateUpdate();
+	}
+}
 
 inline GameObject::GameObject(std::string name) : m_components(), m_children(), m_transform() {
 	m_name = std::move(name);

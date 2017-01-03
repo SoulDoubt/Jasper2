@@ -40,6 +40,10 @@ public:
 		return direction - (btScalar(2.0) * direction.dot(normal)) * normal;
 	}
 
+	Vector3 GetForwardsVector() const {
+		return m_viewVector;
+	}
+
 	
     ~CharacterController();
 

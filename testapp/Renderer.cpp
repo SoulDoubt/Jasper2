@@ -191,7 +191,7 @@ void Renderer::SortByTransparancy()
 		const Material* mata = a->GetMaterial();
 		const Material* matb = b->GetMaterial();
 
-		return mata->IsTransparent && matb->IsTransparent;
+		return mata->IsTransparent > matb->IsTransparent;
 	});
 }
 

@@ -246,7 +246,8 @@ void GameObject::Destroy()
 
 void GameObject::LateUpdate()
 {
-
+	LateUpdateCurrent();
+	LateUpdateChildren();
 }
 
 void GameObject::AwakeCurrent()
@@ -280,16 +281,16 @@ void GameObject::StartChildren()
 
 void GameObject::UpdateCurrent(float dt)
 {
-	for (auto& comp : m_components) {
-		if (comp != nullptr) {
-			if (comp->IsEnabled()) {
-				comp->Update(dt);
+	for (int i = 0; i < m_components.size(); ++i) {
+		auto& c = m_components[i];
+		if (c.get()) {
+			if (c->IsEnabled()) {
+				c->Update(dt);
 			}
 		}
-		else {
-
-		}
+			
 	}
+	
 }
 
 void GameObject::UpdateChildren(float dt)

@@ -137,7 +137,7 @@ void CharacterController::Translate(const Vector3 & vec)
 
 		auto myshape = static_cast<btConvexShape*>(m_collider->GetCollisionShape());
 		auto cb = btCollisionWorld::ClosestConvexResultCallback(from.getOrigin(), to.getOrigin());
-		m_physicsWorld->ConvexSweepTest(myshape, from, to, cb);
+		m_collider->GetPhysicsWorld()->ConvexSweepTest(myshape, from, to, cb);
 
 		if (cb.hasHit()) {
 			if (cb.m_hitCollisionObject != me) {
@@ -151,7 +151,7 @@ void CharacterController::Translate(const Vector3 & vec)
 		}
 		ContactCallback conb = ContactCallback(me, from, to);
 
-		m_physicsWorld->ContactTest(me, conb);
+		m_collider->GetPhysicsWorld()->ContactTest(me, conb);
 
 		if (conb.HasHit()) {
 			btVector3 dir = to.getOrigin() - from.getOrigin();

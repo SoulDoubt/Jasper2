@@ -78,7 +78,7 @@ void PhysicsWorld::Destroy()
 
 void PhysicsWorld::Update(float dt)
 {
-    m_world->stepSimulation(dt, 5);
+    m_world->stepSimulation(dt, 3);
 }
 
 void PhysicsWorld::AddRigidBody(btRigidBody * rb)

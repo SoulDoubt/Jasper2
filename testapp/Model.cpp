@@ -348,7 +348,7 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
 	int numPositions = mesh->Positions.size();
 	bool res = cdInterface->Compute(positions, 3, numPositions, tris, 3, numIndices, params);
 	if (res) {
-		auto debugShader = scene->GetShaderCache().GetResourceByName("Basic_Shader"s);
+		auto debugShader = scene->GetShaderCache().GetResourceByName("basic_shader"s);
 		auto mat = scene->GetMaterialCache().CreateInstance<Material>(debugShader, "ch_material");
 		mat->IsTransparent = true;
 		uint nConvexHulls = cdInterface->GetNConvexHulls();
@@ -365,7 +365,7 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
 			float dr = ((float)rand() / (RAND_MAX));
 			float dg = ((float)rand() / (RAND_MAX));
 			float db = ((float)rand() / (RAND_MAX));
-			testMesh->Color = { dr, dg, db, 0.95f };
+			testMesh->Color = { dr, dg, db, 0.8f };
 			for (unsigned int v = 0, idx = 0; v < ch.m_nPoints; ++v, idx += 3)
 			{
 				Vector3 vp = Vector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);

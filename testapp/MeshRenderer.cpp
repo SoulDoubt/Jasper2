@@ -66,7 +66,7 @@ void MeshRenderer::Destroy()
 void MeshRenderer::Initialize() {
 	GLERRORCHECK;
 
-	m_mesh->Initialize();
+	//m_mesh->Initialize();
 	// gather mesh data and create GL Buffers and such for future rendering...
 	assert(m_material);
 	assert(m_mesh);
