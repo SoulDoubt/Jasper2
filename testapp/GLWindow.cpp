@@ -787,7 +787,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
             MOUSE_MOVE = true;
         }
 		if (evt.button.button == SDL_BUTTON_LEFT) {
-			scene->DoLeftClick(0,0);
+			if (!SHOW_GUI) {
+				scene->DoLeftClick(0, 0);
+			}
 		}
         break;
     case SDL_MOUSEBUTTONUP:

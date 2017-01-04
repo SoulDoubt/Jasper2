@@ -6,6 +6,7 @@
 #include "vector.h"
 #include "GLBuffer.h"
 #include "Texture.h"
+#include "Transform.h"
 
 #include <vector>
 #include <memory>
@@ -88,6 +89,21 @@ private:
 
 
 public:
+
+	struct VertexBoneWeight {
+		uint Index;
+		float Weight;
+	};
+
+	struct BoneData {
+
+		std::string Name;
+		std::vector<VertexBoneWeight> Weights;
+		BoneData* Parent;
+		Transform BoneTransform;
+	};
+
+	std::vector<BoneData> Bones;
     //Mesh();
     explicit Mesh(const std::string& name);
     virtual ~Mesh();

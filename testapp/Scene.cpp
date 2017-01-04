@@ -401,9 +401,10 @@ void Scene::InitializeManual() {
 	//launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
 
 	auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
-	auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/mathias/mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-	mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Compound;
-	//model->GetLocalTransform().Scale = { 0.2f, 0.2f, 0.2f };
+	auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Doctor_Who/Doctor_Who.dae"s, defaultShader, true, m_physicsWorld.get());
+	mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Box;
+	//model->GetLocalTransform().Scale = { 0.05f, 0.05f, 0.05f };
+	//model->GetLocalTransform().Rotate({ 1.f, 0.f, 0.f }, -90.f);
 	mdl->Setup(this);
 	
 	auto collider = model->GetComponentByType<PhysicsCollider>();
