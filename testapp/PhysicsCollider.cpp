@@ -23,7 +23,7 @@ PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, P
 	float dr = ((float)rand() / (RAND_MAX));
 	float dg = ((float)rand() / (RAND_MAX));
 	float db = ((float)rand() / (RAND_MAX));
-	debugColor = Vector4(dr, dg, db, 1.f);
+	debugColor = Vector4(dr, dg, db, 1.f);        
 }
 
 

@@ -42,7 +42,7 @@ public:
     void Translate(const Vector3& vec);
 
     Vector3 GetPosition() const {
-        return m_transform.Position;
+        return GetWorldTransform().Position;
     }
 
     Vector3 GetViewDirection() const {

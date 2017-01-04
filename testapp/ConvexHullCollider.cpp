@@ -1,7 +1,7 @@
 #include "ConvexHullCollider.h"
 #include "GameObject.h"
 #include "Mesh.h"
-#include <BulletCollision\CollisionShapes\btShapeHull.h>
+#include <BulletCollision/CollisionShapes/btShapeHull.h>
 
 namespace Jasper
 {
@@ -58,7 +58,7 @@ void ConvexHullCollider::Awake()
     m_defaultMotionState = new btDefaultMotionState(btTrans);
     btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
     m_rigidBody = new btRigidBody(rbci);
-
+    m_rigidBody->setUserPointer(GetGameObject());
 	m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
 
     m_world->AddCollider(this);

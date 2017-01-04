@@ -33,7 +33,7 @@ void CylinderCollider::Awake()
     m_defaultMotionState = new btDefaultMotionState(btTrans);
     btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
     m_rigidBody = new btRigidBody(rbci);
-
+    m_rigidBody->setUserPointer(GetGameObject());
     m_world->AddCollider(this);
 }
 

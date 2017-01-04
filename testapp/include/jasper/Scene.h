@@ -24,10 +24,17 @@ namespace Jasper
 class Scene
 {
 public:
+
+    struct PickRay {
+        Vector3 start;
+        Vector3 end;
+        Vector3 direction;
+    };
+    
     explicit Scene(int width, int height);
     ~Scene();
 
-    void Resize(int width, int height);    
+    void Resize(int width, int height);
 
     Matrix4& ProjectionMatrix() {
         return m_projectionMatrix;
@@ -41,9 +48,9 @@ public:
         return m_rootNode.get();
     }
 
-	void Initialize();
+    void Initialize();
 
-	void InitializeManual();
+    void InitializeManual();
 
     void AddGameObject(std::unique_ptr<GameObject> go);
 
@@ -66,6 +73,8 @@ public:
     /*CharacterController* GetPlayer() {
         return m_player.get();
     }*/
+    
+    void DrawPickRay();
 
     void DoLeftClick(double x, double y);
 
@@ -88,7 +97,7 @@ public:
 
     Shader* GetShaderByName(const std::string& name);
     Material* GetMaterialByName(const std::string& name);
-    
+
     void Deserialize(const std::string& filepath);
     void Serialize(const std::string& filepath);
 
@@ -106,15 +115,17 @@ public:
         return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
 
+    void Pick(int x, int y);
+
     //Material* GetMaterialByName(const std::string& name);
     //Mesh*     GetMeshByName(const std::string& name);
-    
-    void SerializeGameObject(const GameObject* go, std::ofstream& ofs);	
-	void DeserializeGameObject(std::ifstream& ifs, GameObject* parent);
 
-	void DebugDrawPhysicsWorld();
+    void SerializeGameObject(const GameObject* go, std::ofstream& ofs);
+    void DeserializeGameObject(std::ifstream& ifs, GameObject* parent);
 
-	
+    void DebugDrawPhysicsWorld();
+
+
 
     ResourceManager<Material>& GetMaterialCache() {
         return m_materialManager;
@@ -131,34 +142,36 @@ public:
     ResourceManager<Texture>& GetTextureCache() {
         return m_textureManager;
     }
-    
-    ResourceManager<Shader>& GetShaderCache(){
+
+    ResourceManager<Shader>& GetShaderCache() {
         return m_shaderManager;
     }
 
-	CharacterController* GetPlayer() const {
-		return m_player;
-	}
+    Camera* GetPlayer() const {
+        return m_player;
+    }
 
     int m_windowWidth, m_windowHeight;
-    
+
     double PhysicsFrameTime;
     double UpdateFrameTime;
     double RendererFrameTime;
 
-	Matrix4 GetProjectionMatrix() const {
-		return m_projectionMatrix;
-	}
+    Matrix4 GetProjectionMatrix() const {
+        return m_projectionMatrix;
+    }
 
 private:
 
     std::unique_ptr<GameObject> m_rootNode;
+    
+    PickRay m_pickRay;
 
     Matrix4 m_projectionMatrix;
     Matrix4 m_orthoMatrix;
 
     Camera* m_camera;
-	CharacterController* m_player;
+    Camera* m_player;
 
     std::unique_ptr<PhysicsWorld> m_physicsWorld;
 
@@ -172,13 +185,13 @@ private:
 
     std::unique_ptr<Renderer> m_renderer;
 
-   // std::unique_ptr<CharacterController> m_player;
+    // std::unique_ptr<CharacterController> m_player;
 
     std::vector<ScriptComponent> m_scripts;
 
-	bool debug_draw_physics = true;
+    bool debug_draw_physics = true;
 
-   
+
 
 
 };

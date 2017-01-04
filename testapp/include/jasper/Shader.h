@@ -3,7 +3,7 @@
 
 #include "Common.h"
 #include "matrix.h"
-#include <GL\glew.h>
+#include <GL/glew.h>
 #include <vector>
 #include "Lights.h"
 

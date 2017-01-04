@@ -146,6 +146,7 @@
       <File Name="include/jasper/imgui_internal.h"/>
       <File Name="include/jasper/GuiRenderer.h"/>
       <File Name="include/jasper/GuiShader.h"/>
+      <File Name="include/jasper/VHACD.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
@@ -159,13 +160,13 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-Wmain;-g;-O0;-std=c++14;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-Wmain;-g;-O0;-std=c++14;-Wall" C_Options="-g;-O0;-std=c++14;-Wall;-pthread;-fopenmp" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="./include/"/>
         <IncludePath Value="./include/jasper/"/>
         <IncludePath Value="/usr/include/bullet/"/>
       </Compiler>
-      <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp" Required="yes">
+      <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;-lvhacd;-pthread;-lgomp" Required="yes">
         <LibraryPath Value="/usr/local/lib/"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>

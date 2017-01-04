@@ -8,7 +8,7 @@
 
 #include <typeinfo>
 #include <chrono>
-#include <filesystem>
+//#include <filesystem>
 
 
 
@@ -52,7 +52,7 @@ bool SHOW_GUI = false;
 GLWindow* g_glWindow;
 
 
-// ImGui hats std::strings, and isn't kind to std::vectors
+// ImGui hates std::strings, and isn't kind to std::vectors
 // these functions are necessary to make that easier on us.
 
 static auto vector_getter = [](void* vec, int idx, const char** out_text)
@@ -218,7 +218,7 @@ bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
     return false;
 }
 
-namespace fs = std::experimental::filesystem;
+//namespace fs = std::experimental::filesystem;
 
 void GLWindow::DrawMainMenu() {
 	if (ImGui::BeginMainMenuBar()) {
@@ -226,12 +226,12 @@ void GLWindow::DrawMainMenu() {
 			if (ImGui::MenuItem("Save")) {
 				m_scene->Serialize("../scenes/scenedata.scene");
 			}
-			if (ImGui::MenuItem("Open")) {
-				for (auto& f : fs::directory_iterator("../scenes")) {
-					fs::path p(f);
-					std::cout << fs::absolute(p) << "\n";
-				}
-			}
+//			if (ImGui::MenuItem("Open")) {
+//				for (auto& f : fs::directory_iterator("../scenes")) {
+//					fs::path p(f);
+//					std::cout << fs::absolute(p) << "\n";
+//				}
+//			}
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
@@ -789,7 +789,10 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 		if (evt.button.button == SDL_BUTTON_LEFT) {
 			if (!SHOW_GUI) {
 				scene->DoLeftClick(0, 0);
-			}
+			} else{
+                scene->Pick(evt.button.x, evt.button.y);
+            }
+            
 		}
         break;
     case SDL_MOUSEBUTTONUP:

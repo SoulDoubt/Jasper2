@@ -35,6 +35,7 @@ void PlaneCollider::Awake()
     m_rigidBody = new btRigidBody(rbci);
     m_rigidBody->setRestitution(Restitution);
     m_rigidBody->setFriction(Friction);
+    m_rigidBody->setUserPointer(GetGameObject());
     m_world->AddCollider(this);
 
 }

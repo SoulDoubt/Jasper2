@@ -1,8 +1,8 @@
 #include "Model.h"
 
-#include <assimp\scene.h>
-#include <assimp\Importer.hpp>
-#include <assimp\postprocess.h>
+#include <assimp/scene.h>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
 
 #include "Common.h"
 #include "Mesh.h"
@@ -115,7 +115,7 @@ void Model::Setup(Scene* jScene)
 			for (auto m : meshes) {
 				ConvexDecompose(m, hulls, jScene);
 			}
-			printf("Created %d convex hulls in model.\n", hulls.size());
+			printf("Created %d convex hulls in model.\n", (int)hulls.size());
 			CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, hulls, m_physicsWorld);
 
 
@@ -376,16 +376,16 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
 	IVHACD::Parameters params;
 	params.m_resolution = 100000;
 	params.m_depth = 20;
-	params.m_concavity = 0.01;
+	params.m_concavity = 0.10;
 	params.m_planeDownsampling = 8;
 	params.m_convexhullDownsampling = 8;
 	params.m_alpha = 0.05;
 	params.m_beta = 0.05;
-	params.m_gamma = 0.0015;
+	params.m_gamma = 0.015;//15;
 	params.m_pca = 0;
 	params.m_mode = 0; // 0: voxel-based (recommended), 1: tetrahedron-based
 	params.m_maxNumVerticesPerCH = 64;
-	params.m_minVolumePerCH = 0.01;
+	params.m_minVolumePerCH = 0.05;
 	params.m_callback = &mcallback;
 	params.m_logger = 0;
 
@@ -416,6 +416,7 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
 
 			//interfaceVHACD->GetConvexHull(p, ch); // get the p-th convex-hull information
 			Mesh* testMesh = scene->GetMeshCache().CreateInstance<Mesh>("ch_" + std::to_string(p));
+            //srand(time(nullptr));
 			float dr = ((float)rand() / (RAND_MAX));
 			float dg = ((float)rand() / (RAND_MAX));
 			float db = ((float)rand() / (RAND_MAX));

@@ -246,7 +246,7 @@ inline Matrix3 Matrix3::Inverted() const
         return Matrix3();
     }
 
-    float invDet = 1.0f / det;
+    //float invDet = 1.0f / det;
 
     return Matrix3();
 
@@ -540,7 +540,7 @@ inline Matrix4 & Matrix4::Translate(const Vector3 & v)
 inline Matrix4 Matrix4::Rotate(float angle, const Vector3 & ax) const
 {
     float cosine = cosf(angle);
-    float sine = sinf(angle);
+    //float sine = sinf(angle);
     const Vector3 axis = ax.Normalized();
     const Vector3 t = (1.0f - cosine) * axis;
 
@@ -574,6 +574,7 @@ inline Matrix4 TranslationMatrix(const Vector3& vec)
     mat[1].w = vec.y;
     mat[2].w = vec.z;
     mat[3].w = 1.0f;
+    return mat;
 
 }
 
