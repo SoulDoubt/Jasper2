@@ -166,30 +166,37 @@ void GLWindow::RunLoop()
 
         high_resolution_clock::time_point currentTime = high_resolution_clock::now();
         auto timeDiff = duration_cast<nanoseconds>(currentTime - previousTime);
-		auto td = duration_cast<seconds>(currentTime - previousTime);
-		double ddd = td.count();
+        auto td = duration_cast<seconds>(currentTime - previousTime);
+        double ddd = td.count();
         previousTime = currentTime;
         double timeDelta = timeDiff.count();
         double dt = timeDelta / 1000000000;
 
+
+
+
+        GuiNewFrame();
+
         SDL_Event evt;
         while (SDL_PollEvent(&evt)) {
-            ProcessSDLEventGui(&evt, m_scene.get());
-            if (ProcessSDLEvent(evt, m_scene.get(), dt)) {
-                loop = false;
+            if (!ImGui::GetIO().WantCaptureMouse) {
+                if (ProcessSDLEvent(evt, m_scene.get(), dt)) {
+                    loop = false;
+                }
+            } else {
+                ProcessSDLEventGui(&evt, m_scene.get());
             }
+
         }
 
         DoMovement(m_scene.get(), dt);
-
-        GuiNewFrame();
 
         // DO ALL THE THINGS HERE!!:)
         //ProcessInput(m_window, m_scene.get(), deltaTime);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m_scene->Update(dt);
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-        if (SHOW_GUI){
+        if (SHOW_GUI) {
             DrawGui();
         }
 
@@ -207,95 +214,97 @@ void GLWindow::RunLoop()
 GameObject* game_object_under_edit = nullptr;
 
 bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
-{    
-    if (ImGui::TreeNode(go->GetName().data())) {        
+{
+    if (ImGui::TreeNode(go->GetName().data())) {
         game_object_under_edit = go;
         for (auto& child: go->Children()) {
             DrawGameObjectGuiNode(child.get());
-        }       
-        ImGui::TreePop();        
+        }
+        ImGui::TreePop();
     }
     return false;
 }
 
 //namespace fs = std::experimental::filesystem;
 
-void GLWindow::DrawMainMenu() {
-	if (ImGui::BeginMainMenuBar()) {
-		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Save")) {
-				m_scene->Serialize("../scenes/scenedata.scene");
-			}
+void GLWindow::DrawMainMenu()
+{
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Save")) {
+                m_scene->Serialize("../scenes/scenedata.scene");
+            }
 //			if (ImGui::MenuItem("Open")) {
 //				for (auto& f : fs::directory_iterator("../scenes")) {
 //					fs::path p(f);
 //					std::cout << fs::absolute(p) << "\n";
 //				}
 //			}
-			ImGui::EndMenu();
-		}
-		ImGui::EndMainMenuBar();
-	}
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
 }
 
-void GLWindow::DrawDebugWindow() {
-	const Camera& camera = m_scene->GetCamera();
-	Vector3 cameraPosition = camera.GetPosition();
-	Vector3 cameraDirection = camera.GetViewDirection();
-	const Renderer* renderer = m_scene->GetRenderer();
+void GLWindow::DrawDebugWindow()
+{
+    const Camera& camera = m_scene->GetCamera();
+    Vector3 cameraPosition = camera.GetPosition();
+    Vector3 cameraDirection = camera.GetViewDirection();
+    const Renderer* renderer = m_scene->GetRenderer();
 
-	ImGui::Begin("Debug");
+    ImGui::Begin("Debug");
 
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
-	ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
-	ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
-	ImGui::Text("Physics: %.6f ms", m_scene->PhysicsFrameTime);
-	ImGui::Text("Update: %.6f ms", m_scene->UpdateFrameTime);
-	ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("Camera Position: %s", cameraPosition.ToString().c_str());
+    ImGui::Text("Camera Direction: %s", cameraDirection.ToString().c_str());
+    ImGui::Text("Objects being Rendered: %d", (int)renderer->GetMeshRendererCount());
+    ImGui::Text("Physics: %.6f ms", m_scene->PhysicsFrameTime);
+    ImGui::Text("Update: %.6f ms", m_scene->UpdateFrameTime);
+    ImGui::Text("Renderer: %.6f ms", m_scene->RendererFrameTime);
 
-	ImGui::End();
+    ImGui::End();
 }
 
-void GLWindow::DrawGameObjectEditor() {
-	ImGui::Begin("Game Object Hierarchy");
-	ImGui::Columns(2);
+void GLWindow::DrawGameObjectEditor()
+{
+    ImGui::Begin("Game Object Hierarchy");
+    ImGui::Columns(2);
 
-	struct funcs
-	{
+    struct funcs {
 
-		static void ShowDetails(GameObject* go) {
-			ImGui::NextColumn();
-			go->ShowGui();
-			ImGui::NextColumn();
-		}
+        static void ShowDetails(GameObject* go) {
+            ImGui::NextColumn();
+            go->ShowGui();
+            ImGui::NextColumn();
+        }
 
-		static void ShowGameObject(GameObject* go) {
-			
-			const void* id = (const void*)go;
-			//ImGui::PushID(id);
-			ImGui::AlignFirstTextHeightToWidgets();
-			bool node_open = ImGui::TreeNode(id, go->GetName().data());			
-			if (node_open) {
-				ShowDetails(go);
-				for (auto& child : go->Children()) {
-					ShowGameObject(child.get());
-				}
-				
-				ImGui::TreePop();
-			}					
-		}
+        static void ShowGameObject(GameObject* go) {
 
-		
-	};
-	
-	auto root = m_scene->GetRootNode();
-	funcs::ShowGameObject(root);
-	
-		
-	
-	ImGui::Columns(1);
-	ImGui::End();
+            const void* id = (const void*)go;
+            //ImGui::PushID(id);
+            ImGui::AlignFirstTextHeightToWidgets();
+            bool node_open = ImGui::TreeNode(id, go->GetName().data());
+            if (node_open) {
+                ShowDetails(go);
+                for (auto& child : go->Children()) {
+                    ShowGameObject(child.get());
+                }
+
+                ImGui::TreePop();
+            }
+        }
+
+
+    };
+
+    auto root = m_scene->GetRootNode();
+    funcs::ShowGameObject(root);
+
+
+
+    ImGui::Columns(1);
+    ImGui::End();
 
 }
 
@@ -311,15 +320,15 @@ void GLWindow::DrawGui()
     Vector3 cameraDirection = camera.GetViewDirection();
     const Renderer* renderer = m_scene->GetRenderer();
 
-	DrawMainMenu();
+    DrawMainMenu();
 
-	DrawDebugWindow();    
+    DrawDebugWindow();
 
-	DrawGameObjectEditor();
+    DrawGameObjectEditor();
 
     auto rootNode = m_scene->GetRootNode();
 
-        
+
     ImGui::Begin("Shaders & Materials");
     auto& shaders = m_scene->GetShaderCache();
     vector<string> shaderNames;
@@ -390,8 +399,8 @@ bool GLWindow::CreateMaterialEditorGui(Material* material)
 void GLWindow::InitializeScene()
 {
     m_scene = make_unique<Scene>(Width, Height);
-	m_scene->Initialize();
-    m_scene->Awake();    
+    m_scene->Initialize();
+    m_scene->Awake();
 }
 
 void GLWindow::InitializeGui()
@@ -764,9 +773,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         if (evt.key.keysym.scancode == SDL_SCANCODE_D) {
             STRAFING_RIGHT = true;
         }
-		if (evt.key.keysym.scancode == SDL_SCANCODE_GRAVE) {
-			SHOW_GUI = !SHOW_GUI;
-		}
+        if (evt.key.keysym.scancode == SDL_SCANCODE_GRAVE) {
+            SHOW_GUI = !SHOW_GUI;
+        }
         break;
     case SDL_KEYUP:
         if (evt.key.keysym.scancode == SDL_SCANCODE_W) {
@@ -786,14 +795,14 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         if (evt.button.button == SDL_BUTTON_RIGHT) {
             MOUSE_MOVE = true;
         }
-		if (evt.button.button == SDL_BUTTON_LEFT) {
-			if (!SHOW_GUI) {
-				scene->DoLeftClick(0, 0);
-			} else{
+        if (evt.button.button == SDL_BUTTON_LEFT) {
+            if (!SHOW_GUI) {
+                scene->DoLeftClick(0, 0);
+            } else {
                 scene->Pick(evt.button.x, evt.button.y);
             }
-            
-		}
+
+        }
         break;
     case SDL_MOUSEBUTTONUP:
         if (evt.button.button == SDL_BUTTON_RIGHT) {
@@ -838,42 +847,42 @@ void DoMovement(Scene* scene, double deltaTime)
 
     if (MOVING_FORWARD) {
         //player->StepPlayer(deltaTime);
-		player.Translate( { 0.0f, 0.0f, -moveBy });
+        player.Translate( { 0.0f, 0.0f, -moveBy });
     }
     if (MOVING_BACKWARD) {
-		player.Translate( { 0.0f, 0.0f, moveBy });
+        player.Translate( { 0.0f, 0.0f, moveBy });
     }
     if (STRAFING_LEFT) {
-		player.Translate( { -moveBy, 0.0f, 0.0f });
+        player.Translate( { -moveBy, 0.0f, 0.0f });
     }
     if (STRAFING_RIGHT) {
-		player.Translate( { moveBy, 0.0f, 0.0f });
+        player.Translate( { moveBy, 0.0f, 0.0f });
     }
     if (ROTATING_LEFT) {
-		player.Rotate(0.0f, 0.0f, rotBy);
+        player.Rotate(0.0f, 0.0f, rotBy);
     }
     if (ROTATING_RIGHT) {
-		player.Rotate(0.0f, 0.0f, -rotBy);
+        player.Rotate(0.0f, 0.0f, -rotBy);
     }
     if (ROTATING_UP) {
-		player.Rotate(rotBy, 0.0f, 0.0f);
+        player.Rotate(rotBy, 0.0f, 0.0f);
     }
     if (ROTATING_DOWN) {
-		player.Rotate(-rotBy, 0.0f, 0.0f);
+        player.Rotate(-rotBy, 0.0f, 0.0f);
     }
 }
 
 void RotateCameraX(Scene* scene, double deltaTime, float degrees)
 {
     //Camera& cam = scene->GetCamera();
-	auto& player = *(scene->GetPlayer());
+    auto& player = *(scene->GetPlayer());
     player.Rotate(0.f, 0.f, -degrees);
 }
 
 void RotateCameraY(Scene* scene, double deltaTime, float degrees)
 {
     //Camera& cam = scene->GetCamera();
-	auto& player = *(scene->GetPlayer());
+    auto& player = *(scene->GetPlayer());
     player.Rotate(-degrees, 0.f , 0.f);
 }
 

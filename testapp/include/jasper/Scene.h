@@ -160,6 +160,15 @@ public:
     Matrix4 GetProjectionMatrix() const {
         return m_projectionMatrix;
     }
+    
+    GameObject* GetSelectedGameObject() const {
+        return m_selected_game_object;
+    }
+    
+    void SetSelectedGameObject(GameObject* go){
+        if (go) m_selected_game_object = go;
+        else m_selected_game_object = nullptr;
+    }
 
 private:
 
@@ -190,8 +199,8 @@ private:
     std::vector<ScriptComponent> m_scripts;
 
     bool debug_draw_physics = true;
-
-
+    
+    GameObject* m_selected_game_object = nullptr;
 
 
 };

@@ -19,11 +19,8 @@ using namespace std;
 PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : Component(std::move(name)), m_world(world), m_halfExtents(halfExtents)
 {
-    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
-	float dr = ((float)rand() / (RAND_MAX));
-	float dg = ((float)rand() / (RAND_MAX));
-	float db = ((float)rand() / (RAND_MAX));
-	debugColor = Vector4(dr, dg, db, 1.f);        
+    m_colliderType = PHYSICS_COLLIDER_TYPE::None;	
+	m_debugColor = Vector4(1.f, 0.f, 0.f, 0.9f);        
 }
 
 
@@ -91,12 +88,16 @@ void PhysicsCollider::ToggleEnabled(bool e)
         auto tr = GetGameObject()->GetLocalTransform().GetBtTransform();
         m_rigidBody->setWorldTransform(tr);
         m_defaultMotionState->setWorldTransform(tr);
+        btVector3 inertia;
+        m_collisionShape->calculateLocalInertia(Mass, inertia);
+        m_rigidBody->setMassProps(Mass, inertia);
         m_rigidBody->setRestitution(Restitution);
         m_rigidBody->setFriction(Friction);
+        m_world->AddRigidBody(m_rigidBody);
         m_rigidBody->activate();
 	}
 	else {
-		//m_rigidBody->setAc();
+		m_world->RemoveRigidBody(m_rigidBody);
 	}
     Component::ToggleEnabled(e);
 }
@@ -147,6 +148,7 @@ void PhysicsCollider::Serialize(std::ofstream& ofs) const{
 CompoundCollider::CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld * world)
 	: PhysicsCollider(name, { 0.f, 0.f, 0.f }, world), m_hulls()
 {
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Compound;
 	for (auto& hull : hulls) {
 		m_hulls.emplace_back(move(hull));
 	}
@@ -169,7 +171,7 @@ void CompoundCollider::Awake()
 	m_defaultMotionState = new btDefaultMotionState(btTrans);
 	btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
 	m_rigidBody = new btRigidBody(rbci);
-
+    m_rigidBody->setUserPointer(GetGameObject());
 	m_world->AddCollider(this);
 
 }

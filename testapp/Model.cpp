@@ -376,18 +376,18 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
 	IVHACD::Parameters params;
 	params.m_resolution = 100000;
 	params.m_depth = 20;
-	params.m_concavity = 0.10;
-	params.m_planeDownsampling = 8;
-	params.m_convexhullDownsampling = 8;
+	params.m_concavity = 0.05;
+	//params.m_planedownsampling = 8;
+	//params.m_convexhulldownsampling = 8;
 	params.m_alpha = 0.05;
 	params.m_beta = 0.05;
 	params.m_gamma = 0.015;//15;
 	params.m_pca = 0;
 	params.m_mode = 0; // 0: voxel-based (recommended), 1: tetrahedron-based
-	params.m_maxNumVerticesPerCH = 64;
-	params.m_minVolumePerCH = 0.05;
+	//params.m_maxnumverticesperch = 64;
+	//params.m_minvolumeperch = 0.05;
 	params.m_callback = &mcallback;
-	params.m_logger = 0;
+//	params.m_logger = 0;
 
 
 	IVHACD* cdInterface = CreateVHACD();

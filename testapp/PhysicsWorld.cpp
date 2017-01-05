@@ -33,12 +33,12 @@ void PhysicsWorld::Initialize()
 void PhysicsWorld::RemoveRigidBody(btRigidBody* rb)
 {
     m_world->removeRigidBody(rb);
-    auto bp = std::find(begin(m_bodies), end(m_bodies), rb);
-    if (bp != end(m_bodies)) {
-        m_bodies.erase(bp);
-    }
-    delete rb->getMotionState();
-    delete rb;
+//    auto bp = std::find(begin(m_bodies), end(m_bodies), rb);
+//    if (bp != end(m_bodies)) {
+//        m_bodies.erase(bp);
+//    }
+//    delete rb->getMotionState();
+//    delete rb;
 
 }
 
@@ -78,7 +78,7 @@ void PhysicsWorld::Destroy()
 
 void PhysicsWorld::Update(float dt)
 {
-    m_world->stepSimulation(dt, 3);
+    m_world->stepSimulation(dt, 10);
 }
 
 void PhysicsWorld::AddRigidBody(btRigidBody * rb)
