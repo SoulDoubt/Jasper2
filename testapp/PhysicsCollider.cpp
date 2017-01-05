@@ -37,7 +37,7 @@ void PhysicsCollider::Initialize()
 
 void PhysicsCollider::Destroy()
 {
-    this->GetPhysicsWorld()->RemoveRigidBody(m_rigidBody);
+    this->GetPhysicsWorld()->RemoveRigidBody(m_rigidBody.get());
     if (m_rigidBody != nullptr) {
         // delete m_defaultMotionState;
     }
@@ -93,11 +93,11 @@ void PhysicsCollider::ToggleEnabled(bool e)
         m_rigidBody->setMassProps(Mass, inertia);
         m_rigidBody->setRestitution(Restitution);
         m_rigidBody->setFriction(Friction);
-        m_world->AddRigidBody(m_rigidBody);
+        m_world->AddRigidBody(m_rigidBody.get());
         m_rigidBody->activate();
 	}
 	else {
-		m_world->RemoveRigidBody(m_rigidBody);
+		m_world->RemoveRigidBody(m_rigidBody.get());
 	}
     Component::ToggleEnabled(e);
 }
@@ -105,7 +105,7 @@ void PhysicsCollider::ToggleEnabled(bool e)
 void PhysicsCollider::SetScale(const Vector3 & scale)
 {
 	m_collisionShape->setLocalScaling(scale.AsBtVector3());
-	m_world->GetBtWorld()->updateSingleAabb(m_rigidBody);
+	m_world->GetBtWorld()->updateSingleAabb(m_rigidBody.get());
 }
 
 bool PhysicsCollider::ShowGui()
@@ -156,7 +156,7 @@ CompoundCollider::CompoundCollider(std::string name, std::vector<std::unique_ptr
 
 void CompoundCollider::Awake()
 {
-	btCompoundShape* compound = new btCompoundShape(true, m_hulls.size());
+	unique_ptr<btCompoundShape> compound = make_unique<btCompoundShape>(true, m_hulls.size());
 	const auto& trans = GetGameObject()->GetLocalTransform();
 	auto btTrans = trans.GetBtTransform();
 	
@@ -164,13 +164,13 @@ void CompoundCollider::Awake()
 		compound->addChildShape(btTrans, hull.get());
 	}
 
-	m_collisionShape = compound;
+	m_collisionShape = move(compound);
 	btVector3 inertia;
 	m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
 	m_collisionShape->calculateLocalInertia(Mass, inertia);
-	m_defaultMotionState = new btDefaultMotionState(btTrans);
-	btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
-	m_rigidBody = new btRigidBody(rbci);
+	m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+	btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+	m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setUserPointer(GetGameObject());
 	m_world->AddCollider(this);
 

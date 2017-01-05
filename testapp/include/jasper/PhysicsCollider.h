@@ -77,10 +77,10 @@ public:
         return m_world;
     }
     btRigidBody* GetRigidBody() const {
-        return m_rigidBody;
+        return m_rigidBody.get();
     }
     btCollisionShape* GetCollisionShape() const {
-        return m_collisionShape;
+        return m_collisionShape.get();
     }
 
     btTransform GetDebugTransform() const {
@@ -116,9 +116,9 @@ public:
 
 protected:
     PhysicsWorld* m_world;
-    btCollisionShape* m_collisionShape;
-    btDefaultMotionState* m_defaultMotionState;
-    btRigidBody* m_rigidBody;
+    std::unique_ptr<btCollisionShape> m_collisionShape;
+    std::unique_ptr<btDefaultMotionState> m_defaultMotionState;
+    std::unique_ptr<btRigidBody> m_rigidBody;
     Vector3 m_halfExtents;
     PHYSICS_COLLIDER_TYPE m_colliderType;
     Vector4 m_debugColor;

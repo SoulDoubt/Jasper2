@@ -14,7 +14,7 @@ public:
 
 private:
 	std::vector<Mesh*> m_meshes;
-	btTriangleMesh* m_btm;
+	std::unique_ptr<btTriangleMesh> m_btm;
 
 };
 

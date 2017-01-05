@@ -6,6 +6,8 @@
 namespace Jasper
 {
 
+using namespace std;
+
 ConvexHullCollider::ConvexHullCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : PhysicsCollider(name, halfExtents, world), m_meshes()
 {
@@ -27,56 +29,56 @@ void ConvexHullCollider::Awake()
     //halfY *= trans.Scale.y;
     //halfZ *= trans.Scale.z;
 
-	
-	m_btm = new btTriangleMesh(true, false);
-	
-	for (const auto mesh : m_meshes) {
-		int sz = mesh->Indices.size();
-		for (int i = 0; i < sz; i += 3) {
-			const unsigned index0 = mesh->Indices[i];
-			const unsigned index1 = mesh->Indices[i + 1];
-			const unsigned index2 = mesh->Indices[i + 2];
-			btVector3 p0 = mesh->Positions[index0].AsBtVector3();
-			btVector3 p1 = mesh->Positions[index1].AsBtVector3();
-			btVector3 p2 = mesh->Positions[index2].AsBtVector3();
 
-			m_btm->addTriangle(p0, p1, p2, false);
-		}
-	}
-	btBvhTriangleMeshShape* bvh = new btBvhTriangleMeshShape(m_btm, true);
-	bvh->buildOptimizedBvh();
-	//bvh->usesQuantizedAabbCompression();
-	//btShapeHull* shull = new btShapeHull(bcs);
-	//shull->buildHull(bcs->getMargin());
-	//btConvexHullShape* shape = new btConvexHullShape((btScalar*)shull->getVertexPointer(), shull->numVertices());
-	m_collisionShape = bvh;
+    m_btm = std::make_unique<btTriangleMesh>(true, false);
+
+    for (const auto mesh : m_meshes) {
+        int sz = mesh->Indices.size();
+        for (int i = 0; i < sz; i += 3) {
+            const unsigned index0 = mesh->Indices[i];
+            const unsigned index1 = mesh->Indices[i + 1];
+            const unsigned index2 = mesh->Indices[i + 2];
+            btVector3 p0 = mesh->Positions[index0].AsBtVector3();
+            btVector3 p1 = mesh->Positions[index1].AsBtVector3();
+            btVector3 p2 = mesh->Positions[index2].AsBtVector3();
+
+            m_btm->addTriangle(p0, p1, p2, false);
+        }
+    }
+    std::unique_ptr<btBvhTriangleMeshShape> bvh = make_unique<btBvhTriangleMeshShape>(m_btm.get(), true);
+    bvh->buildOptimizedBvh();
+    //bvh->usesQuantizedAabbCompression();
+    //btShapeHull* shull = new btShapeHull(bcs);
+    //shull->buildHull(bcs->getMargin());
+    //btConvexHullShape* shape = new btConvexHullShape((btScalar*)shull->getVertexPointer(), shull->numVertices());
+    m_collisionShape = move(bvh);
 
     btVector3 inertia;
-	Mass = 0.0f;
+    Mass = 0.0f;
     //m_collisionShape->calculateLocalInertia(Mass, inertia);
 
-    m_defaultMotionState = new btDefaultMotionState(btTrans);
-    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
-    m_rigidBody = new btRigidBody(rbci);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setUserPointer(GetGameObject());
-	m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
+    m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
 
     m_world->AddCollider(this);
-	//delete shull;
-	//delete bcs;
-	//delete btm;
+    //delete shull;
+    //delete bcs;
+    //delete btm;
 }
 
 void ConvexHullCollider::Initialize()
 {
-	
+
 }
 
 void ConvexHullCollider::InitFromMeshes(const std::vector<Mesh*>& meshes)
 {
-	for (const auto m : meshes) {
-		m_meshes.push_back(m);
-	}
+    for (const auto m : meshes) {
+        m_meshes.push_back(m);
+    }
 }
 
 }

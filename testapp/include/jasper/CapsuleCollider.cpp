@@ -8,17 +8,21 @@
 //    m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
 //}
 
-Jasper::CapsuleCollider::CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
+using namespace std;
+
+namespace Jasper {
+
+CapsuleCollider::CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : PhysicsCollider(name, halfExtents, world)
 {
     m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
 }
 
-Jasper::CapsuleCollider::~CapsuleCollider()
+CapsuleCollider::~CapsuleCollider()
 {
 }
 
-void Jasper::CapsuleCollider::Awake()
+void CapsuleCollider::Awake()
 {
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
@@ -48,14 +52,17 @@ void Jasper::CapsuleCollider::Awake()
     float height = (halfY) * trans.Scale.y * 2;
     height = height - (2 * radius);
 
-    m_collisionShape = new btCapsuleShape(radius, height);
+    m_collisionShape = make_unique<btCapsuleShape>(radius, height);
 
     btVector3 inertia;
     m_collisionShape->calculateLocalInertia(Mass, inertia);
 
-    m_defaultMotionState = new btDefaultMotionState(btTrans);
-    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
-    m_rigidBody = new btRigidBody(rbci);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setUserPointer(GetGameObject());
     m_world->AddCollider(this);
+}
+
+
 }

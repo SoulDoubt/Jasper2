@@ -12,6 +12,8 @@ namespace Jasper
 //    m_colliderType = PHYSICS_COLLIDER_TYPE::Sphere;
 //}
 
+using namespace std;
+
 SphereCollider::SphereCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     :PhysicsCollider(name, halfExtents, world)
 {
@@ -43,14 +45,14 @@ void SphereCollider::Awake()
             radius = r;
         }
     }
-    m_collisionShape = new btSphereShape(radius);
+    m_collisionShape = make_unique<btSphereShape>(radius);
 
     btVector3 inertia;
     m_collisionShape->calculateLocalInertia(Mass, inertia);
 
-    m_defaultMotionState = new btDefaultMotionState(btTrans);
-    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
-    m_rigidBody = new btRigidBody(rbci);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setRestitution(Restitution);
     m_rigidBody->setFriction(Friction);
     m_rigidBody->setUserPointer(GetGameObject());

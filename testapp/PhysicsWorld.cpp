@@ -18,28 +18,35 @@ PhysicsWorld::~PhysicsWorld()
 
 void PhysicsWorld::Initialize()
 {
-    m_broadphase = new btDbvtBroadphase();
-    m_collisionConfig = new btDefaultCollisionConfiguration();
-    m_collisionDispatcher = new btCollisionDispatcher(m_collisionConfig);
-    m_solver = new btSequentialImpulseConstraintSolver();
-    m_world = new btDiscreteDynamicsWorld(m_collisionDispatcher, m_broadphase, m_solver, m_collisionConfig);
+    using namespace std;
+    m_broadphase = make_unique<btDbvtBroadphase>();
+    m_collisionConfig = make_unique<btDefaultCollisionConfiguration>();
+    m_collisionDispatcher = make_unique<btCollisionDispatcher>(m_collisionConfig.get());
+    m_solver = make_unique<btSequentialImpulseConstraintSolver>();
+    m_world = make_unique<btDiscreteDynamicsWorld>(m_collisionDispatcher.get(), m_broadphase.get(), m_solver.get(), m_collisionConfig.get());
     m_world->setGravity( { 0.0f, -12.81f, 0.0f });
-    debugDrawer = new PhysicsDebugDrawer(scene);
+    debugDrawer = make_unique<PhysicsDebugDrawer>(scene);
     debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-    m_world->setDebugDrawer(debugDrawer);
+    m_world->setDebugDrawer(debugDrawer.get());
 }
 
-// call when you want to remove a collider from the world
+// removes the rigid body from the dynamics world, but
+// leaves it in place
 void PhysicsWorld::RemoveRigidBody(btRigidBody* rb)
 {
     m_world->removeRigidBody(rb);
-//    auto bp = std::find(begin(m_bodies), end(m_bodies), rb);
-//    if (bp != end(m_bodies)) {
-//        m_bodies.erase(bp);
-//    }
-//    delete rb->getMotionState();
-//    delete rb;
+}
 
+// Removes the rigid body from the world and 
+// destroys it.
+void PhysicsWorld::DeleteRigidBody(btRigidBody* rb){
+    m_world->removeRigidBody(rb);
+    auto bp = std::remove(begin(m_bodies), end(m_bodies), rb);
+    if (bp != end(m_bodies)) {
+        m_bodies.erase(bp);
+    }
+    delete rb->getMotionState();
+    delete rb;    
 }
 
 void PhysicsWorld::Destroy()
@@ -47,32 +54,32 @@ void PhysicsWorld::Destroy()
     /*if (debugDrawer)
     	delete debugDrawer;*/
 
-    delete m_world->getDebugDrawer();
+    //delete m_world->getDebugDrawer();
 
-    for (int i = 0; i < m_bodies.size(); i++) {
-        auto body = m_bodies[i];
-        m_world->removeRigidBody(body);
-        delete body->getMotionState();
-        delete body;
-    }
+//    for (uint i = 0; i < m_bodies.size(); i++) {
+//        auto body = m_bodies[i];
+//        m_world->removeRigidBody(body);
+//        //delete body->getMotionState();
+//        //delete body;
+//    }
+//
+//    for (uint i = 0; i < m_shapes.size(); i++) {
+//        auto cs = m_shapes[i];
+//        //delete cs;
+//    }
+//
+//    m_shapes.clear();
 
-    for (int i = 0; i < m_shapes.size(); i++) {
-        auto cs = m_shapes[i];
-        delete cs;
-    }
-
-    m_shapes.clear();
-
-    if (m_world)
-        delete m_world;
-    if (m_solver)
-        delete m_solver;
-    if (m_collisionConfig)
-        delete m_collisionConfig;
-    if (m_collisionDispatcher)
-        delete m_collisionDispatcher;
-    if (m_broadphase)
-        delete m_broadphase;
+//    if (m_world)
+//        delete m_world;
+//    if (m_solver)
+//        delete m_solver;
+//    if (m_collisionConfig)
+//        delete m_collisionConfig;
+//    if (m_collisionDispatcher)
+//        delete m_collisionDispatcher;
+//    if (m_broadphase)
+//        delete m_broadphase;
 
 }
 

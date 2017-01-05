@@ -65,7 +65,7 @@ Objects0=$(IntermediateDirectory)/Camera.cpp$(ObjectSuffix) $(IntermediateDirect
 	$(IntermediateDirectory)/PhysicsCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsDebugDraw.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsWorld.cpp$(ObjectSuffix) $(IntermediateDirectory)/PlaneCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Quad.cpp$(ObjectSuffix) $(IntermediateDirectory)/quaternion.cpp$(ObjectSuffix) $(IntermediateDirectory)/Renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Room.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scene.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Transform.cpp$(ObjectSuffix) $(IntermediateDirectory)/Triangle.cpp$(ObjectSuffix) $(IntermediateDirectory)/DefaultScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) $(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui_draw.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/GuiRenderer.cpp$(ObjectSuffix) 
+	$(IntermediateDirectory)/GuiRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) 
 
 
 
@@ -503,6 +503,14 @@ $(IntermediateDirectory)/GuiRenderer.cpp$(DependSuffix): GuiRenderer.cpp
 
 $(IntermediateDirectory)/GuiRenderer.cpp$(PreprocessSuffix): GuiRenderer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/GuiRenderer.cpp$(PreprocessSuffix) "GuiRenderer.cpp"
+
+$(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix): Scriptable.cpp $(IntermediateDirectory)/Scriptable.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/Scriptable.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Scriptable.cpp$(DependSuffix): Scriptable.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Scriptable.cpp$(DependSuffix) -MM "Scriptable.cpp"
+
+$(IntermediateDirectory)/Scriptable.cpp$(PreprocessSuffix): Scriptable.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Scriptable.cpp$(PreprocessSuffix) "Scriptable.cpp"
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)

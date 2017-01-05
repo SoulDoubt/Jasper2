@@ -115,7 +115,9 @@ public:
         return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
 
-    void Pick(int x, int y);
+    GameObject* MousePickGameObject(int x, int y, Vector3& hit_point, Vector3& hit_normal);
+    void MouseSelectGameObject(int x, int y);
+    void ShootMouse(int x, int y);
 
     //Material* GetMaterialByName(const std::string& name);
     //Mesh*     GetMeshByName(const std::string& name);

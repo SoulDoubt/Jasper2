@@ -4,7 +4,7 @@
 
 namespace Jasper
 {
-
+using namespace std;
 
 PlaneCollider::PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld * world) :
 	PhysicsCollider(name, Vector3(), world), Normal(normal), Constant(constant)
@@ -29,10 +29,10 @@ void PlaneCollider::Awake()
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
     auto btTrans = trans.GetBtTransform();
-    m_collisionShape = new btStaticPlaneShape(Normal.AsBtVector3(), Constant);
-    m_defaultMotionState = new btDefaultMotionState(btTrans);
-    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, btVector3(0.f, -1.f, 0.f));
-    m_rigidBody = new btRigidBody(rbci);
+    m_collisionShape = make_unique<btStaticPlaneShape>(Normal.AsBtVector3(), Constant);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), btVector3(0.f, -1.f, 0.f));
+    m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setRestitution(Restitution);
     m_rigidBody->setFriction(Friction);
     m_rigidBody->setUserPointer(GetGameObject());

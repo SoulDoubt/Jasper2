@@ -83,6 +83,7 @@
     <File Name="imgui.cpp"/>
     <File Name="imgui_draw.cpp"/>
     <File Name="GuiRenderer.cpp"/>
+    <File Name="Scriptable.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <VirtualDirectory Name="jasper">

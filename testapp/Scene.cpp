@@ -240,7 +240,7 @@ void Scene::DeserializeGameObject(std::ifstream & ifs, GameObject* parent)
 void Scene::DrawPickRay()
 {
     auto viewMatrix = m_camera->GetViewMatrix().Inverted();
-    auto dd = m_physicsWorld->debugDrawer;
+    auto& dd = m_physicsWorld->debugDrawer;
     auto rayMMatrix = Matrix4();
     auto rmvp = m_projectionMatrix * viewMatrix * rayMMatrix;
     dd->mvpMatrix = rmvp;
@@ -428,7 +428,7 @@ void Scene::InitializeManual()
 
     auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
     auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Box;    
+    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Box;
     //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
     model->GetLocalTransform().Position = { 0.f, 2.f, -1.5f };
     //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
@@ -438,7 +438,7 @@ void Scene::InitializeManual()
     if (collider) {
         collider->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
         //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
-        collider->Mass = 0.f;
+        collider->Mass = 10.f;
     }
 
 //    auto teapot = m_rootNode->AttachNewChild<GameObject>("teapot"s);
@@ -589,7 +589,7 @@ void Scene::Update(float dt)
 
 }
 
-void Scene::Pick(int mouse_x, int mouse_y)
+GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_point, Vector3& hit_normal)
 {
     float winx = (2.0f * mouse_x) / m_windowWidth - 1.0f;
     float winy = 1.0f - (2.0f * mouse_y) / m_windowHeight;
@@ -624,9 +624,26 @@ void Scene::Pick(int mouse_x, int mouse_y)
     btCollisionWorld::ClosestRayResultCallback cb(from, to);
     m_physicsWorld->GetBtWorld()->rayTest(from, to, cb);
     if (cb.hasHit()) {
+        hit_point = Vector3(cb.m_hitPointWorld);
+        hit_normal = Vector3(cb.m_hitNormalWorld);
         auto object = cb.m_collisionObject;
         auto hit_object = object->getUserPointer();
         auto go = static_cast<GameObject*>(hit_object);
+        if (go) {
+            return go;
+        }
+
+        printf("hit: %s\n", go->GetName().c_str());
+
+    }
+    return nullptr;
+}
+
+void Scene::MouseSelectGameObject(int x, int y)
+{
+    Vector3 hit_point, hit_normal;
+    GameObject* go = MousePickGameObject(x, y, hit_point, hit_normal);
+    if (go) {
         if (m_selected_game_object != go && m_selected_game_object != nullptr) {
             if (auto cc = m_selected_game_object->GetComponentByType<PhysicsCollider>()) {
                 cc->ColliderFlags ^= PhysicsCollider::DRAW_COLLISION_SHAPE;
@@ -638,8 +655,22 @@ void Scene::Pick(int mouse_x, int mouse_y)
             col->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
         }
         m_selected_game_object = go;
-        printf("hit: %s\n", go->GetName().c_str());
+    }
+}
 
+void Scene::ShootMouse(int x, int y)
+{
+    Vector3 hit_point, hit_normal;
+    GameObject* go = MousePickGameObject(x, y, hit_point, hit_normal);
+    if (go) {
+        if (auto cc = go->GetComponentByType<PhysicsCollider>()) {
+            btRigidBody* rb = cc->GetRigidBody();
+            Transform t = cc->GetCurrentWorldTransform();
+            btVector3 offset = hit_point.AsBtVector3() - rb->getWorldTransform().getOrigin();
+            rb->activate();
+            rb->applyImpulse(-(hit_normal.AsBtVector3() * 100.f), offset);
+            
+        }
     }
 }
 

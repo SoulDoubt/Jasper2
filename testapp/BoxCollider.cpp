@@ -12,6 +12,8 @@ namespace Jasper
 //
 //}
 
+using namespace std;
+
 BoxCollider::BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     :PhysicsCollider(name, halfExtents, world)
 {
@@ -44,15 +46,15 @@ void BoxCollider::Awake()
     //halfY *= trans.Scale.y;
     //halfZ *= trans.Scale.z;
 
-    m_collisionShape = new btBoxShape(btVector3(halfX, halfY, halfZ));
+    m_collisionShape = make_unique<btBoxShape>(btVector3(halfX, halfY, halfZ));
     m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
 
     btVector3 inertia;
     m_collisionShape->calculateLocalInertia(Mass, inertia);
 
-    m_defaultMotionState = new btDefaultMotionState(btTrans);
-    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState, m_collisionShape, inertia);
-    m_rigidBody = new btRigidBody(rbci);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setRestitution(Restitution);
     m_rigidBody->setFriction(Friction);
     m_rigidBody->setUserPointer(GetGameObject());

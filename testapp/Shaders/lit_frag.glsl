@@ -46,6 +46,9 @@ uniform point_light plight0;
 uniform directional_light dlight0;
 uniform material material0;
 
+uniform bool has_normal_map;
+uniform bool has_specular_map;
+
 vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
 
 	vec4 diffuse_color = vec4(0,0,0,1);
@@ -109,30 +112,22 @@ void main()
 {	
 	vec3 normal;// = v_normal;
 
-	if (textureSize(normalMap, 0).x > 0){
+	if (has_normal_map){
 		vec3 fn = texture( normalMap, v_texCoords ).xyz;
-		//fn.xy = fn.xy * 2.0 - 1.0;
-		//fn = 128.0/255.0 * fn - vec3(1.0, 1.0, 1.0);		
-
-		vec3 fragNormal = v_tbnMatrix * fn;
-		//fragNormal.x = (fragNormal.x * 2.0) -1;
-		//fragNormal.y = (fragNormal.y * 2.0) -1;
-		//fragNormal.z = (fragNormal.z * 2.0) -1;
-		//normal = normalize(fragNormal * 2.0 - 1.0);			
+		vec3 fragNormal = v_tbnMatrix * fn;				
 		normal = normalize(fragNormal);
 	}
 	else {
 		normal = normalize(v_normal); 	
 	}
 
-	vec3 materialSpecular = texture( specularMap, v_texCoords ).xyz;
-	if (textureSize(specularMap, 0).x > 0){
+	vec3 materialSpecular;
+	if (has_specular_map){
 		materialSpecular = texture( specularMap, v_texCoords ).xyz;
 	}
 	else{
 		materialSpecular = material0.ks;
 	}
-	//normal = normalize(v_normal);
 	
 	vec4 map_color = texture(colorMap, v_texCoords);
 	

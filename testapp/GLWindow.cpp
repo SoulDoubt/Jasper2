@@ -797,9 +797,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         }
         if (evt.button.button == SDL_BUTTON_LEFT) {
             if (!SHOW_GUI) {
-                scene->DoLeftClick(0, 0);
+                scene->ShootMouse(evt.button.x, evt.button.y);
             } else {
-                scene->Pick(evt.button.x, evt.button.y);
+                scene->MouseSelectGameObject(evt.button.x, evt.button.y);
             }
 
         }
