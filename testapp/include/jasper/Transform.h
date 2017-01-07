@@ -45,7 +45,7 @@ public:
         Scale = { 1.0f, 1.0f, 1.0f };
     }
 
-    btTransform GetBtTransform() const {
+    btTransform AsBtTransform() const {
         btTransform btt;
         btVector3 pos = { Position.x, Position.y, Position.z };
         btQuaternion q = btQuaternion(Orientation.x, Orientation.y, Orientation.z, Orientation.w);
@@ -74,6 +74,7 @@ public:
 
     friend Transform operator*(const Transform& ps, const Transform& ls);
     friend Transform& operator*=(Transform& ps, const Transform& ls);
+    friend Vector3 operator*(const Transform& t, Vector3& vec);
 
     void SetIdentity();
 };
@@ -91,6 +92,10 @@ inline Transform& operator*=(Transform& ps, const Transform& ls)
 {
     ps = ps * ls;
     return ps;
+}
+
+inline Vector3 operator*(const Transform& t, Vector3& vec){
+    return (Conjugate(t.Orientation) * (t.Position - vec)) / t.Scale;
 }
 
 inline Matrix4 Transform::TransformMatrix() const

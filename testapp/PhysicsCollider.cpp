@@ -85,7 +85,7 @@ Transform PhysicsCollider::GetCurrentWorldTransform()
 void PhysicsCollider::ToggleEnabled(bool e)
 {    
     if (e) {
-        auto tr = GetGameObject()->GetLocalTransform().GetBtTransform();
+        auto tr = GetGameObject()->GetLocalTransform().AsBtTransform();
         m_rigidBody->setWorldTransform(tr);
         m_defaultMotionState->setWorldTransform(tr);
         btVector3 inertia;
@@ -158,7 +158,7 @@ void CompoundCollider::Awake()
 {
 	unique_ptr<btCompoundShape> compound = make_unique<btCompoundShape>(true, m_hulls.size());
 	const auto& trans = GetGameObject()->GetLocalTransform();
-	auto btTrans = trans.GetBtTransform();
+	auto btTrans = trans.AsBtTransform();
 	
 	for (const auto& hull : m_hulls) {		
 		compound->addChildShape(btTrans, hull.get());

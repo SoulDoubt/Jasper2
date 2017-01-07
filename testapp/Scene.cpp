@@ -56,15 +56,11 @@ void Scene::Resize(int width, int height)
     printf("Resizing scene... %d x %d\n", width, height);
     m_windowWidth = width;
     m_windowHeight = height;
-
-    auto pm = Matrix4();
+    
     auto om = Matrix4();
 
-    float aspectRatio = (float)m_windowWidth / (float)m_windowHeight;
-
-    pm.CreatePerspectiveProjection(30, aspectRatio, 0.1f, 1000.0f);
     om.CreateOrthographicProjection(0.0f, m_windowWidth, m_windowHeight, 0.0f, 1.0f, -1.0f);
-    m_projectionMatrix = pm;
+    //m_projectionMatrix = pm;
     m_orthoMatrix = om;
 }
 
@@ -239,14 +235,15 @@ void Scene::DeserializeGameObject(std::ifstream & ifs, GameObject* parent)
 
 void Scene::DrawPickRay()
 {
-    auto viewMatrix = m_camera->GetViewMatrix().Inverted();
+    auto viewMatrix = m_camera->GetViewMatrix();
+    auto projMatrix = m_camera->GetProjectionMatrix();
     auto& dd = m_physicsWorld->debugDrawer;
-    auto rayMMatrix = Matrix4();
-    auto rmvp = m_projectionMatrix * viewMatrix * rayMMatrix;
-    dd->mvpMatrix = rmvp;
-    dd->debugShader->Bind();
-    Vector4 col = {1.f, 0.f, 0.f, 1.f};
-    reinterpret_cast<BasicShader*>(m_physicsWorld->debugDrawer->debugShader)->SetColor(col);
+    
+    auto rmvp = projMatrix * viewMatrix;
+    dd->SetMatrix(rmvp);
+    dd->GetShader()->Bind();
+    //Vector4 col = {1.f, 0.f, 0.f, 1.f};
+    
     btVector3 st = m_pickRay.start.AsBtVector3();
     btVector3 ed = m_pickRay.end.AsBtVector3();
     dd->drawLine(st, ed, {1.f, 0.f, 0.f});
@@ -254,45 +251,14 @@ void Scene::DrawPickRay()
 
 void Scene::DebugDrawPhysicsWorld()
 {
-    auto viewMatrix = m_camera->GetViewMatrix().Inverted();
+    auto viewMatrix = m_camera->GetViewMatrix();
+    auto projMatrix = m_camera->GetProjectionMatrix();
+    auto& dd = m_physicsWorld->debugDrawer;    
+    dd->SetMatrix(projMatrix * viewMatrix);
+    dd->Reset();
+    m_physicsWorld->DebugDrawWorld();
+    dd->Draw();
 
-
-
-    for (auto& go : m_rootNode->Children()) {
-        auto phys = go->GetComponentsByType<PhysicsCollider>();
-        if (phys.size() > 0) {
-            auto trans = go->GetWorldTransform();
-            trans.Scale = { 1.f, 1.f, 1.f };
-            auto mvp = m_projectionMatrix * viewMatrix * trans.TransformMatrix();
-            m_physicsWorld->debugDrawer->mvpMatrix = mvp;
-            btTransform dt;
-            dt.setIdentity();
-            for (auto collider : phys) {
-                if (collider->ColliderFlags & PhysicsCollider::DRAW_COLLISION_SHAPE) {
-                    m_physicsWorld->debugDrawer->debugShader->Bind();
-                    Vector4 color = collider->GetDebugColor();
-                    reinterpret_cast<BasicShader*>(m_physicsWorld->debugDrawer->debugShader)->SetColor(color);
-                    m_physicsWorld->DrawPhysicsShape(dt, collider->GetCollisionShape(), { 1.f, 1.f, 1.f });
-                }
-            }
-        }
-        for (auto& child : go->Children()) {
-            auto phys = child->GetComponentsByType<PhysicsCollider>();
-            if (phys.size() > 0) {
-                auto trans = child->GetWorldTransform();
-                trans.Scale = { 1.f, 1.f, 1.f };
-                auto mvp = m_projectionMatrix * viewMatrix * trans.TransformMatrix();
-                m_physicsWorld->debugDrawer->mvpMatrix = mvp;
-                btTransform dt;
-                dt.setIdentity();
-                for (auto collider : phys) {
-                    if (collider->ColliderFlags & PhysicsCollider::DRAW_COLLISION_SHAPE) {
-                        m_physicsWorld->DrawPhysicsShape(dt, collider->GetCollisionShape(), { 1.f, 1.f, 1.f });
-                    }
-                }
-            }
-        }
-    }
 }
 
 void Scene::Deserialize(const std::string& filepath)
@@ -317,7 +283,7 @@ void Scene::Deserialize(const std::string& filepath)
 
     size_t meshCount;
     ifs.read(CharPtr(&meshCount), sizeof(meshCount));
-    for (int i = 0; i < meshCount; ++i) {
+    for (uint i = 0; i < meshCount; ++i) {
         ConstructMesh(ifs, this);
     }
 
@@ -332,11 +298,16 @@ void Scene::InitializeManual()
     m_rootNode = make_unique<GameObject>("Root_Node");
     m_rootNode->SetScene(this);
 
-    //m_player = m_rootNode->AttachNewChild<CharacterController>();
-    m_player = m_rootNode->AttachNewChild<Camera>(Camera::CameraType::FLYING);
+    float ar = (float) m_windowWidth / (float)m_windowHeight;
+    m_player = m_rootNode->AttachNewChild<Camera>(Camera::CameraType::FLYING, 60.f, ar, 0.1f, 500.f);
     //m_player->AttachNewComponent<CapsuleCollider>("player_collider"s, Vector3(0.75f, 1.82f, 0.75f), m_physicsWorld.get());
     m_camera = m_player;
     m_camera->GetLocalTransform().Position = { 0.f, 0.f, 0.f };
+    //70, aspectRatio, 0.1f, 1000.0f
+//    m_camera->SetFov(70.f);
+//    m_camera->SetAspectRatio();
+//    m_camera->SetNearDistance(0.1f);
+//    m_camera->SetFarDistance(1000.0f);
     //m_camera->SetPhysicsWorld(m_physicsWorld.get());
 
     m_player->GetLocalTransform().Position = { 10.0f, 5.0f, 0.0f };
@@ -412,7 +383,7 @@ void Scene::InitializeManual()
     auto wallCollider = wall->AttachNewComponent<BoxCollider>("wall_0_collider", wallMesh->GetHalfExtents(), m_physicsWorld.get());
     wallCollider->Mass = 1.0f;
     wall->GetLocalTransform().Translate(0.0f, 25.0f, -20.0f);
-    wall->GetLocalTransform().Scale = {2.5f, 2.5f, 2.5f};
+    //wall->GetLocalTransform().Scale = {2.5f, 2.5f, 2.5f};
     //wallCollider->GetCollisionShape()->setLocalScaling({0.5f, 0.5f, 0.5f});
     //wallCollider->Serialize(serializer);
 
@@ -428,7 +399,7 @@ void Scene::InitializeManual()
 
     auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
     auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Box;
+    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Capsule;
     //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
     model->GetLocalTransform().Position = { 0.f, 2.f, -1.5f };
     //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
@@ -485,7 +456,9 @@ void Scene::InitializeManual()
 
 void Scene::Initialize()
 {
-
+    printf("GameObject: %d\n", sizeof(GameObject));
+    printf("std::vector<GameObject>: %d\n", sizeof(std::vector<GameObject>));
+    printf("std::vector<Component>: %d\n", sizeof(std::vector<Component>));
     srand(time(nullptr));
     m_physicsWorld = make_unique<PhysicsWorld>(this);
     m_physicsWorld->Initialize();
@@ -496,7 +469,8 @@ void Scene::Initialize()
 
     auto debugShader = m_shaderManager.CreateInstance<BasicShader>();
     debugShader->SetColor(Vector4(0.f, 1.f, 0.f, 1.0f));
-    m_physicsWorld->debugDrawer->debugShader = debugShader;
+    m_physicsWorld->debugDrawer->SetShader(debugShader);
+    m_physicsWorld->debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
     m_physicsWorld->debugDrawer->Initialize();
 
     InitializeManual();
@@ -597,8 +571,8 @@ GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_po
     Vector4 ray_start_ndc = {winx, winy, -1.f, 1.f};
     Vector4 ray_end_ndc = {winx, winy, 0.f, 1.f};
 
-    auto inverseView = GetCamera().GetViewMatrix();
-    auto inverseProj = m_projectionMatrix.Inverted();
+    auto inverseView = GetCamera().GetViewMatrix().Inverted();
+    auto inverseProj = GetCamera().GetProjectionMatrix().Inverted();
 
     auto ray_start_camera = inverseProj * ray_start_ndc;
     ray_start_camera /= ray_start_camera.w;
@@ -631,10 +605,7 @@ GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_po
         auto go = static_cast<GameObject*>(hit_object);
         if (go) {
             return go;
-        }
-
-        printf("hit: %s\n", go->GetName().c_str());
-
+        }    
     }
     return nullptr;
 }
@@ -656,6 +627,20 @@ void Scene::MouseSelectGameObject(int x, int y)
         }
         m_selected_game_object = go;
     }
+}
+
+void Scene::MouseMoveSelectedGameObject(int xrel, int yrel){
+    
+    float x = (float)xrel / 40;
+    float y = (float)yrel / 40;
+    if (m_selected_game_object){
+        if (auto collider = m_selected_game_object->GetComponentByType<PhysicsCollider>()){
+            if (collider->IsEnabled()){
+                collider->ToggleEnabled(false);
+            }
+        }
+        m_selected_game_object->GetLocalTransform().Translate(x, -y, 0.f);
+    }    
 }
 
 void Scene::ShootMouse(int x, int y)

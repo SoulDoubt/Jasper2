@@ -24,7 +24,7 @@ void PhysicsWorld::Initialize()
     m_collisionDispatcher = make_unique<btCollisionDispatcher>(m_collisionConfig.get());
     m_solver = make_unique<btSequentialImpulseConstraintSolver>();
     m_world = make_unique<btDiscreteDynamicsWorld>(m_collisionDispatcher.get(), m_broadphase.get(), m_solver.get(), m_collisionConfig.get());
-    m_world->setGravity( { 0.0f, -12.81f, 0.0f });
+    m_world->setGravity( { 0.0f, -9.81f, 0.0f });
     debugDrawer = make_unique<PhysicsDebugDrawer>(scene);
     debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     m_world->setDebugDrawer(debugDrawer.get());

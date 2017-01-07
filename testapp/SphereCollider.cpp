@@ -28,7 +28,7 @@ void SphereCollider::Awake()
 {
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
-    auto btTrans = trans.GetBtTransform();
+    auto btTrans = trans.AsBtTransform();
     float radius = 0.f;
     if (m_mesh) {
         m_halfExtents = m_mesh->GetHalfExtents();

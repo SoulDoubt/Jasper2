@@ -30,11 +30,13 @@ void SkyboxRenderer::Render()
 {
     SkyboxShader* shader = (SkyboxShader*)m_material->GetShader();
     const int shaderID = shader->ProgramID();
+    auto& camera = GetGameObject()->GetScene()->GetCamera();
+    
     shader->Bind();
 
     // we need the current view matrix and projection matrix of the scene
-    const auto projection = GetGameObject()->GetScene()->ProjectionMatrix();
-    const auto view = GetGameObject()->GetScene()->GetCamera().GetCubemapViewMatrix().Inverted();
+    const auto projection = camera.GetProjectionMatrix();
+    const auto view = camera.GetCubemapViewMatrix();
 
     //trix4 view;
     //view.SetToIdentity();

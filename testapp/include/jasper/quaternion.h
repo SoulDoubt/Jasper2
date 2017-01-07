@@ -222,8 +222,9 @@ inline float Dot(const Quaternion& a, const Quaternion& b)
     return (a.xyz().Dot(b.xyz())) + a.w * b.w;
 }
 
-inline Quaternion Conjugate(const Quaternion& q)
+inline Quaternion Conjugate(const Quaternion& qu)
 {
+    Quaternion q = Normalize(qu);
     Quaternion c(-q.xyz(), q.w);
     return c;
 }

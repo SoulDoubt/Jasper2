@@ -221,6 +221,7 @@ inline void Mesh::AddVertex(const Vertex& vertex)
     Tangents.push_back(vertex.Tangent);
     Bitangents.push_back(vertex.Bitangent);
     Positions.push_back(vertex.Position);
+    
 
 }
 

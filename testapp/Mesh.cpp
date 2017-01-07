@@ -14,6 +14,7 @@ Mesh::Mesh(const std::string& name) : Component(name)
 {
     Initialize();
     CalculateExtents();
+    Color = {0.f, 0.f, 0.f, 0.f};
 }
 
 

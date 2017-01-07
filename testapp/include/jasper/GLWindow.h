@@ -48,6 +48,7 @@ public:
     void GetGuiFontTexture();
     void DrawGui();
     bool DrawGameObjectGuiNode(GameObject* go);
+    bool DrawPropertyInspector();
     bool CreateAddGameObjectGui(GameObject* parent);
     bool CreateMaterialEditorGui(Material* material);
     void RenderGui(ImDrawData* draw_data);

@@ -48,6 +48,8 @@ bool MOUSE_MOVE = 0;
 
 bool SHOW_GUI = false;
 
+bool MOUSE_MOVE_GAME_OBJECT = false;
+
 
 GLWindow* g_glWindow;
 
@@ -211,12 +213,13 @@ void GLWindow::RunLoop()
 
 }
 
-GameObject* game_object_under_edit = nullptr;
+//GameObject* game_object_under_edit = nullptr;
 
 bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
 {
     if (ImGui::TreeNode(go->GetName().data())) {
-        game_object_under_edit = go;
+        m_scene->SetSelectedGameObject(go);
+        //game_object_under_edit = go;
         for (auto& child: go->Children()) {
             DrawGameObjectGuiNode(child.get());
         }
@@ -246,6 +249,16 @@ void GLWindow::DrawMainMenu()
     }
 }
 
+bool Jasper::GLWindow::DrawPropertyInspector()
+{
+    ImGui::Begin("Property Inspector");
+    if (auto go = m_scene->GetSelectedGameObject()){
+        go->ShowGui();
+    }
+    ImGui::End();
+    return false;
+}
+
 void GLWindow::DrawDebugWindow()
 {
     const Camera& camera = m_scene->GetCamera();
@@ -269,42 +282,12 @@ void GLWindow::DrawDebugWindow()
 void GLWindow::DrawGameObjectEditor()
 {
     ImGui::Begin("Game Object Hierarchy");
-    ImGui::Columns(2);
-
-    struct funcs {
-
-        static void ShowDetails(GameObject* go) {
-            ImGui::NextColumn();
-            go->ShowGui();
-            ImGui::NextColumn();
-        }
-
-        static void ShowGameObject(GameObject* go) {
-
-            const void* id = (const void*)go;
-            //ImGui::PushID(id);
-            ImGui::AlignFirstTextHeightToWidgets();
-            bool node_open = ImGui::TreeNode(id, go->GetName().data());
-            if (node_open) {
-                ShowDetails(go);
-                for (auto& child : go->Children()) {
-                    ShowGameObject(child.get());
-                }
-
-                ImGui::TreePop();
-            }
-        }
-
-
-    };
-
+    
     auto root = m_scene->GetRootNode();
-    funcs::ShowGameObject(root);
-
-
-
-    ImGui::Columns(1);
+    DrawGameObjectGuiNode(root);    
+    
     ImGui::End();
+    
 
 }
 
@@ -351,6 +334,8 @@ void GLWindow::DrawGui()
     if (ListBox("Materials", &material_list_selected, materialNames)) {
     }
     materials.GetCache()[material_list_selected].get()->ShowGui();
+    
+    DrawPropertyInspector();
 
     ImGui::End();
 
@@ -798,8 +783,11 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         if (evt.button.button == SDL_BUTTON_LEFT) {
             if (!SHOW_GUI) {
                 scene->ShootMouse(evt.button.x, evt.button.y);
-            } else {
+            } else {                
                 scene->MouseSelectGameObject(evt.button.x, evt.button.y);
+                if (scene->GetSelectedGameObject()){
+                    MOUSE_MOVE_GAME_OBJECT = true;
+                }
             }
 
         }
@@ -811,6 +799,11 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
             ROTATING_RIGHT = false;
             ROTATING_UP = false;
             ROTATING_DOWN = false;
+        }
+        if (evt.button.button == SDL_BUTTON_LEFT){
+            if (MOUSE_MOVE_GAME_OBJECT){
+                MOUSE_MOVE_GAME_OBJECT = false;
+            }
         }
         break;
     case SDL_MOUSEMOTION:
@@ -827,6 +820,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
             if (evt.motion.yrel > 0) {
                 RotateCameraY(scene, 0.1f, evt.motion.yrel * mouseSensitivity);
             }
+        }
+        else if (MOUSE_MOVE_GAME_OBJECT){
+            scene->MouseMoveSelectedGameObject(evt.motion.xrel, evt.motion.yrel);
         }
 
         break;
@@ -1012,3 +1008,4 @@ void RotateCameraY(Scene* scene, double deltaTime, float degrees)
 //}
 
 }
+

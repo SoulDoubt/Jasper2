@@ -68,8 +68,7 @@ public:
 	Transform& GetLocalTransform() {
 		return m_transform;
 	}
-
-	std::chrono::high_resolution_clock::time_point TimeAwakened;
+	
 
 	std::chrono::high_resolution_clock::time_point GetTimeAwakened() const {
 		return TimeAwakened;
@@ -91,7 +90,7 @@ public:
 
 	GameObject& AttachComponent(std::unique_ptr<Component> component);
 
-	std::unique_ptr<Component> DetachComponent(Component& copm);
+	std::unique_ptr<Component> DetachComponent(Component* comp);
 
 	GameObject& AttachChild(std::unique_ptr<GameObject> child);
 	GameObject& AttachNewChild(const std::string& name);
@@ -100,20 +99,23 @@ public:
 	std::unique_ptr<GameObject> DetachChild(const GameObject* child);
 
 
-	Component* FindComponentByName(std::string name);
-	GameObject* FindChildByName(std::string name);
+	Component* FindComponentByName(const std::string& name);
+	GameObject* FindChildByName(const std::string& name);
 	Component* GetComponentByID(int id);
 
 	void Enable() {
 		m_enabled = true;
 	}
+    
 	void Disable() {
 		m_enabled = false;
 	}
+    
 	bool IsEnabled() const {
 		return m_enabled;
 	}
-	void SetParemt(GameObject* parent);
+    
+	void SetParent(GameObject* parent);
 
 	template <typename T>
 	T* FindFirstComponentByType();
@@ -121,6 +123,7 @@ public:
 	Component* FindComponentByID(int id);
 
 	void SetScene(Scene* scene);
+    
 	Scene* GetScene() const;
 
 	template<typename T>
@@ -138,12 +141,11 @@ public:
 	template<typename T, typename... Args>
 	T* AttachNewChild(Args&&... args);
 
-	Event<float> UpdateEvent;
-
 	GameObject* GetParent() const {
 		return m_parent;
 	}
-
+    
+    std::chrono::high_resolution_clock::time_point TimeAwakened;
 
 private:
 	std::string m_name;
@@ -160,8 +162,9 @@ private:
 protected:
 	Scene* m_scene;
 	Transform m_transform;
-	bool m_isDestroyed = false;
-	bool m_isRenderable = false;
+	//bool m_isDestroyed = false;
+	//bool m_isRenderable = false;
+    
 	virtual void InitializeCurrent();
 	void InitializeChildren();
 	virtual void AwakeCurrent();
@@ -234,7 +237,7 @@ inline Transform GameObject::GetLocalTransform() const {
 	return m_transform;
 }
 
-inline void GameObject::SetParemt(GameObject* parent) {
+inline void GameObject::SetParent(GameObject* parent) {
 	m_parent = parent;
 }
 
@@ -292,14 +295,10 @@ T* GameObject::AttachNewChild(Args&&... args) {
 	static_assert(std::is_base_of<GameObject, T>::value, "Type Paramater must derive from GameObject.");
 
 	auto child = std::make_unique<T>(std::forward<Args>(args)...);
-	child->SetParemt(this);
+	child->SetParent(this);
 	child->SetScene(this->m_scene);
 	T* ret = child.get();
-	m_children.push_back(move(child));
-	//printf("Current Child Collection...\n");
-	//for (auto& ch : m_children){
-	//    printf("%s\n", ch->GetName().c_str());
-	//}
+	m_children.push_back(move(child));	
 	return ret;
 }
 

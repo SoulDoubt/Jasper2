@@ -208,9 +208,9 @@ void Shader::Destroy()
 }
 
 
-unsigned Shader::PositionAttributeLocation()
+int Shader::PositionAttributeLocation()
 {
-    if (m_positionsAttribute > 0) {
+    if (m_positionsAttribute > -1) {
         return m_positionsAttribute;
     } else {
         m_positionsAttribute = glGetAttribLocation(m_programID, "position");
@@ -218,9 +218,9 @@ unsigned Shader::PositionAttributeLocation()
     }
 }
 
-unsigned Shader::NormalAttributeLocation()
+int Shader::NormalAttributeLocation()
 {
-    if (m_normalsAttribute > 0) {
+    if (m_normalsAttribute > -1) {
         return m_normalsAttribute;
     } else {
         m_normalsAttribute = glGetAttribLocation(m_programID, "normal");
@@ -228,9 +228,9 @@ unsigned Shader::NormalAttributeLocation()
     }
 }
 
-unsigned Shader::TexCoordAttributeLocation()
+int Shader::TexCoordAttributeLocation()
 {
-    if (m_texCoordsAttribute > 0) {
+    if (m_texCoordsAttribute > -1) {
         return m_texCoordsAttribute;
     } else {
         m_texCoordsAttribute = glGetAttribLocation(ProgramID(), "texCoords");
@@ -238,9 +238,9 @@ unsigned Shader::TexCoordAttributeLocation()
     }
 }
 
-uint Shader::ColorsAttributeLocation()
+int Shader::ColorsAttributeLocation()
 {
-    if (m_colorsAttribute > 0) {
+    if (m_colorsAttribute > -1) {
         return m_colorsAttribute;
     } else {
         m_colorsAttribute = glGetAttribLocation(ProgramID(), "color");
@@ -250,12 +250,21 @@ uint Shader::ColorsAttributeLocation()
 
 int Shader::TangentAttributeLocation()
 {
-    if (m_tangentAttribute > 0) {
+    if (m_tangentAttribute > -1) {
         return m_tangentAttribute;
     } else {
         m_tangentAttribute = glGetAttribLocation(m_programID, "tangent");
         return m_tangentAttribute;
     }
+}
+
+int Shader::BitangentAttributeLocation(){
+   if (m_bitangentAttribute > -1) {
+        return m_bitangentAttribute;
+    } else {
+        m_bitangentAttribute = glGetAttribLocation(m_programID, "bitangent");
+        return m_bitangentAttribute;
+    } 
 }
 
 

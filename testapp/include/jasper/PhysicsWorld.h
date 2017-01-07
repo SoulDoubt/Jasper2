@@ -36,6 +36,10 @@ public:
     void DrawPhysicsShape(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color) {
         m_world->debugDrawObject(worldTransform, shape, color);
     }
+    
+    void DebugDrawWorld(){
+        m_world->debugDrawWorld();
+    }
 
     void RemoveRigidBody(btRigidBody* rb);
     void DeleteRigidBody(btRigidBody* rb);

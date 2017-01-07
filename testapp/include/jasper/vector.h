@@ -20,19 +20,20 @@
 namespace Jasper
 {
 
+
 struct Vector2 {
     float x, y;
 
     Vector2(float x, float y);
     Vector2() = default;
     std::string ToString() const;
-	float* AsFloatPtr() {
-		return &x;
-	}
+    float* AsFloatPtr() {
+        return &x;
+    }
 
-	const float* AsFloatPtr() const {
-		return &x;
-	}
+    const float* AsFloatPtr() const {
+        return &x;
+    }
 };
 
 inline Vector2::Vector2(float x, float y) : x(x), y(y)
@@ -123,8 +124,8 @@ struct Vector3 {
     const float* AsFloatPtr() const {
         return &x;
     }
-    
-    float* AsFloatPtr(){
+
+    float* AsFloatPtr() {
         return &x;
     }
 
@@ -184,6 +185,14 @@ inline Vector3& operator/=(Vector3& a, const Vector3& b)
     a.y /= b.y;
     a.z /= b.z;
     return a;
+}
+
+inline Vector3 operator/(const Vector3& a, const Vector3& b){
+    Vector3 r;
+    r.x = a.x / b.x;
+    r.y = a.y / b.y;
+    r.z = a.z / b.z;
+    return r;
 }
 
 inline Vector3& operator/=(Vector3& a, const float f)
@@ -441,9 +450,9 @@ public:
         return x * o.x + y * o.y + z * o.z + w * o.w;
     }
 
-	Vector3 Reflect(const Vector3& direction, const Vector3& normal) {
-		return direction - (2.0f * direction.Dot(normal)) * normal;
-	}
+    Vector3 Reflect(const Vector3& direction, const Vector3& normal) {
+        return direction - (2.0f * direction.Dot(normal)) * normal;
+    }
 
     float& operator[](int index) {
         return (&x)[index];
@@ -458,7 +467,7 @@ public:
     const float* AsFloatPtr() const {
         return &x;
     }
-    
+
     float* AsFloatPtr() {
         return &x;
     }
@@ -516,5 +525,19 @@ inline Vector4 Normalize(const Vector4& v)
     return v / v.Length();
 }
 
-}
+struct Plane {
+    Vector3 Normal;
+    float Distance;
+};
 
+struct Frustum {
+    Plane TopPlane;
+    Plane BottomPlane;
+    Plane LeftPlane;
+    Plane RightPlane;
+    Plane NearPlane;
+    Plane FarPlane;
+    
+};
+
+}

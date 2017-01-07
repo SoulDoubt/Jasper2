@@ -241,7 +241,7 @@ void CharacterController::UpdateVectors()
 	m_viewVector = -m_localZAxis;
 
 	if (m_collider)
-		m_collider->SetWorldTransform(m_transform.GetBtTransform());
+		m_collider->SetWorldTransform(m_transform.AsBtTransform());
 }
 
 

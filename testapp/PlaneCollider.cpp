@@ -28,7 +28,7 @@ void PlaneCollider::Awake()
 {
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
-    auto btTrans = trans.GetBtTransform();
+    auto btTrans = trans.AsBtTransform();
     m_collisionShape = make_unique<btStaticPlaneShape>(Normal.AsBtVector3(), Constant);
     m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
     btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), btVector3(0.f, -1.f, 0.f));

@@ -16,7 +16,7 @@ void CylinderCollider::Awake()
 
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
-    auto btTrans = trans.GetBtTransform();
+    auto btTrans = trans.AsBtTransform();
 
     float halfX = m_halfExtents.x;
     float halfY = m_halfExtents.y;

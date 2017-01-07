@@ -36,9 +36,9 @@ public:
 
     void Resize(int width, int height);
 
-    Matrix4& ProjectionMatrix() {
-        return m_projectionMatrix;
-    }
+//    Matrix4& ProjectionMatrix() {
+//        return m_projectionMatrix;
+//    }
 
     Matrix4& OrthographicMatrix() {
         return m_orthoMatrix;
@@ -118,6 +118,7 @@ public:
     GameObject* MousePickGameObject(int x, int y, Vector3& hit_point, Vector3& hit_normal);
     void MouseSelectGameObject(int x, int y);
     void ShootMouse(int x, int y);
+    void MouseMoveSelectedGameObject(int xrel, int yrel);
 
     //Material* GetMaterialByName(const std::string& name);
     //Mesh*     GetMeshByName(const std::string& name);
@@ -159,9 +160,9 @@ public:
     double UpdateFrameTime;
     double RendererFrameTime;
 
-    Matrix4 GetProjectionMatrix() const {
-        return m_projectionMatrix;
-    }
+//    Matrix4 GetProjectionMatrix() const {
+//        return m_projectionMatrix;
+//    }
     
     GameObject* GetSelectedGameObject() const {
         return m_selected_game_object;
@@ -178,7 +179,7 @@ private:
     
     PickRay m_pickRay;
 
-    Matrix4 m_projectionMatrix;
+    //Matrix4 m_projectionMatrix;
     Matrix4 m_orthoMatrix;
 
     Camera* m_camera;

@@ -26,7 +26,7 @@ void CapsuleCollider::Awake()
 {
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
-    auto btTrans = trans.GetBtTransform();
+    auto btTrans = trans.AsBtTransform();
 
     float halfX, halfY, halfZ;
     if (m_mesh != nullptr) {

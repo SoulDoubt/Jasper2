@@ -95,11 +95,12 @@ public:
     virtual void Destroy();
 
     // attribute lookups
-    virtual uint PositionAttributeLocation();
-    virtual uint NormalAttributeLocation();
-    virtual uint TexCoordAttributeLocation();
-    virtual uint ColorsAttributeLocation();
+    virtual int PositionAttributeLocation();
+    virtual int NormalAttributeLocation();
+    virtual int TexCoordAttributeLocation();
+    virtual int ColorsAttributeLocation();
     virtual int TangentAttributeLocation();
+    virtual int BitangentAttributeLocation();
 
     //
     virtual void SetModelViewMatrix(const Matrix4& mvm);
@@ -138,11 +139,12 @@ private:
 
 protected:
 
-    uint m_positionsAttribute = 0;
-    uint m_normalsAttribute = 0;
-    uint m_texCoordsAttribute = 0;
-    uint m_colorsAttribute = 0;
+    int m_positionsAttribute = -1;
+    int m_normalsAttribute = -1;
+    int m_texCoordsAttribute = -1;
+    int m_colorsAttribute = -1;
     int m_tangentAttribute = -1;
+    int m_bitangentAttribute = -1;
     Material* m_material;
     std::string m_name;
 
