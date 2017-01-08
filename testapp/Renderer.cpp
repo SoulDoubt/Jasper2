@@ -7,6 +7,7 @@
 #include "GLError.h"
 #include <algorithm>
 #include "BasicShader.h"
+#include "PhysicsCollider.h"
 
 #include "GBuffer.h"
 
@@ -68,21 +69,60 @@ void Renderer::SetMaterialUniforms(Material * material)
 
 void Renderer::CullGameObjects()
 {
-    
-    
-    for (auto& mr : m_renderers){
+    const Frustum& frustum = m_scene->GetCamera().GetFrustum();
+
+    m_renderersToRender.clear();
+    for (auto& mr : m_renderers) {
+        auto go = mr->GetGameObject();
         Mesh* mesh = mr->GetMesh();
-        Vector3 minExtents = mesh->GetMinExtents();
-        Vector3 maxExtents = mesh->GetMaxExtents();
-        Transform t = mr->GetGameObject()->GetWorldTransform();
-        minExtents = t * minExtents;
-        maxExtents = t * maxExtents;
-        
+        //if (mesh->GetName() == "wall_mesh") {
+        PhysicsCollider* c = go->GetComponentByType<PhysicsCollider>();
+        if (c) {
+            auto t = go->GetWorldTransform();
+            auto bt = t.AsBtTransform();
+            btVector3 min, max;
+            c->GetCollisionShape()->getAabb(bt, min, max);            
+            Vector3 half = {((max - min) * 0.5f)};
+            if (TestFrustum(frustum, t.Position, half)) {
+                m_renderersToRender.push_back(mr);
+            }
+        }
     }
-    
-    
+}
 
+bool Renderer::TestFrustum(const Frustum& frustum, const Vector3& position, const Vector3& half)
+{
+    uint ii;
+    Vector3 absHalf = AbsVal(half);
 
+    Vector3 planeToPoint = position - frustum.Vertices[0]; // Use near-clip-top-left point for point on first three planes
+    for( ii=0; ii<3; ii++ )
+    {
+        Vector3 normal      = frustum.Planes[ii].Normal;
+        Vector3 absNormal   = AbsVal(normal);
+        float  nDotC       = Dot( normal, planeToPoint );
+        if( nDotC > Dot( absNormal, absHalf ) )
+        {
+            return false;
+        }
+    }
+
+    planeToPoint = position - frustum.Vertices[6]; // Use near-clip-top-left point for point on first three planes
+    for( ii=3; ii<6; ii++ )
+    {
+        Vector3 normal      = frustum.Planes[ii].Normal;
+        Vector3 absNormal   = AbsVal(normal);
+        float  nDotC       = Dot( normal, planeToPoint );
+        if( nDotC > Dot( absNormal, absHalf ) )
+        {
+            return false;
+        }
+    }
+
+    // Tested all eight points against all six planes and none of the planes
+    // had all eight points outside.
+    return true;
+    
 }
 
 void Renderer::CreateShadowMapObjects()
@@ -115,13 +155,12 @@ void Renderer::RenderShadowMap()
 void Renderer::RenderScene()
 {
     static Material* previousMaterial = nullptr;
-    GLERRORCHECK;
 
     const auto projMatrix = m_scene->GetCamera().GetProjectionMatrix();
     const auto viewMatrix = m_scene->GetCamera().GetViewMatrix();
     CullGameObjects();
     previousMaterial = nullptr;
-    for (auto& mr : m_renderers) {
+    for (auto& mr : m_renderersToRender) {
 
         if (!mr->IsEnabled()) continue;
         if (!mr->IsVisible()) continue;
@@ -135,22 +174,18 @@ void Renderer::RenderScene()
             SetMaterialUniforms(material);
         }
 
-
+        Shader* shader = material->GetShader();
         const auto transform = mr->GetGameObject()->GetWorldTransform();
         const auto modelMatrix = transform.TransformMatrix();
         const auto mvpMatrix = projMatrix * viewMatrix * modelMatrix;
         const auto normMatrix = modelMatrix.NormalMatrix();
-        material->GetShader()->SetModelMatrix(modelMatrix);
-        material->GetShader()->SetModelViewProjectionMatrix(mvpMatrix);
-        material->GetShader()->SetNormalMatrix(normMatrix);
-        if (BasicShader* bs = dynamic_cast<BasicShader*>(material->GetShader())) {
-            bs->SetColor(mr->GetMesh()->Color);
-        }
+        shader->SetModelMatrix(modelMatrix);
+        shader->SetModelViewProjectionMatrix(mvpMatrix);
+        shader->SetNormalMatrix(normMatrix);
         mr->Render();
         if (material != previousMaterial) {
             material->Release();
         }
-
     }
 }
 

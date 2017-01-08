@@ -56,7 +56,7 @@ void Scene::Resize(int width, int height)
     printf("Resizing scene... %d x %d\n", width, height);
     m_windowWidth = width;
     m_windowHeight = height;
-    
+
     auto om = Matrix4();
 
     om.CreateOrthographicProjection(0.0f, m_windowWidth, m_windowHeight, 0.0f, 1.0f, -1.0f);
@@ -238,12 +238,12 @@ void Scene::DrawPickRay()
     auto viewMatrix = m_camera->GetViewMatrix();
     auto projMatrix = m_camera->GetProjectionMatrix();
     auto& dd = m_physicsWorld->debugDrawer;
-    
+
     auto rmvp = projMatrix * viewMatrix;
     dd->SetMatrix(rmvp);
     dd->GetShader()->Bind();
     //Vector4 col = {1.f, 0.f, 0.f, 1.f};
-    
+
     btVector3 st = m_pickRay.start.AsBtVector3();
     btVector3 ed = m_pickRay.end.AsBtVector3();
     dd->drawLine(st, ed, {1.f, 0.f, 0.f});
@@ -253,7 +253,7 @@ void Scene::DebugDrawPhysicsWorld()
 {
     auto viewMatrix = m_camera->GetViewMatrix();
     auto projMatrix = m_camera->GetProjectionMatrix();
-    auto& dd = m_physicsWorld->debugDrawer;    
+    auto& dd = m_physicsWorld->debugDrawer;
     dd->SetMatrix(projMatrix * viewMatrix);
     dd->Reset();
     m_physicsWorld->DebugDrawWorld();
@@ -323,13 +323,13 @@ void Scene::InitializeManual()
     skyboxMesh->Initialize();
     auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
     auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader, "skybox_material");
-    string posx = "../textures/darkskies/darkskies_lf.tga"s;
-    string negx = "../textures/darkskies/darkskies_ft.tga"s;
-    string posy = "../textures/darkskies/darkskies_up.tga"s;
-    string negy = "../textures/darkskies/darkskies_dn.tga"s;
-    string posz = "../textures/darkskies/darkskies_rt.tga"s;
-    string negz = "../textures/darkskies/darkskies_bk.tga"s;
-    skyboxMaterial->SetCubemapTextures(posx, negz, posy, negy, posz, negx);
+    string posx = "../textures/CloudyLightRays/CloudyLightRaysLeft2048.png"s;
+    string negx = "../textures/CloudyLightRays/CloudyLightRaysRight2048.png"s;
+    string posy = "../textures/CloudyLightRays/CloudyLightRaysUp2048.png"s;
+    string negy = "../textures/CloudyLightRays/CloudyLightRaysDown2048.png"s;
+    string posz = "../textures/CloudyLightRays/CloudyLightRaysFront2048.png"s;
+    string negz = "../textures/CloudyLightRays/CloudyLightRaysBack2048.png"s;
+    skyboxMaterial->SetCubemapTextures(posx, negx, posy, negy, posz, negz);
     skybox->AttachNewComponent<SkyboxRenderer>("skybox_renderer", skyboxMesh, skyboxMaterial);
 
     // create the Basic Shader Instance to render most objects
@@ -397,22 +397,60 @@ void Scene::InitializeManual()
     launcher2->GetLocalTransform().Translate(10.f, 2.f, 5.f);
     //launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
 
-    auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
-    auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Capsule;
-    //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
-    model->GetLocalTransform().Position = { 0.f, 2.f, -1.5f };
-    //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
-    mdl->Setup(this);
+//    auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
+//    auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
+//    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Capsule;
+//    //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
+//    model->GetLocalTransform().Position = { 0.f, 2.f, -1.5f };
+//    //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
+//    mdl->Setup(this);
+//    auto collider = model->GetComponentByType<PhysicsCollider>();
+//    if (collider) {
+//        collider->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
+//        //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
+//        collider->Mass = 10.f;
+//    }
+//
+//    auto model2 = m_rootNode->AttachNewChild<GameObject>("mathias_model2"s);
+//    auto mdl2 = model2->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
+//    mdl2->ColliderType = PHYSICS_COLLIDER_TYPE::Capsule;
+//    //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
+//    model2->GetLocalTransform().Position = { -2.f, 2.f, 1.5f };
+//    //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
+//    mdl2->Setup(this);
+//
+//    auto collider2 = model2->GetComponentByType<PhysicsCollider>();
+//    if (collider2) {
+//        collider2->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
+//        //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
+//        collider2->Mass = 10.f;
+//    }
 
-    auto collider = model->GetComponentByType<PhysicsCollider>();
-    if (collider) {
-        collider->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
-        //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
-        collider->Mass = 10.f;
+    float cx = 0;
+    float cz = 10;
+    float radius = 5;
+    for (int i = 0; i < 11; ++i) {
+        float a = DEG_TO_RAD(i * 30);
+        float ax = cx + radius * sinf(a);
+        float az = cz + radius * cosf(a);
+
+        auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s + to_string(i));
+        auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
+        mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Box;
+        //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
+        model->GetLocalTransform().Position = { ax, 2.0f, az };
+        //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
+        mdl->Setup(this);
+        auto collider = model->GetComponentByType<PhysicsCollider>();
+        if (collider) {
+            collider->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
+            //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
+            collider->Mass = 10.f;
+        }
+
     }
 
-//    auto teapot = m_rootNode->AttachNewChild<GameObject>("teapot"s);
+//    auto teapot = m_rootNode->AttachNewChild<GforameObject>("teapot"s);
 //    auto teapot_model = model->AttachNewComponent<Model>("teapot"s, "../models/teapot/teapot.obj"s, defaultShader, true, m_physicsWorld.get());
 //    teapot_model->ColliderType = PHYSICS_COLLIDER_TYPE::Box;
 //    teapot->GetLocalTransform().Scale = { 0.005f, 0.005f, 0.005f };
@@ -605,7 +643,7 @@ GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_po
         auto go = static_cast<GameObject*>(hit_object);
         if (go) {
             return go;
-        }    
+        }
     }
     return nullptr;
 }
@@ -629,18 +667,19 @@ void Scene::MouseSelectGameObject(int x, int y)
     }
 }
 
-void Scene::MouseMoveSelectedGameObject(int xrel, int yrel){
-    
+void Scene::MouseMoveSelectedGameObject(int xrel, int yrel)
+{
+
     float x = (float)xrel / 40;
     float y = (float)yrel / 40;
-    if (m_selected_game_object){
-        if (auto collider = m_selected_game_object->GetComponentByType<PhysicsCollider>()){
-            if (collider->IsEnabled()){
+    if (m_selected_game_object) {
+        if (auto collider = m_selected_game_object->GetComponentByType<PhysicsCollider>()) {
+            if (collider->IsEnabled()) {
                 collider->ToggleEnabled(false);
             }
         }
         m_selected_game_object->GetLocalTransform().Translate(x, -y, 0.f);
-    }    
+    }
 }
 
 void Scene::ShootMouse(int x, int y)
@@ -654,7 +693,7 @@ void Scene::ShootMouse(int x, int y)
             btVector3 offset = hit_point.AsBtVector3() - rb->getWorldTransform().getOrigin();
             rb->activate();
             rb->applyImpulse(-(hit_normal.AsBtVector3() * 100.f), offset);
-            
+
         }
     }
 }

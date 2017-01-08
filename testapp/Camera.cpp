@@ -121,7 +121,7 @@ void Camera::UpdateFrustum(){
     float near = GetNearDistance();
     float far = GetFarDistance();
     Vector3 right = Cross(up_vector, view_vector);
-
+    //up_vector = -up_vector;
     Vector3 frustum_verts[8];
 
     // Compute the position of the center of the near and far clip planes.
@@ -129,7 +129,7 @@ void Camera::UpdateFrustum(){
     Vector3 farCenter  = cam_position + view_vector * far;
 
     // Compute the width and height of the near and far clip planes
-    float tanHalfFov = tanf(0.5f*fov);
+    float tanHalfFov = tanf(0.5f*DEG_TO_RAD(fov));
     float halfNearWidth  = near * tanHalfFov;
     float halfNearHeight = halfNearWidth / aspect_ratio;
 
@@ -143,7 +143,6 @@ void Camera::UpdateFrustum(){
     Vector3 upFar       = up_vector    * halfFarHeight;
     Vector3 rightFar    = right * halfFarWidth;
         
-
     // Use the center positions and the up and right vectors
     // to compute the positions for the near and far clip plane vertices (four each)
     frustum_verts[0] = nearCenter + upNear - rightNear; // near top left
@@ -155,6 +154,8 @@ void Camera::UpdateFrustum(){
     frustum_verts[6] = farCenter  - upFar  + rightFar;  // far bottom right
     frustum_verts[7] = farCenter  - upFar  - rightFar;  // far bottom left
     
+    memcpy(m_frustum.Vertices, frustum_verts, 8 * sizeof(Vector3));
+    
     // Compute some of the frustum's edge vectors.  We will cross these
     // to get the normals for each of the six planes.
     Vector3 nearTop     = frustum_verts[1] - frustum_verts[0];
@@ -165,18 +166,18 @@ void Camera::UpdateFrustum(){
     Vector3 farBottom   = frustum_verts[7] - frustum_verts[6];
 
     //Vector3 frustum_plane_normals[6];    
-    m_frustum.NearPlane.Normal   = Cross(nearTop,     nearLeft).Normalized();
-    m_frustum.NearPlane.Distance = -Dot(m_frustum.NearPlane.Normal, frustum_verts[0]);
-    m_frustum.LeftPlane.Normal   = Cross(nearLeft,    topLeft).Normalized();
-    m_frustum.LeftPlane.Distance = -Dot(m_frustum.LeftPlane.Normal, frustum_verts[0]);
-    m_frustum.TopPlane.Normal    = Cross(topLeft,     nearTop).Normalized();
-    m_frustum.TopPlane.Distance = -Dot(m_frustum.TopPlane.Normal, frustum_verts[0]);
-    m_frustum.BottomPlane.Normal = Cross(farBottom,   bottomRight).Normalized();
-    m_frustum.BottomPlane.Distance = -Dot(m_frustum.BottomPlane.Normal, frustum_verts[6]);
-    m_frustum.RightPlane.Normal  = Cross(bottomRight, farRight).Normalized();
-    m_frustum.RightPlane.Distance = -Dot(m_frustum.RightPlane.Normal, frustum_verts[6]);
-    m_frustum.FarPlane.Normal    = Cross(farRight,    farBottom).Normalized();
-    m_frustum.FarPlane.Distance = -Dot(m_frustum.FarPlane.Normal, frustum_verts[6]);
+    m_frustum.Planes[0].Normal   = Cross(nearTop,     nearLeft).Normalized();
+    m_frustum.Planes[0].Distance = -Dot(m_frustum.Planes[0].Normal, frustum_verts[0]);
+    m_frustum.Planes[1].Normal   = Cross(nearLeft,    topLeft).Normalized();
+    m_frustum.Planes[1].Distance = -Dot(m_frustum.Planes[1].Normal, frustum_verts[0]);
+    m_frustum.Planes[2].Normal    = Cross(topLeft,     nearTop).Normalized();
+    m_frustum.Planes[2].Distance = -Dot(m_frustum.Planes[2].Normal, frustum_verts[0]);
+    m_frustum.Planes[3].Normal = Cross(farBottom,   bottomRight).Normalized();
+    m_frustum.Planes[3].Distance = -Dot(m_frustum.Planes[3].Normal, frustum_verts[6]);
+    m_frustum.Planes[4].Normal  = Cross(bottomRight, farRight).Normalized();
+    m_frustum.Planes[4].Distance = -Dot(m_frustum.Planes[4].Normal, frustum_verts[6]);
+    m_frustum.Planes[5].Normal    = Cross(farRight,    farBottom).Normalized();
+    m_frustum.Planes[5].Distance = -Dot(m_frustum.Planes[5].Normal, frustum_verts[6]);
     
 //    frustum_plane_normals[0] = Cross(nearTop,     nearLeft).Normalized();    // near clip plane
 //    frustum_plane_normals[1] = Cross(nearLeft,    topLeft).Normalized();     // left
@@ -202,35 +203,11 @@ Camera::~Camera()
 const Matrix4& Camera::GetViewMatrix() const
 {
     return m_viewMatrix;
-    //Transform t = Transform(m_position, m_orientation);
-    //Matrix4 vm = Matrix4::FromTransform(t);
-    
-
-#ifdef DEBUG_DRAW_PHYSICS
-
-    //Matrix4 pm = m_scene->ProjectionMatrix();
-    //Matrix4 mvp = pm * vm * vm;
-    //m_physicsWorld->debugDrawer->mvpMatrix = mvp;
-    //btTransform btt;
-    //btt.setIdentity();
-//	m_physicsWorld->DrawPhysicsShape(btt, m_collisionShape.get(), btVector3(1.0f, 0.0f, 0.0f));
-
-
-#endif
-
-
-
-    //m_rigidBody->getMotionState()->setWorldTransform(btt);
-    //printf("Camera Position: %.3f, %.3f, %.3f Direction: %.3f, %.3f, %.3f \r", pos.x(), pos.y(), pos.z(), m_viewVector.x, m_viewVector.y, m_viewVector.z);
-    //return vm.Inverted();
 }
 
 Matrix4 Camera::GetCubemapViewMatrix()
 {
-    // removes the translation components for skybox rendering
-    //Transform t = Transform(m_position, m_orientation);
-    //Matrix4 vm = Matrix4::FromTransform(t);
-    //Matrix4 vm = FromBtTransform(btt);
+    // removes the translation components for skybox rendering    
     Matrix4 vm = GetWorldTransform().TransformMatrix();
     vm.mat[0].w = 0.0f;
     vm.mat[1].w = 0.0f;

@@ -56,12 +56,14 @@ private:
     std::string m_directory;
     Shader* m_shader;
     std::vector<Mesh*> m_model_meshes;
+    std::vector<Material*> m_model_materials;
     bool m_enablePhysics = false;
     void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode, Scene* jScene);
     void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, Scene* jScene);
     PhysicsWorld* m_physicsWorld = nullptr;
-    ResourceManager<Mesh> m_meshManager;
-    ResourceManager<Material> m_materialManager;
+    int m_processedMeshCount = 0;
+    //ResourceManager<Mesh> m_meshManager;
+    //ResourceManager<Material> m_materialManager;
 	void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
 
     NON_COPYABLE(Model);

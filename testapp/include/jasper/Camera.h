@@ -39,9 +39,15 @@ public:
 
     const Matrix4& GetViewMatrix() const;
     Matrix4 GetCubemapViewMatrix();
+    
     Matrix4 GetProjectionMatrix() const {
         return m_projectionMatrix;
     }
+    
+    const Frustum& GetFrustum() const {
+        return m_frustum;
+    }
+    
     void Rotate(float pitch, float roll, float yaw);
     void Translate(float x, float y, float z);
     void Translate(const Vector3& vec);
@@ -106,8 +112,8 @@ private:
     static Vector3 WORLD_Y_AXIS;
     static Vector3 WORLD_Z_AXIS;
 
-    Quaternion m_orientation;
-    Vector3 m_position;
+    //Quaternion m_orientation;
+    //Vector3 m_position;
 
     Matrix4 m_projectionMatrix;
 

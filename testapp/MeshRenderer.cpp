@@ -186,7 +186,7 @@ void MeshRenderer::LateUpdate() {}
 void MeshRenderer::Render()
 {
 
-    GLERRORCHECK;
+    //GLERRORCHECK;
     GLint poly_mode[2];
     glGetIntegerv(GL_POLYGON_MODE, poly_mode);
     glBindVertexArray(m_vaoID);

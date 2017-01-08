@@ -187,7 +187,8 @@ inline Vector3& operator/=(Vector3& a, const Vector3& b)
     return a;
 }
 
-inline Vector3 operator/(const Vector3& a, const Vector3& b){
+inline Vector3 operator/(const Vector3& a, const Vector3& b)
+{
     Vector3 r;
     r.x = a.x / b.x;
     r.y = a.y / b.y;
@@ -323,6 +324,11 @@ inline Vector3 SmoothStep(const Vector3& a, const Vector3& b, const float pct)
 {
     float t = pct * pct * (3.0f - 2.0f * pct);
     return Lerp(a, b, t);
+}
+
+inline Vector3 AbsVal(const Vector3& v)
+{
+    return {fabs(v.x), fabs(v.y), fabs(v.z)};
 }
 
 inline std::string Vector3::ToString(int precision) const
@@ -531,13 +537,11 @@ struct Plane {
 };
 
 struct Frustum {
-    Plane TopPlane;
-    Plane BottomPlane;
-    Plane LeftPlane;
-    Plane RightPlane;
-    Plane NearPlane;
-    Plane FarPlane;
-    
+
+    Plane Planes[6];
+    Vector3 Vertices[8];
+    // Near = 0;
+    //
 };
 
 }

@@ -11,6 +11,7 @@ namespace Jasper
 class Shader;
 class Material;
 class MeshRenderer;
+class Mesh;
 
 class Renderer
 {
@@ -31,7 +32,7 @@ public:
 
 
     const size_t GetMeshRendererCount() const {
-        return m_renderers.size();
+        return m_renderersToRender.size();
     }
 
 private:
@@ -43,6 +44,7 @@ private:
     void SetFrameInvariants(Material* material);
     void SetMaterialUniforms(Material* material);
     void CullGameObjects();
+    bool TestFrustum(const Frustum& frustum, const Vector3& position, const Vector3& halfExtents);
 
     void CreateShadowMapObjects();
     void RenderShadowMap();
@@ -52,6 +54,7 @@ private:
 
     std::vector<GameObject*> m_renderObjects;
     std::vector<MeshRenderer*> m_renderers;
+    std::vector<MeshRenderer*> m_renderersToRender;
 
     Shader* m_currentShader = nullptr;
     Material* m_currentMaterial = nullptr;
