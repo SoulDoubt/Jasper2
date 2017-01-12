@@ -5,11 +5,13 @@
 #include "Scene.h"
 #include "Material.h"
 #include "GLError.h"
+#include "GLWindow.h"
 #include <algorithm>
 #include "BasicShader.h"
 #include "PhysicsCollider.h"
-
 #include "GBuffer.h"
+
+
 
 namespace Jasper
 {
@@ -31,14 +33,24 @@ void Renderer::Initialize()
     SortByMaterial();
     SortByTransparancy();
 
-    int i = 0;
+    m_lightingPassShader = (LightingPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
+    auto fsquadmat = m_scene->GetMaterialCache().CreateInstance<Material>(m_lightingPassShader, "fs_quad_mat");
+    m_fullScreenQuad = make_unique<Quad>("dl_pass_quad"s, Vector2(1.0, 1.0), Quad::AxisAlignment::XY);
+    m_fullScreenQuad->SetMaterial(fsquadmat);
+    m_fullScreenQuad->Initialize();
+    Quad* q = m_fullScreenQuad.get();
+    m_gBuffer = make_unique<GBuffer>();
+    m_gBuffer->Initialize(m_windowWidth, m_windowHeight);
+    m_geometryPassShader = m_scene->GetShaderCache().GetResourceByName("geometry_pass_shader"s);
+    m_forwardLitShader = m_scene->GetShaderCache().GetResourceByName("lit_shader");
+   
     // create a framebuffer for shadow mapping...
     //CreateShadowMapObjects();
 }
 
 void Renderer::SetFrameInvariants(Material* material)
 {
-    // ingariants accross all models include the
+    // invariants accross all models include the
     // projection matrix,
     // view matrix,
     // lights
@@ -61,10 +73,20 @@ void Renderer::SetFrameInvariants(Material* material)
     }
 }
 
+void SetGeometryPassFrameInvariants(Shader* shader)
+{
+
+}
+
 void Renderer::SetMaterialUniforms(Material * material)
 {
     Shader* shader = material->GetShader();
     shader->SetMaterialUniforms(material);
+}
+
+void Renderer::SetGeometryPassMaterialUniform(Material* material)
+{
+    m_geometryPassShader->SetMaterialUniforms(material);
 }
 
 void Renderer::CullGameObjects()
@@ -81,11 +103,13 @@ void Renderer::CullGameObjects()
             auto t = go->GetWorldTransform();
             auto bt = t.AsBtTransform();
             btVector3 min, max;
-            c->GetCollisionShape()->getAabb(bt, min, max);            
+            c->GetCollisionShape()->getAabb(bt, min, max);
             Vector3 half = {((max - min) * 0.5f)};
             if (TestFrustum(frustum, t.Position, half)) {
                 m_renderersToRender.push_back(mr);
             }
+        } else {
+            m_renderersToRender.push_back(mr);
         }
     }
 }
@@ -96,25 +120,21 @@ bool Renderer::TestFrustum(const Frustum& frustum, const Vector3& position, cons
     Vector3 absHalf = AbsVal(half);
 
     Vector3 planeToPoint = position - frustum.Vertices[0]; // Use near-clip-top-left point for point on first three planes
-    for( ii=0; ii<3; ii++ )
-    {
+    for( ii=0; ii<3; ii++ ) {
         Vector3 normal      = frustum.Planes[ii].Normal;
         Vector3 absNormal   = AbsVal(normal);
         float  nDotC       = Dot( normal, planeToPoint );
-        if( nDotC > Dot( absNormal, absHalf ) )
-        {
+        if( nDotC > Dot( absNormal, absHalf ) ) {
             return false;
         }
     }
 
     planeToPoint = position - frustum.Vertices[6]; // Use near-clip-top-left point for point on first three planes
-    for( ii=3; ii<6; ii++ )
-    {
+    for( ii=3; ii<6; ii++ ) {
         Vector3 normal      = frustum.Planes[ii].Normal;
         Vector3 absNormal   = AbsVal(normal);
         float  nDotC       = Dot( normal, planeToPoint );
-        if( nDotC > Dot( absNormal, absHalf ) )
-        {
+        if( nDotC > Dot( absNormal, absHalf ) ) {
             return false;
         }
     }
@@ -122,7 +142,7 @@ bool Renderer::TestFrustum(const Frustum& frustum, const Vector3& position, cons
     // Tested all eight points against all six planes and none of the planes
     // had all eight points outside.
     return true;
-    
+
 }
 
 void Renderer::CreateShadowMapObjects()
@@ -168,7 +188,8 @@ void Renderer::RenderScene()
         auto material = mr->GetMaterial();
 
         if (material != previousMaterial) {
-            previousMaterial = material;
+            previousMaterial = material;   
+            material->SetShader(m_forwardLitShader);
             material->Bind();
             SetFrameInvariants(material);
             SetMaterialUniforms(material);
@@ -187,6 +208,126 @@ void Renderer::RenderScene()
             material->Release();
         }
     }
+}
+
+void Renderer::RenderGeometryPass()
+{
+    static Material* previousMaterial = nullptr;
+
+    const auto projMatrix = m_scene->GetCamera().GetProjectionMatrix();
+    const auto viewMatrix = m_scene->GetCamera().GetViewMatrix();
+    CullGameObjects();
+    previousMaterial = nullptr;
+    m_gBuffer->BindForWriting();
+    glDepthMask(GL_TRUE);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    for (auto& mr : m_renderersToRender) {
+
+        if (!mr->IsEnabled()) continue;
+        if (!mr->IsVisible()) continue;
+
+        auto material = mr->GetMaterial();
+
+        if (material != previousMaterial) {
+            previousMaterial = material;
+            material->SetShader(m_geometryPassShader);
+            material->Bind();
+            SetFrameInvariants(material);
+            SetMaterialUniforms(material);
+        }
+
+
+        Shader* shader = material->GetShader();
+                        
+        const auto transform = mr->GetGameObject()->GetWorldTransform();
+        const auto modelMatrix = transform.TransformMatrix();
+        const auto mvpMatrix = projMatrix * viewMatrix * modelMatrix;
+        const auto normMatrix = modelMatrix.NormalMatrix();
+        shader->SetModelMatrix(modelMatrix);
+        shader->SetModelViewProjectionMatrix(mvpMatrix);
+        shader->SetNormalMatrix(normMatrix);
+        mr->Render();
+        if (material != previousMaterial) {
+            material->Release();
+        }
+    }    
+    
+    // When we get here the depth buffer is already populated and the stencil pass
+    // depends on it, but it does not write to it.
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    RenderDirectionalLightPass();
+
+    //GLint HalfWidth = (GLint)(m_windowWidth / 2.0f);
+    //GLint HalfHeight = (GLint)(m_windowHeight / 2.0f);
+    /*
+    m_gBuffer->BindForReading();
+    m_gBuffer->SetReadBuffer(GBUFFER_TEXTURE_TYPE_NORMAL);
+    glBlitFramebuffer(0, 0,
+                      m_windowWidth,
+                      m_windowHeight,
+                      0, 0,
+                      m_windowWidth,
+                      m_windowHeight,
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    GLERRORCHECK;
+    */
+}
+
+void Renderer::RenderDirectionalLightPass(){
+    // create a full screen quad to render
+    glEnable(GL_BLEND);
+   	glBlendEquation(GL_FUNC_ADD);
+   	glBlendFunc(GL_ONE, GL_ONE);
+
+    m_gBuffer->BindForReading();
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+    Material* material = m_fullScreenQuad->GetMaterial();
+    material->SetShader(m_lightingPassShader);
+    material->Bind();
+    GBuffer* gb = m_gBuffer.get();
+    const auto directionalLight = m_scene->GetGameObjectByName("d_light"s);
+    m_lightingPassShader->SetDirectionalLightUniforms((DirectionalLight*)directionalLight);
+    
+    glActiveTexture(GL_TEXTURE0);
+    m_lightingPassShader->SetActiveTexture(0);
+    glBindTexture(GL_TEXTURE_2D, m_gBuffer->gPosition);
+    
+    glActiveTexture(GL_TEXTURE1);
+    m_lightingPassShader->SetActiveTexture(1);
+    glBindTexture(GL_TEXTURE_2D, m_gBuffer->gDiffuse);
+    glActiveTexture(GL_TEXTURE2);
+    m_lightingPassShader->SetActiveTexture(2);
+    glBindTexture(GL_TEXTURE_2D, m_gBuffer->gNormal);
+    glActiveTexture(GL_TEXTURE3);
+    m_lightingPassShader->SetActiveTexture(3);    
+    glBindTexture(GL_TEXTURE_2D, m_gBuffer->gTexCoords);
+    glActiveTexture(GL_TEXTURE4);
+    m_lightingPassShader->SetActiveTexture(4);    
+    glBindTexture(GL_TEXTURE_2D, m_gBuffer->gSpecular);
+    int poly_mode[2];
+    glGetIntegerv(GL_POLYGON_MODE, poly_mode);
+    glBindVertexArray(m_fullScreenQuad->VaoID());
+    
+    glPolygonMode(GL_FRONT, GL_FILL);
+    glDrawElements(GL_TRIANGLES, m_fullScreenQuad->ElementCount(), GL_UNSIGNED_INT, 0);
+    glPolygonMode(GL_FRONT, poly_mode[0]);
+    GLERRORCHECK;
+    glBindVertexArray(0);
+    
+    material->Release();
+    
+    
 }
 
 

@@ -52,7 +52,7 @@ public:
 
 private:
 
-    unsigned m_bufferID;
+    uint m_bufferID;
     BufferType m_type;
     Usage m_usage;
 

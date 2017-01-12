@@ -3,6 +3,9 @@
 #include "Common.h"
 
 #include "GameObject.h"
+#include "GBuffer.h"
+#include "Shader.h"
+#include "Quad.h"
 
 
 namespace Jasper
@@ -26,6 +29,8 @@ public:
     void Destroy();
 
     void RenderScene();
+    void RenderGeometryPass();
+    void RenderDirectionalLightPass();
 
     void RegisterGameObject(GameObject* obj);
     void UnregisterGameObject(GameObject* obj);
@@ -42,12 +47,20 @@ private:
 	void SortByTransparancy();
     void ReleaseTextures();
     void SetFrameInvariants(Material* material);
+    void SetGeometryPassFrameInvariants(Shader* shader);
     void SetMaterialUniforms(Material* material);
+    void SetGeometryPassMaterialUniform(Material* material);
     void CullGameObjects();
     bool TestFrustum(const Frustum& frustum, const Vector3& position, const Vector3& halfExtents);
 
     void CreateShadowMapObjects();
     void RenderShadowMap();
+    
+    std::unique_ptr<GBuffer> m_gBuffer;
+    std::unique_ptr<Quad> m_fullScreenQuad;
+    Shader* m_geometryPassShader;
+    Shader* m_forwardLitShader;
+    LightingPassShader* m_lightingPassShader;
 
 
     Scene* m_scene;

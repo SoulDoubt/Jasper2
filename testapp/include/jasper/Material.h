@@ -75,6 +75,55 @@ private:
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
+    
+    void BindTextures(Shader* shader) {
+				
+		if (this->GetTextureNormalMap()) {
+			
+			int nl = glGetUniformLocation(shader->ProgramID(), "normalMap");
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_normal_map");		
+			glUniform1i(exists, 1);
+			if (nl > -1) {
+				glUniform1i(nl, 1);
+			}
+			glActiveTexture(GL_TEXTURE0 + 1);
+			m_normalMap->Bind();
+		}
+		else {
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_normal_map");
+			glUniform1i(exists, 0);
+			glActiveTexture(GL_TEXTURE0 + 1);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		if (this->GetTextureSpecularMap()) {
+			int sl = glGetUniformLocation(shader->ProgramID(), "specularMap");
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_specular_map");
+			glUniform1i(exists, 1);
+			if (sl > -1) {
+				glUniform1i(sl, 2);
+			}
+			glActiveTexture(GL_TEXTURE0 + 2);
+			m_specularMap->Bind();
+		}
+		else {
+			int exists = glGetUniformLocation(shader->ProgramID(), "has_specular_map");
+			glUniform1i(exists, 0);
+			glActiveTexture(GL_TEXTURE0 + 2);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		if (this->GetTextureDiffuseMap()) {
+			int dl = glGetUniformLocation(shader->ProgramID(), "colorMap");
+			if (dl > -1) {
+				glUniform1i(dl, 0);
+			}
+			glActiveTexture(GL_TEXTURE0 + 0);
+			m_texture->Bind();			
+		}
+		else {
+			glActiveTexture(GL_TEXTURE0 + 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	}
 
 	void ReleaseTextures() {
 		/*glActiveTexture(GL_TEXTURE0);
@@ -196,6 +245,10 @@ public:
 	Shader* GetShader() {
 		return m_shader;
 	}
+    
+    void SetShader(Shader* shader){
+        m_shader = shader;
+    }
 
 	std::string DiffuseTextureFilename() const {
 		return m_diffuseTextureFileName;
@@ -206,6 +259,18 @@ public:
 		this->BindTextures();
 		m_isBound = true;
 	}
+    
+    void Bind(Shader* shader){
+        shader->Bind();
+        this->BindTextures(shader);
+        m_isBound = true;
+    }
+    
+    void Release(Shader* shader){
+        shader->Release();
+        ReleaseTextures();
+        m_isBound = false;
+    }
 
 	void Release() {
 		m_shader->Release();

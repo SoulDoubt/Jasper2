@@ -50,6 +50,7 @@ void Cube::Initialize()
     } else {
         LoadStandardVerts();
     }
+    Mesh::Initialize();
 }
 
 void Cube::LoadCubemapVerts()

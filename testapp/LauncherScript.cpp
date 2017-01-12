@@ -58,30 +58,30 @@ void LauncherScript::LaunchTeapot()
     auto gameObject = GetGameObject();
     //printf("%s has %d children", gameObject->GetName().c_str(), gameObject->Children().size());
 
-    auto scene = gameObject->GetScene();
-    auto pw = scene->GetPhysicsWorld();
-    auto shader = scene->GetShaderByName("Lit_Shader");
-
-    const auto transform = gameObject->GetWorldTransform();
-    const auto rootNode = gameObject->GetScene()->GetRootNode();
-
-    GameObject* model = rootNode->AttachNewChild<GameObject>("teapot_model");
-    model->AttachNewComponent<Model>("teapot", "../models/teapot/teapot.obj", shader, true, pw);
-
-    model->SetLocalTransform(transform);
-    model->GetLocalTransform().UniformScale(0.2f);
-    auto collider = model->GetComponentByType<PhysicsCollider>();
-    collider->Mass = 1.0f;
-    collider->Restitution = 1.2f;
-    model->AttachNewComponent<DestroyScript>("Destroy_Script");
-    model->Awake();
-
-    scene->GetRenderer()->RegisterGameObject(model);
-
-    const btVector3 offset = {0.f, 0.f, 0.f};
-    collider->GetRigidBody()->applyForce(Force.AsBtVector3(), offset);
-
-    launch_count++;
+//    auto scene = gameObject->GetScene();
+//    auto pw = scene->GetPhysicsWorld();
+//    auto shader = scene->GetShaderByName("Lit_Shader");
+//
+//    const auto transform = gameObject->GetWorldTransform();
+//    const auto rootNode = gameObject->GetScene()->GetRootNode();
+//
+//    GameObject* model = rootNode->AttachNewChild<GameObject>("teapot_model");
+//    model->AttachNewComponent<Model>("teapot", "../models/teapot/teapot.obj", shader, true, pw);
+//
+//    model->SetLocalTransform(transform);
+//    model->GetLocalTransform().UniformScale(0.2f);
+//    auto collider = model->GetComponentByType<PhysicsCollider>();
+//    collider->Mass = 1.0f;
+//    collider->Restitution = 1.2f;
+//    model->AttachNewComponent<DestroyScript>("Destroy_Script");
+//    model->Awake();
+//
+//    scene->GetRenderer()->RegisterGameObject(model);
+//
+//    const btVector3 offset = {0.f, 0.f, 0.f};
+//    collider->GetRigidBody()->applyForce(Force.AsBtVector3(), offset);
+//
+//    launch_count++;
 }
 
 void LauncherScript::LaunchSphere()

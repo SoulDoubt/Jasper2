@@ -10,11 +10,11 @@ namespace Jasper
 
 using namespace std;
 
-//PhysicsCollider::PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
-//    :Component(std::move(name)), m_world(world), m_mesh(mesh)
-//{
-//    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
-//}
+PhysicsCollider::PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
+    :Component(std::move(name)), m_world(world), m_mesh(mesh)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
+}
 
 PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : Component(std::move(name)), m_world(world), m_halfExtents(halfExtents)
@@ -46,7 +46,7 @@ void PhysicsCollider::Destroy()
 
 void PhysicsCollider::Awake()
 {
-
+    
 }
 
 void PhysicsCollider::Start()

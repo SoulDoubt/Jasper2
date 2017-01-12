@@ -3,17 +3,26 @@
 #include "Shader.h"
 #include "GameObject.h"
 #include "GLError.h"
+#include "Material.h"
 #include <AssetSerializer.h>
+
+#include "ForsythIndexOptimizer.h"
 
 namespace Jasper
 {
 using namespace std;
 
 
-Mesh::Mesh(const std::string& name) : Component(name)
+Mesh::Mesh(const std::string& name) : Component(name),
+    m_vertexBuffer(GLBuffer::BufferType::VERTEX),
+    m_texCoordBuffer(GLBuffer::BufferType::VERTEX),
+    m_normalBuffer(GLBuffer::BufferType::VERTEX),
+    m_tangentBuffer(GLBuffer::BufferType::VERTEX),
+    m_bitangentBuffer(GLBuffer::BufferType::VERTEX),
+    m_indexBuffer(GLBuffer::BufferType::INDEX)
 {
-    Initialize();
-    CalculateExtents();
+    //Initialize();
+    //CalculateExtents();
     Color = {0.f, 0.f, 0.f, 0.f};
 }
 
@@ -23,19 +32,113 @@ Mesh::~Mesh()
     Destroy();
 }
 
-void Mesh::Initialize()
-{
-
+void Mesh::OptimizeIndices(){
+    uint16_t* oldIndices = new uint16_t[Indices.size()];
+    uint16_t* newIndices = new uint16_t[Indices.size()];
+    uint indexSize = Indices.size();
+    printf("Old Indices: \n");
+    for (uint j = 0; j < indexSize; ++j){
+        uint16_t idx = (uint16_t)Indices[j];
+        oldIndices[j] = idx;
+        //printf("%d, ", idx);
+    }
+    uint cacheSize = 64;
+    uint vertexCount = Positions.size();
+    Forsyth::OptimizeFaces(oldIndices, indexSize, vertexCount, newIndices, cacheSize);
+    Indices.clear();
+    Indices.reserve(indexSize);
+    printf("New Indices: \n");
+    for (uint j = 0; j < indexSize; j++){
+        uint newIdx = (uint)newIndices[j];        
+        Indices.push_back(newIdx);
+        //printf("%d, ", newIdx);
+    }    
+    delete[] oldIndices;
+    delete[] newIndices;
 }
 
-void Mesh::Serialize(std::ofstream& ofs) const {
-	using namespace AssetSerializer;
-	Component::Serialize(ofs);
-	auto mt = GetMeshType();
-	ofs.write(ConstCharPtr(&mt), sizeof(mt));
-	if (GetMeshType() == MeshType::Arbitrary) {
-		SerializeMesh(ofs, this);
-	}
+void Mesh::Initialize()
+{
+    GLERRORCHECK;
+    OptimizeIndices();
+
+    //m_mesh->Initialize();
+    // gather mesh data and create GL Buffers and such for future rendering...
+    assert(m_material);
+    //assert(m_mesh);
+
+    // create a VAO first
+    glGenVertexArrays(1, &m_vaoID);
+    glBindVertexArray(m_vaoID);
+    //GLERRORCHECK;
+
+    m_elementCount = this->Indices.size();
+    auto shader = m_material->GetShader();
+    const int positionLocation = shader->PositionAttributeLocation();
+    const int normalLocation = shader->NormalAttributeLocation();
+    const int texLocation = shader->TexCoordAttributeLocation();
+    const int tangentLocation = shader->TangentAttributeLocation();
+    const int bitangentLocation = shader->BitangentAttributeLocation();
+    const int colorLocation = shader->ColorsAttributeLocation();
+
+
+    m_vertexBuffer.Create();
+    m_vertexBuffer.Bind();
+    m_vertexBuffer.Allocate(Positions.data(), Positions.size() * sizeof(Vector3));
+    shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)0, 3, 0);
+    m_indexBuffer.Create();
+    m_indexBuffer.Bind();
+    m_indexBuffer.Allocate(Indices.data(), Indices.size() * sizeof(GLuint));
+    if (normalLocation > -1) {
+        m_normalBuffer.Create();
+        m_normalBuffer.Bind();
+        m_normalBuffer.Allocate(Normals.data(), Normals.size() * sizeof(Vector3));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)0, 3, 0);
+    }
+    if (texLocation > -1) {
+        m_texCoordBuffer.Create();
+        m_texCoordBuffer.Bind();
+        m_texCoordBuffer.Allocate(TexCoords.data(), TexCoords.size() * sizeof(Vector2));
+        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)0, 2, 0);
+    }
+    if (tangentLocation > -1) {
+        m_tangentBuffer.Create();
+        m_tangentBuffer.Bind();
+        m_tangentBuffer.Allocate(Tangents.data(), Tangents.size() * sizeof(Vector4));
+        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)0, 4, 0);
+    }
+    if (bitangentLocation > -1) {
+        m_bitangentBuffer.Create();
+        m_bitangentBuffer.Bind();
+        m_bitangentBuffer.Allocate(Bitangents.data(), Bitangents.size() * sizeof(Vector3));
+        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)0, 3, 0);
+    }
+    if (this->Color != Vector4(0.f, 0.f, 0.f, 0.f)) {
+        m_colorBuffer.Create();
+        int cc = Positions.size();
+        Vector4* colorData = new Vector4[cc];
+        for (int i = 0; i < cc; ++i) {
+            colorData[i] = Color;
+        }
+        m_colorBuffer.Bind();
+        m_colorBuffer.Allocate(colorData, cc * sizeof(Vector4));
+        delete[] colorData;
+        shader->SetAttributeArray(colorLocation, GL_FLOAT, 0, 4, 0);
+    }
+
+    glBindVertexArray(0);
+    GLERRORCHECK;
+}
+
+void Mesh::Serialize(std::ofstream& ofs) const
+{
+    using namespace AssetSerializer;
+    Component::Serialize(ofs);
+    auto mt = GetMeshType();
+    ofs.write(ConstCharPtr(&mt), sizeof(mt));
+    if (GetMeshType() == MeshType::Arbitrary) {
+        SerializeMesh(ofs, this);
+    }
 }
 
 void Mesh::Destroy()
@@ -48,6 +151,19 @@ void Mesh::Destroy()
     Tangents.clear();
     Bitangents.clear();
     Indices.clear();
+
+    m_vertexBuffer.Destroy();
+    m_indexBuffer.Destroy();
+    if (m_texCoordBuffer.IsCreated())
+        m_texCoordBuffer.Destroy();
+    if (m_normalBuffer.IsCreated())
+        m_normalBuffer.Destroy();
+    if (m_tangentBuffer.IsCreated())
+        m_tangentBuffer.Destroy();
+    if (m_bitangentBuffer.IsCreated())
+        m_bitangentBuffer.Destroy();
+    if (m_colorBuffer.IsCreated())
+        m_colorBuffer.Destroy();
     //Vertices.clear();
 }
 
@@ -68,7 +184,7 @@ void Mesh::CalculateFaceNormals()
         const auto& v1 = Positions[index0];
         const auto& v2 = Positions[index1];
         const auto& v3 = Positions[index2];
-		
+
         const auto& t1 = TexCoords[index0];
         const auto& t2 = TexCoords[index1];
         const auto& t3 = TexCoords[index2];
@@ -91,9 +207,9 @@ void Mesh::CalculateFaceNormals()
 
         const float r = 1.0F / (s1 * tt2 - s2 * tt1);
         const Vector3 sdir((tt2 * x1 - tt1 * x2) * r, (tt2 * y1 - tt1 * y2) * r,
-                     (tt2 * z1 - tt1 * z2) * r);
+                           (tt2 * z1 - tt1 * z2) * r);
         const Vector3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
-                     (s1 * z2 - s2 * z1) * r);
+                           (s1 * z2 - s2 * z1) * r);
 
         const Vector4 tangent = { sdir, 0.0f };
         const Vector3 bitangent = tdir;
@@ -155,7 +271,7 @@ void Mesh::CalculateExtents()
     m_Extents = Vector3(x, y, z);
     m_minExtents = Vector3(xmin, ymin, zmin);
     m_maxExtents = Vector3(xmax, ymax, zmax);
-  
+
 }
 
 } // namespace Jasper

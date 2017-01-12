@@ -1,5 +1,4 @@
-#ifndef _JASPER_MESH_H_
-#define _JASPER_MESH_H_
+#pragma once
 
 #include "Common.h"
 #include "Component.h"
@@ -73,7 +72,8 @@ struct Vertex {
 
 };
 
-enum class MeshType{
+enum class MeshType
+{
     Arbitrary,
     Cube,
     Sphere,
@@ -86,24 +86,74 @@ class Mesh : public Component
 {
     friend class Model;
 private:
+    uint m_vaoID;
+    int m_elementCount;
+    GLBuffer m_vertexBuffer;
+    GLBuffer m_texCoordBuffer;
+    GLBuffer m_normalBuffer;
+    GLBuffer m_tangentBuffer;
+    GLBuffer m_bitangentBuffer;
+    GLBuffer m_indexBuffer;
+    GLBuffer m_colorBuffer;
+
+    public:
+
+    void SetMaterial(Material* m){
+        m_material = m;
+    }
+    
+    int ElementCount() const {
+        return m_elementCount;
+    }
+
+    int VaoID() const {
+        return m_vaoID;
+    }
+
+    GLBuffer& VertexBuffer() {
+        return m_vertexBuffer;
+    }
+
+    GLBuffer& TexCoordBuffer() {
+        return m_texCoordBuffer;
+    }
+
+    GLBuffer& NormalBuffer() {
+        return m_normalBuffer;
+    }
+
+    GLBuffer& TangentBuffer() {
+        return m_tangentBuffer;
+    }
+
+    GLBuffer& BitangentBuffer() {
+        return m_bitangentBuffer;
+    }
+
+    GLBuffer& IndexBuffer() {
+        return m_indexBuffer;
+    }
+
+    GLBuffer& ColorBuffer() {
+        return m_colorBuffer;
+    }
 
 
-public:
 
-	struct VertexBoneWeight {
-		uint Index;
-		float Weight;
-	};
+    struct VertexBoneWeight {
+        uint Index;
+        float Weight;
+    };
 
-	struct BoneData {
+    struct BoneData {
 
-		std::string Name;
-		std::vector<VertexBoneWeight> Weights;
-		BoneData* Parent;
-		Transform BoneTransform;
-	};
+        std::string Name;
+        std::vector<VertexBoneWeight> Weights;
+        BoneData* Parent;
+        Transform BoneTransform;
+    };
 
-	std::vector<BoneData> Bones;
+    std::vector<BoneData> Bones;
     //Mesh();
     explicit Mesh(const std::string& name);
     virtual ~Mesh();
@@ -112,16 +162,16 @@ public:
     void Destroy() override;
 
     void FlipTextureCoords();
-    
+
     ComponentType GetComponentType() const override {
         return ComponentType::Mesh;
     }
-    
+
     virtual MeshType GetMeshType() const {
         return MeshType::Arbitrary;
     }
 
-	void Serialize(std::ofstream& ofs) const override;
+    void Serialize(std::ofstream& ofs) const override;
 
     std::vector<Vector3> Positions;
     std::vector<Vector3> Normals;
@@ -130,7 +180,7 @@ public:
     std::vector<Vector4> Tangents;
     std::vector<Vector3> Bitangents;
 
-	Vector4 Color;
+    Vector4 Color;
 
 
     void AddVertex(const Vertex& vertex);
@@ -150,8 +200,6 @@ public:
     Vector3 GetOrigin() const {
         return m_origin;
     }
-
-    //unsigned int VertexCount;
 
     void SetReverseWinding(bool r) {
         m_reverseWinding = r;
@@ -194,13 +242,20 @@ public:
     std::vector<uint> Indices;
 
     void CalculateFaceNormals();
+    void CalculateExtents();
+    
+    Material* GetMaterial() const {
+        return m_material;
+    }
+    
+    void OptimizeIndices();
 
 protected:
 
     int renderer_count = 0;
 
 
-    void CalculateExtents();
+    
 
     bool m_reverseWinding = false;
 
@@ -221,7 +276,7 @@ inline void Mesh::AddVertex(const Vertex& vertex)
     Tangents.push_back(vertex.Tangent);
     Bitangents.push_back(vertex.Bitangent);
     Positions.push_back(vertex.Position);
-    
+
 
 }
 
@@ -239,5 +294,3 @@ inline void Mesh::ReverseWinding()
 }
 
 } // namespace Jasper
-
-#endif // _MESH_H_

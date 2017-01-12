@@ -25,38 +25,115 @@ namespace Jasper
 
 using namespace std;
 
-Model::Model(const std::string& name, const std::string& filename, Shader* shader, bool enablePhysics, PhysicsWorld* physicsWorld)
-    :Component(name), m_filename(filename), m_shader(shader), m_enablePhysics(enablePhysics), m_physicsWorld(physicsWorld)
+ModelLoader::ModelLoader(Scene* scene, Shader* shader)
+    : m_scene(scene), m_shader(shader)
 {
 
 }
 
 
-Model::~Model()
+ModelLoader::~ModelLoader()
 {
 
 }
 
-void Model::Setup(Scene* jScene)
+std::unique_ptr<PhysicsCollider> GenerateSinglePhysicsCollider(ModelData* md, Scene* scene, PHYSICS_COLLIDER_TYPE type)
 {
+    Vector3 MaxExtents = { -100000.0f, -1000000.0f, -1000000.0f };
+    Vector3 MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
+    for (auto m : md->GetMeshes()) {
+        //int TriCount += m->Indices.size() / 3;
+        //this->VertCount += m->Positions.size();
+        if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
+        if (m->GetMaxExtents().y > MaxExtents.y) MaxExtents.y = m->GetMaxExtents().y;
+        if (m->GetMaxExtents().z > MaxExtents.z) MaxExtents.z = m->GetMaxExtents().z;
+
+        if (m->GetMinExtents().x < MinExtents.x) MinExtents.x = m->GetMinExtents().x;
+        if (m->GetMinExtents().y < MinExtents.y) MinExtents.y = m->GetMinExtents().y;
+        if (m->GetMinExtents().z < MinExtents.z) MinExtents.z = m->GetMinExtents().z;
+    }
+    Vector3 hes = { (MaxExtents.x - MinExtents.x) / 2, (MaxExtents.y - MinExtents.y) / 2, (MaxExtents.z - MinExtents.z) / 2 };
+    unique_ptr<PhysicsCollider> collider = nullptr;
+    switch (type) {
+    case PHYSICS_COLLIDER_TYPE::Box:
+        collider = make_unique<BoxCollider>(md->GetName() + "_Collider_", hes, scene->GetPhysicsWorld());
+        break;
+    case PHYSICS_COLLIDER_TYPE::Capsule:
+        collider = make_unique<CapsuleCollider>(md->GetName() + "_Collider_", hes, scene->GetPhysicsWorld());
+        break;
+    case PHYSICS_COLLIDER_TYPE::Sphere:
+        collider = make_unique<SphereCollider>(md->GetName() + "_Collider_", hes, scene->GetPhysicsWorld());
+        break;
+    case PHYSICS_COLLIDER_TYPE::Cylinder:
+        collider = make_unique<CylinderCollider>(md->GetName() + "_Collider_", hes, scene->GetPhysicsWorld());
+        break;
+    case PHYSICS_COLLIDER_TYPE::ConvexHull: {
+        //ConvexHullCollider* cvx = GetGameObject()->AttachNewComponent<ConvexHullCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
+        //cvx->InitFromMeshes(meshes);
+        //collider = cvx;
+        break;
+    }
+    case PHYSICS_COLLIDER_TYPE::Compound: {
+//        vector<unique_ptr<btConvexHullShape>> hulls;
+//        for (auto m : meshes) {
+//            ConvexDecompose(m, hulls, jScene);
+//        }
+//        printf("Created %d convex hulls in model.\n", (int)hulls.size());
+//        CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, hulls, m_physicsWorld);
+//
+//
+//        collider = cmp;
+        break;
+    }
+    }
+    if (collider) {
+        collider->Mass = 10.f;
+        collider->Restitution = 0.56f;
+        collider->Friction = 0.34f;
+    }
+    return move(collider);
+}
+
+
+
+std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name, const string& modelName, bool generateCollider, bool splitColliders)
+{
+    auto go = make_unique<GameObject>(name);
+    auto modeldata = m_scene->GetModelCache().GetResourceByName(modelName);
+    if (modeldata) {
+        for (const auto mesh : modeldata->GetMeshes()) {
+            auto mat = mesh->GetMaterial();
+            go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
+        }
+        if (generateCollider) {
+            unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
+            go->AttachComponent(move(collider));
+        }
+    }
+    return move(go);
+}
+
+void ModelLoader::LoadModel(const std::string& filename, const std::string& name)
+{
+    m_name = name;
     Assimp::Importer importer;
-    printf("Loading model: %s\n", m_filename.c_str());
-    const aiScene* scene = importer.ReadFile(m_filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs);
+    printf("Loading model: %s\n", filename.c_str());
+    const aiScene* scene = importer.ReadFile(filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         printf("aiScene was corrupt in model load.\n");
         return;
     }
+    string directory = filename.substr(0, filename.find_last_of("/"));
 
-    m_directory = m_filename.substr(0, m_filename.find_last_of("/"));
 
-    ProcessAiSceneNode(scene, scene->mRootNode, jScene);
+    ProcessAiSceneNode(scene, scene->mRootNode, directory);
 
     //auto meshes = this->GetComponentsByType<Mesh>();
     auto& meshes = m_model_meshes;
     size_t sz = meshes.size();
-    printf("\nLoaded %d meshes in model: %s", sz, this->GetName().c_str());
+    printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());
 
     MaxExtents = { -100000.0f, -1000000.0f, -1000000.0f };
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
@@ -71,8 +148,6 @@ void Model::Setup(Scene* jScene)
         if (m->GetMinExtents().x < MinExtents.x) MinExtents.x = m->GetMinExtents().x;
         if (m->GetMinExtents().y < MinExtents.y) MinExtents.y = m->GetMinExtents().y;
         if (m->GetMinExtents().z < MinExtents.z) MinExtents.z = m->GetMinExtents().z;
-
-
     }
 
     Vector3 localOrigin = { (MinExtents.x + MaxExtents.x) / 2.f, (MinExtents.y + MaxExtents.y) / 2.f , (MinExtents.z + MaxExtents.z) / 2.f };
@@ -86,55 +161,22 @@ void Model::Setup(Scene* jScene)
 
         }
     }
-    if (m_enablePhysics) {
-        Vector3 hes = { (MaxExtents.x - MinExtents.x) / 2, (MaxExtents.y - MinExtents.y) / 2, (MaxExtents.z - MinExtents.z) / 2 };
-        PhysicsCollider* collider = nullptr;
-        switch (this->ColliderType) {
-        case PHYSICS_COLLIDER_TYPE::Box:
-            collider = GetGameObject()->AttachNewComponent<BoxCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
-            break;
-        case PHYSICS_COLLIDER_TYPE::Capsule:
-            collider = GetGameObject()->AttachNewComponent<CapsuleCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
-            break;
-        case PHYSICS_COLLIDER_TYPE::Sphere:
-            collider = GetGameObject()->AttachNewComponent<SphereCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
-            break;
-        case PHYSICS_COLLIDER_TYPE::Cylinder:
-            collider = GetGameObject()->AttachNewComponent<CylinderCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
-            break;
-        case PHYSICS_COLLIDER_TYPE::ConvexHull: {
-            ConvexHullCollider* cvx = GetGameObject()->AttachNewComponent<ConvexHullCollider>(this->GetName() + "_Collider_", hes, m_physicsWorld);
-            cvx->InitFromMeshes(meshes);
-            collider = cvx;
-            break;
-        }
-        case PHYSICS_COLLIDER_TYPE::Compound: {
-            vector<unique_ptr<btConvexHullShape>> hulls;
-            for (auto m : meshes) {
-                ConvexDecompose(m, hulls, jScene);
-            }
-            printf("Created %d convex hulls in model.\n", (int)hulls.size());
-            CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, hulls, m_physicsWorld);
-
-
-            collider = cmp;
-            break;
-        }
-        }
-        if (collider) {
-            collider->Mass = this->Mass;
-            collider->Restitution = this->Restitution;
-            collider->Friction = this->Friction;
-        }
-    }
+//    if (m_enablePhysics) {
+//
 
 
     int i = 0;
+    auto md = m_scene->GetModelCache().CreateInstance<ModelData>(m_name);
     for (auto& mesh : m_model_meshes) {
+        md->AddMesh(mesh);
+        md->AddMaterial(mesh->GetMaterial());
+        //modelData.push_back(mesh);
+        //modelData.push_back(mesh->GetMaterial());
+        //mesh->Initialize();
         //Vector3 meshOrigin = { (mesh->GetMinExtents().x + mesh->GetMaxExtents().x) / 2.f, (mesh->GetMinExtents().y + mesh->GetMaxExtents().y) / 2.f , (mesh->GetMinExtents().z + mesh->GetMaxExtents().z) / 2.f };
         //auto child = make_unique<GameObject>("child_" + std::to_string(i));
         //child->GetLocalTransform().Position = meshOrigin;
-        GetGameObject()->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer" + to_string(i), mesh, mesh->m_material);
+        //GetGameObject()->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer" + to_string(i), mesh, mesh->m_material);
         //this->AttachChild(move(child));
         i++;
     }
@@ -143,22 +185,22 @@ void Model::Setup(Scene* jScene)
     //printf("\nModel Contains %d Vertices and %d Triangles and %d Materials.", VertCount, TriCount, m_materialManager.GetCache().size());
 
 }
+//
+//void ModelLoader::Initialize()
+//{
+//
+//
+//}
 
-void Model::Initialize()
-{
-
-
-}
-
-void Model::ProcessAiSceneNode(const aiScene* scene, aiNode* node, Scene* jScene)
+void ModelLoader::ProcessAiSceneNode(const aiScene* scene, aiNode* node, const string& directory)
 {
     for (uint i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        ProcessAiMesh(mesh, scene, jScene);
+        ProcessAiMesh(mesh, scene, directory);
     }
 
     for (uint i = 0; i < node->mNumChildren; i++) {
-        ProcessAiSceneNode(scene, node->mChildren[i], jScene);
+        ProcessAiSceneNode(scene, node->mChildren[i], directory);
     }
 
 
@@ -170,7 +212,7 @@ aiNode* FindAiNode(aiNode* root, string name)
     if (string(root->mName.data) == name) {
         return root;
     }
-    for (int i = 0; i < root->mNumChildren; ++i) {
+    for (uint i = 0; i < root->mNumChildren; ++i) {
         auto t = FindAiNode(root->mChildren[i], name);
         if (t) {
             return t;
@@ -180,7 +222,7 @@ aiNode* FindAiNode(aiNode* root, string name)
 
 }
 
-void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jScene)
+void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, const string& directory)
 {
     Mesh* m;
     static int num = 0;
@@ -191,19 +233,19 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jSc
         if (ainame != "defaultobject") {
             meshName = ainame;
         } else {
-            meshName = GetName() + "_mesh_" + to_string(m_processedMeshCount);
+            meshName = m_name + "_mesh_" + to_string(m_processedMeshCount);
         }
     } else {
-        meshName = GetName() + "_mesh_" + to_string(m_processedMeshCount);
+        meshName = m_name + "_mesh_" + to_string(m_processedMeshCount);
     }
     num++;
-    Mesh* cachedMesh = jScene->GetMeshCache().GetResourceByName(meshName);
+    Mesh* cachedMesh = m_scene->GetMeshCache().GetResourceByName(meshName);
     if (cachedMesh) {
         m_model_meshes.push_back(cachedMesh);
         m = cachedMesh;
     } else {
 
-        m = jScene->GetMeshCache().CreateInstance<Mesh>(meshName);
+        m = m_scene->GetMeshCache().CreateInstance<Mesh>(meshName);
         //auto m = this->AttachNewComponent<Mesh>();
         m->Positions.reserve(aiMesh->mNumVertices);
         m->Normals.reserve(aiMesh->mNumVertices);
@@ -296,12 +338,12 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jSc
         aiString matName;
         mat->Get(AI_MATKEY_NAME, matName);
         printf("Found Material...%s\n", matName.C_Str());
-        Material* cachedMaterial = jScene->GetMaterialCache().GetResourceByName(string(matName.data));
+        Material* cachedMaterial = m_scene->GetMaterialCache().GetResourceByName(string(matName.data));
         if (cachedMaterial) {
             m_model_materials.push_back(cachedMaterial);
             myMaterial = cachedMaterial;
         } else {
-            myMaterial = jScene->GetMaterialCache().CreateInstance<Material>(m_shader, matName.C_Str());
+            myMaterial = m_scene->GetMaterialCache().CreateInstance<Material>(m_shader, matName.C_Str());
             aiString texString;
             mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &texString);
             string textureFileName = string(texString.C_Str());
@@ -322,28 +364,28 @@ void Model::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, Scene* jSc
             myMaterial->Specular = Vector3(specular.r, specular.g, specular.b);
             myMaterial->Shine = shine / 4.0f;
             if (texString.length > 0) {
-                string texturePath = m_directory + "/" + textureFileName;
+                string texturePath = directory + "/" + textureFileName;
                 myMaterial->SetTextureDiffuse(texturePath);
             }
             // try to load a normal map
             texString.Clear();
             mat->GetTexture(aiTextureType::aiTextureType_NORMALS, 0, &texString);
             if (texString.length > 0) {
-                myMaterial->SetTextureNormalMap(m_directory + "/" + texString.C_Str());
+                myMaterial->SetTextureNormalMap(directory + "/" + texString.C_Str());
             } else {
                 texString.Clear();
                 mat->GetTexture(aiTextureType::aiTextureType_HEIGHT, 0, &texString);
                 if (texString.length > 0) {
-                    myMaterial->SetTextureNormalMap(m_directory + "/" + texString.C_Str());
+                    myMaterial->SetTextureNormalMap(directory + "/" + texString.C_Str());
                 }
             }
             texString.Clear();
             mat->GetTexture(aiTextureType::aiTextureType_SPECULAR, 0, &texString);
             if (texString.length > 0) {
 
-                myMaterial->SetTextureSpecularMap(m_directory + "/" + texString.C_Str());
+                myMaterial->SetTextureSpecularMap(directory + "/" + texString.C_Str());
             }
-            m->m_material= (myMaterial);
+            m->SetMaterial(myMaterial);
         }
 
     }
@@ -380,7 +422,7 @@ public:
     };
 };
 
-void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene)
+void ModelLoader::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene)
 {
     using namespace VHACD;
     MyCallback mcallback;
@@ -446,8 +488,8 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
             }
 
 
-            auto go = GetGameObject();
-            go->AttachNewComponent<MeshRenderer>("ch_renderer_" + to_string(p), testMesh, mat);
+            //auto go = GetGameObject();
+            //go->AttachNewComponent<MeshRenderer>("ch_renderer_" + to_string(p), testMesh, mat);
 
 
 
@@ -467,7 +509,7 @@ void Model::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHull
 
 }
 
-void Model::CalculateHalfExtents()
+void ModelLoader::CalculateHalfExtents()
 {
     float minx, miny, minz;
     minx = miny = minz = 1000000.f;
@@ -486,25 +528,25 @@ void Model::CalculateHalfExtents()
     this->HalfExtents = Vector3();
 }
 
-void Model::Destroy()
+void ModelLoader::Destroy()
 {
     //m_materialManager.Clear();
     //m_meshManager.Clear();
-    Component::Destroy();
+    //Component::Destroy();
 }
 
-void Model::Awake()
-{
-    Initialize();
-    Component::Awake();
-}
+//void ModelLoader::Awake()
+//{
+//    //Initialize();
+//    //Component::Awake();
+//}
+//
+//void ModelLoader::Update(float dt)
+//{
+//    //Component::Update(dt);
+//}
 
-void Model::Update(float dt)
-{
-    Component::Update(dt);
-}
-
-void Model::SaveToAssetFile(const std::string& filename)
+void ModelLoader::SaveToAssetFile(const std::string& filename)
 {
 
 //    auto& meshes = m_meshManager.GetCache();
@@ -525,53 +567,54 @@ void Model::SaveToAssetFile(const std::string& filename)
 //
 //}
 //
-//void Model::OutputMeshData()
-//{
-//    ofstream ofs;
-//    ofs.open("mesh_data.txt", ios::out);
-//
-//    auto& meshes = m_meshManager.GetCache();
-//    int numMeshes = meshes.size();
-//
-//    for (auto& mesh : meshes) {
-//        ofs << "// Outputting Mesh data for: " << GetName() << "\n";
-//        ofs << "// Position Data:" << "\n";
-//        ofs << "Positions.reserve(" << std::to_string(mesh->Positions.size()) << ");\n";
-//        for (const auto& position : mesh->Positions) {
-//            ofs << "Positions.push_back(Vector3" << position.ToString() << ");\n";
-//        }
-//        ofs << "// TexCoord Data:" << "\n";
-//        ofs << "TexCoords.reserve(" << std::to_string(mesh->TexCoords.size()) << ");\n";
-//        for (const auto& tex : mesh->TexCoords) {
-//            ofs << "TexCoords.push_back(Vector2" << tex.ToString() << ");\n";
-//        }
-//
-//        ofs << "// Normal Data:" << "\n";
-//        ofs << "Normals.reserve(" << std::to_string(mesh->Normals.size()) << ");\n";
-//        for (const auto& n : mesh->Normals) {
-//            ofs << "Normals.push_back(Vector3" << n.ToString() << ");\n";
-//        }
-//
-//        ofs << "// Tangent Data:" << "\n";
-//        ofs << "Tangents.reserve(" << std::to_string(mesh->Tangents.size()) << ");\n";
-//        for (const auto& n : mesh->Tangents) {
-//            ofs << "Tangents.push_back(Vector4" << n.ToString() << ");\n";
-//        }
-//
-//        ofs << "// BiTangent Data:" << "\n";
-//        ofs << "Bitangents.reserve(" << std::to_string(mesh->Bitangents.size()) << ");\n";
-//        for (const auto& n : mesh->Bitangents) {
-//            ofs << "Bitangents.push_back(Vector3" << n.ToString() << ");\n";
-//        }
-//
-//        ofs << "// Index Data:" << "\n";
-//        ofs << "Indices.reserve(" << std::to_string(mesh->Indices.size()) << ");\n";
-//        for (const auto& idx : mesh->Indices) {
-//            ofs << "Indices.push_back(" << std::to_string(idx) << ");\n";
-//        }
-//    }
-//
-//    ofs.close();
+}
+
+void ModelLoader::OutputMeshData(const string& filename)
+{
+    ofstream ofs;
+    ofs.open(filename.c_str(), ios::out);
+
+    int numMeshes = m_model_meshes.size();
+
+    for (auto& mesh : m_model_meshes) {
+        ofs << "// Outputting Mesh data for: " << m_name << "\n";
+        ofs << "// Position Data:" << "\n";
+        ofs << "Positions.reserve(" << std::to_string(mesh->Positions.size()) << ");\n";
+        for (const auto& position : mesh->Positions) {
+            ofs << "Positions.push_back(Vector3" << position.ToString() << ");\n";
+        }
+        ofs << "// TexCoord Data:" << "\n";
+        ofs << "TexCoords.reserve(" << std::to_string(mesh->TexCoords.size()) << ");\n";
+        for (const auto& tex : mesh->TexCoords) {
+            ofs << "TexCoords.push_back(Vector2" << tex.ToString() << ");\n";
+        }
+
+        ofs << "// Normal Data:" << "\n";
+        ofs << "Normals.reserve(" << std::to_string(mesh->Normals.size()) << ");\n";
+        for (const auto& n : mesh->Normals) {
+            ofs << "Normals.push_back(Vector3" << n.ToString() << ");\n";
+        }
+
+        ofs << "// Tangent Data:" << "\n";
+        ofs << "Tangents.reserve(" << std::to_string(mesh->Tangents.size()) << ");\n";
+        for (const auto& n : mesh->Tangents) {
+            ofs << "Tangents.push_back(Vector4" << n.ToString() << ");\n";
+        }
+
+        ofs << "// BiTangent Data:" << "\n";
+        ofs << "Bitangents.reserve(" << std::to_string(mesh->Bitangents.size()) << ");\n";
+        for (const auto& n : mesh->Bitangents) {
+            ofs << "Bitangents.push_back(Vector3" << n.ToString() << ");\n";
+        }
+
+        ofs << "// Index Data:" << "\n";
+        ofs << "Indices.reserve(" << std::to_string(mesh->Indices.size()) << ");\n";
+        for (const auto& idx : mesh->Indices) {
+            ofs << "Indices.push_back(" << std::to_string(idx) << ");\n";
+        }
+    }
+
+    ofs.close();
 
 }
 

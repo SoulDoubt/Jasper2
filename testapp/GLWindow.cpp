@@ -119,6 +119,10 @@ GLWindow::~GLWindow()
 {
 }
 
+void GLWindow::MakeContextCurrent(){
+    SDL_GL_MakeCurrent(m_window, m_context);
+}
+
 bool GLWindow::Init()
 {
 
@@ -127,12 +131,20 @@ bool GLWindow::Init()
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         return false;
     }
-
+    
+    
     //m_window = glfwCreateWindow(Width, Height, Title.c_str(), nullptr, nullptr);
     m_window = SDL_CreateWindow(Title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width, Height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     m_context = SDL_GL_CreateContext(m_window);
+        
+    SDL_GL_MakeCurrent(m_window, m_context);
 
+    
+    glewExperimental = GL_TRUE;
     GLenum glewStatus = glewInit();
     if (glewStatus != GLEW_OK) {
         printf("GLEW Initialization Failed\n");
@@ -495,7 +507,7 @@ void GLWindow::GetGuiFontTexture()
 void GLWindow::SetupGL()
 {
     //auto hwnd = this->GetWindowHandle();
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+   
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_CUBE_MAP);
@@ -505,8 +517,8 @@ void GLWindow::SetupGL()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glPolygonMode(GL_FRONT, GL_FILL);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     //glfwWindowHint(GL_SAMPLES, 4);
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnable(GL_MULTISAMPLE);

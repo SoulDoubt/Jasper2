@@ -24,8 +24,7 @@ Quad::Quad(const std::string& name, const Vector2& size, int repeatU, int repeat
     m_alignment = align;
     m_size = size;
     m_repeatU = repeatU;
-    m_repeatV = repeatV;
-    Initialize();
+    m_repeatV = repeatV;    
     FlipTextureCoords();
 }
 
@@ -115,6 +114,8 @@ void Quad::Initialize()
     if (m_reverseWinding) {
         ReverseWinding();
     }
+    
+    Mesh::Initialize();
 }
 
 void Quad::Destroy() {}

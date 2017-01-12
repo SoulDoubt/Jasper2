@@ -85,6 +85,7 @@
     <File Name="GuiRenderer.cpp"/>
     <File Name="Scriptable.cpp"/>
     <File Name="ParticleSystem.cpp"/>
+    <File Name="ForsythIndexOptimizer.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <VirtualDirectory Name="jasper">
@@ -150,6 +151,7 @@
       <File Name="include/jasper/GuiShader.h"/>
       <File Name="include/jasper/VHACD.h"/>
       <File Name="include/jasper/ParticleSystem.h"/>
+      <File Name="include/jasper/ForsythIndexOptimizer.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">

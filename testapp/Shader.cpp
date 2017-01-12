@@ -8,7 +8,7 @@ namespace Jasper
 using namespace std;
 
 Shader::Shader(): m_name("unamed_shader")
-{    
+{
     m_transpose = true;
     Initialize();
 }
@@ -59,11 +59,11 @@ void Shader::PrintAttribsAndUniforms()
 
 void Shader::Initialize()
 {
-    const string msg = "Initializing " + m_name + " shader...\n";
+    const string msg = "Initializing " + m_name + " shader...";
     printf("%s\n", msg.c_str());
     m_programID = 0;
     m_programID = glCreateProgram();
-    printf("ProgramID is: %d", m_programID);
+    printf("ProgramID is: %d\n", m_programID);
 }
 
 bool Shader::Bind()
@@ -102,7 +102,8 @@ void Shader::SetAttributeArray(int location, GLenum num_type, void * offset, int
     }
 }
 
-void Shader::SetAttributeArray(int location, GLenum num_type, void* offset, int num_components, int stride, bool normalize){
+void Shader::SetAttributeArray(int location, GLenum num_type, void* offset, int num_components, int stride, bool normalize)
+{
     if (location > -1) {
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, num_components, num_type, normalize, stride, offset);
@@ -258,13 +259,14 @@ int Shader::TangentAttributeLocation()
     }
 }
 
-int Shader::BitangentAttributeLocation(){
-   if (m_bitangentAttribute > -1) {
+int Shader::BitangentAttributeLocation()
+{
+    if (m_bitangentAttribute > -1) {
         return m_bitangentAttribute;
     } else {
         m_bitangentAttribute = glGetAttribLocation(m_programID, "bitangent");
         return m_bitangentAttribute;
-    } 
+    }
 }
 
 
@@ -361,13 +363,13 @@ void Shader::SetPointLightUniforms(const PointLight* pl, const Vector3& eslp)
 
 void Shader::GetMaterialUniformLocations()
 {
-    //GLuint id = ProgramID();
-    //auto mul = MaterialUniformLocations();
-    //mul.Ka = glGetUniformLocation(id, "material0.ka");
-    //mul.Kd = glGetUniformLocation(id, "material0.kd");
-    //mul.Ks = glGetUniformLocation(id, "material0.ks");
-    //mul.Ns = glGetUniformLocation(id, "material0.ns");
-    //return mul;
+//    GLuint id = ProgramID();
+//    auto mul = MaterialUniformLocations();
+//    mul.Ka = glGetUniformLocation(id, "material0.ka");
+//    mul.Kd = glGetUniformLocation(id, "material0.kd");
+//    mul.Ks = glGetUniformLocation(id, "material0.ks");
+//    mul.Ns = glGetUniformLocation(id, "material0.ns");
+//    return mul;
 }
 
 void Shader::SetMaterialUniforms(const Material* m)
@@ -402,9 +404,110 @@ void Shader::SetTransformUniforms(const Transform & trans)
 
 }
 
-bool Shader::ShowGui(){
+bool Shader::ShowGui()
+{
     static char name_buffer[] = "";
     return false;
+
+}
+
+GeometryPassShader::GeometryPassShader() : Shader("geometry_pass_shader"s)
+{
+    Initialize();
+}
+
+void GeometryPassShader::Initialize()
+{
+    const string vsFile = "../Shaders/geometrypass_vert.glsl";
+    const string fsFile = "../Shaders/geometrypass_frag.glsl";
+
+    AddShader(vsFile, ShaderType::VERTEX);
+    AddShader(fsFile, ShaderType::FRAGMENT);
+
+//    glBindFragDataLocation(ProgramID(), 0, "WorldPosOut");
+//    glBindFragDataLocation(ProgramID(), 1, "DiffuseOut");
+//    glBindFragDataLocation(ProgramID(), 2, "NormalOut");
+//    glBindFragDataLocation(ProgramID(), 3, "TexCoordOut");
+
+    LinkShaderProgram();
+}
+
+GeometryPassShader::~GeometryPassShader()
+{
+}
+
+void GeometryPassShader::GetMaterialUniformLocations()
+{
+    if (m_mus.isPopulated) {
+        return;
+    } else {
+        GLuint id = ProgramID();
+        m_mus.Ka = glGetUniformLocation(id, "material0.ka");
+        m_mus.Kd = glGetUniformLocation(id, "material0.kd");
+        m_mus.Ks = glGetUniformLocation(id, "material0.ks");
+        m_mus.Ns = glGetUniformLocation(id, "material0.ns");
+        m_mus.isPopulated = true;
+    }
+}
+
+void GeometryPassShader::SetMaterialUniforms(const Material* m)
+{
+    if (!m_mus.isPopulated) {
+        GetMaterialUniformLocations();
+    }
+    glUniform3fv(m_mus.Ka, 1, m->Ambient.AsFloatPtr());
+    glUniform3fv(m_mus.Kd, 1, m->Diffuse.AsFloatPtr());
+    glUniform3fv(m_mus.Ks, 1, m->Specular.AsFloatPtr());
+    glUniform1fv(m_mus.Ns, 1, &(m->Shine));
+}
+
+LightingPassShader::LightingPassShader() : Shader("lighting_pass_shader")
+{
+    Initialize();
+}
+
+LightingPassShader::~LightingPassShader()
+{
+}
+
+void LightingPassShader::Initialize()
+{
+    const string vsFile = "../Shaders/lightingpass_vert.glsl";
+    const string fsFile = "../Shaders/lightingpass_frag.glsl";
+
+    AddShader(vsFile, ShaderType::VERTEX);
+    AddShader(fsFile, ShaderType::FRAGMENT);
+
+    LinkShaderProgram();
+}
+
+void LightingPassShader::GetDirectionalLightUniformLocations() {
+	if (m_dlus.isPopulated) {
+		return;
+	} else {
+		GLuint id = ProgramID();
+		m_dlus.Color = glGetUniformLocation(id, "dlight0.Color");
+		m_dlus.Direction = glGetUniformLocation(id, "dlight0.Direction");
+		m_dlus.AmbientIntensity = glGetUniformLocation(id, "dlight0.AmbientIntensity");
+		m_dlus.DiffuseIntensity = glGetUniformLocation(id, "dlight0.DiffuseIntensity");
+		m_dlus.isPopulated = true;
+	}
+}
+
+void LightingPassShader::SetDirectionalLightUniforms(const DirectionalLight* dl) {
+	if (!m_dlus.isPopulated) {
+		GetDirectionalLightUniformLocations();
+	}
+	glUniform3fv(m_dlus.Color, 1, dl->Color.AsFloatPtr());
+	glUniform3fv(m_dlus.Direction, 1, dl->Direction.AsFloatPtr());
+	glUniform1fv(m_dlus.DiffuseIntensity, 1, &dl->Diffuseintensity);
+	glUniform1fv(m_dlus.AmbientIntensity, 1, &dl->AmbientIntensity);
+}
+
+void LightingPassShader::SetCameraPosition(const Vector3& position){
+    int loc = glGetUniformLocation(m_programID, "cameraPosition");
     
 }
-}
+
+
+} // Jasper

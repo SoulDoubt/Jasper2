@@ -44,12 +44,12 @@ void SkyboxRenderer::Render()
     shader->SetProjectionMatrix(projection);
     shader->SetViewMatrix(view);
 
-    glBindVertexArray(m_vaoID);
+    glBindVertexArray(m_mesh->VaoID());
     glActiveTexture(GL_TEXTURE0 + 0);
     glDepthMask(GL_FALSE);
     const int texID = m_material->GetCubemapTexture()->TextureID();
     glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
-    glDrawElements(GL_TRIANGLES, m_elementCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, m_mesh->ElementCount(), GL_UNSIGNED_INT, 0);
     glDepthMask(GL_TRUE);
     shader->Release();
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);

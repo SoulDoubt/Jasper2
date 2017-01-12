@@ -26,23 +26,23 @@ enum class PHYSICS_COLLIDER_TYPE
     Compound
 };
 
-enum class PHYSICS_COLLIDER_FLAGS : u_int32_t
-{
-    NONE = 0x00,
-    DRAW = 0x01
-};
-
-using PCF = std::underlying_type_t<PHYSICS_COLLIDER_FLAGS>;
-
-inline PHYSICS_COLLIDER_FLAGS operator|(PHYSICS_COLLIDER_FLAGS a, PHYSICS_COLLIDER_FLAGS b)
-{
-    return static_cast<PHYSICS_COLLIDER_FLAGS>(static_cast<PCF>(a) | static_cast<PCF>(b));
-}
-
-inline PHYSICS_COLLIDER_FLAGS operator&(PHYSICS_COLLIDER_FLAGS a, PHYSICS_COLLIDER_FLAGS b)
-{
-    return static_cast<PHYSICS_COLLIDER_FLAGS>(static_cast<PCF>(a) & static_cast<PCF>(b));
-}
+//enum class PHYSICS_COLLIDER_FLAGS : u_int32_t
+//{
+//    NONE = 0x00,
+//    DRAW = 0x01
+//};
+//
+//using PCF = std::underlying_type_t<PHYSICS_COLLIDER_FLAGS>;
+//
+//inline PHYSICS_COLLIDER_FLAGS operator|(PHYSICS_COLLIDER_FLAGS a, PHYSICS_COLLIDER_FLAGS b)
+//{
+//    return static_cast<PHYSICS_COLLIDER_FLAGS>(static_cast<PCF>(a) | static_cast<PCF>(b));
+//}
+//
+//inline PHYSICS_COLLIDER_FLAGS operator&(PHYSICS_COLLIDER_FLAGS a, PHYSICS_COLLIDER_FLAGS b)
+//{
+//    return static_cast<PHYSICS_COLLIDER_FLAGS>(static_cast<PCF>(a) & static_cast<PCF>(b));
+//}
 
 class PhysicsCollider :	public Component
 {
@@ -51,7 +51,7 @@ public:
     const static u_int32_t DRAW_COLLISION_SHAPE = 0x01;
 
 
-    //explicit PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     virtual ~PhysicsCollider();
 

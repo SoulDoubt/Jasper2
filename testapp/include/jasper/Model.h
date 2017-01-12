@@ -1,6 +1,4 @@
-#ifndef _JASPER_MODEL_H_
-#define _JASPER_MODEL_H_
-
+#pragma once
 #include "Common.h"
 #include "Component.h"
 #include "PhysicsWorld.h"
@@ -20,11 +18,50 @@ class Shader;
 class Material;
 class Scene;
 
-class Model : public Component
+class ModelData
 {
 public:
-    explicit Model(const std::string& name, const std::string& filename, Shader* shader, bool enablePhysics = false, PhysicsWorld* physicsWorld = nullptr);
-    ~Model();
+    ModelData(std::string name) {
+        m_name = std::move(name);
+    }
+
+    std::vector<Mesh*>& GetMeshes()  {
+        return m_meshes;
+    }
+    std::vector<Material*>& GetMaterials()  {
+        return m_materials;
+    }
+    
+    std::string& GetName() {
+        return m_name;
+    }
+
+    void AddMesh(Mesh* mesh) {
+        m_meshes.push_back(mesh);
+    }
+
+    void AddMaterial(Material* mat) {
+        m_materials.push_back(mat);
+    }
+
+private:
+    std::string m_name;
+    std::vector<Mesh*> m_meshes;
+    std::vector<Material*> m_materials;
+
+
+};
+
+class ModelInstance : public Component
+{
+    
+};
+
+class ModelLoader //: public Component
+{
+public:
+    ModelLoader(Scene* scene, Shader* shader);
+    ~ModelLoader();
 
     float Mass = 0.0f;
     float Restitution = 1.0f;
@@ -32,10 +69,10 @@ public:
 
     PHYSICS_COLLIDER_TYPE ColliderType = PHYSICS_COLLIDER_TYPE::Box;
 
-    virtual void Initialize() override;
-    virtual void Destroy() override;
-    virtual void Awake() override;
-    virtual void Update(float dt) override;
+
+    void Destroy();
+//    virtual void Awake() override;
+//    virtual void Update(float dt) override;
 
     Vector3 HalfExtents;
     Vector3 MinExtents;
@@ -45,34 +82,36 @@ public:
     uint VertCount = 0;
 
     void SaveToAssetFile(const std::string& filename);
-
-    void Setup(Scene* sc);
-    ComponentType GetComponentType() const override {
-        return ComponentType::Model;
-    }
+    void LoadModel(const std::string& filename, const std::string& name);
+    void OutputMeshData(const std::string& filename);
+    
+    std::unique_ptr<GameObject> CreateModelInstance(const std::string& name, const std::string& modelName, bool generateCollider, bool splitColliders);
 
 private:
+    std::string m_name;
+    Scene* m_scene;
     std::string m_filename;
     std::string m_directory;
     Shader* m_shader;
     std::vector<Mesh*> m_model_meshes;
     std::vector<Material*> m_model_materials;
-    bool m_enablePhysics = false;
-    void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode, Scene* jScene);
-    void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, Scene* jScene);
     PhysicsWorld* m_physicsWorld = nullptr;
     int m_processedMeshCount = 0;
-    //ResourceManager<Mesh> m_meshManager;
-    //ResourceManager<Material> m_materialManager;
-	void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
+    bool m_enablePhysics = false;
 
-    NON_COPYABLE(Model);
+    void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode, const std::string& directory);
+    void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, const std::string& directory);
+    void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
 
-    void OutputMeshData();
+    NON_COPYABLE(ModelLoader);
+
 
 protected:
 
     void CalculateHalfExtents();
 };
+
+
+
+
 }
-#endif // _MODEL_H_

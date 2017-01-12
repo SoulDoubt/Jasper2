@@ -11,8 +11,7 @@ public:
     Cube(const std::string& name);
     explicit Cube(const std::string& name, const Vector3& dimensions);
     explicit Cube(const std::string& name, const Vector3& dimensions, float repeatU, float repeatV)
-        : Mesh(name), Dimensions(dimensions), m_repeatU(repeatU), m_repeatV(repeatV) {
-        Initialize();
+        : Mesh(name), Dimensions(dimensions), m_repeatU(repeatU), m_repeatV(repeatV) {        
     }
     Cube(const std::string& name, const Vector3& dimensions, bool reverseWinding);
     virtual ~Cube();

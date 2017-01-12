@@ -63,6 +63,8 @@ public:
     }
 
     std::unique_ptr<Scene> m_scene;
+    
+    void MakeContextCurrent();
 
 private:
     NON_COPYABLE(GLWindow);

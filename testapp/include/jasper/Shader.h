@@ -21,7 +21,9 @@ enum class ShaderClassType
     BasicShader,
     TextureShader,
     FontShader,
-    GuiShader
+    GuiShader,
+    GeometryPassShader,
+    LightingPassShader
 };
 
 class Material;
@@ -71,7 +73,7 @@ public:
     void PrintAttribsAndUniforms();
 
     bool ShowGui();
-    
+
     virtual ShaderClassType GetShaderClassType() const = 0;
 
     std::string GetName() const {
@@ -131,14 +133,14 @@ public:
 
 private:
     NON_COPYABLE(Shader);
-    uint m_programID;
+    
     std::vector<uint> m_shaders;
     GLboolean m_transpose = GL_FALSE;
 
 
 
 protected:
-
+    uint m_programID;
     int m_positionsAttribute = -1;
     int m_normalsAttribute = -1;
     int m_texCoordsAttribute = -1;
@@ -159,6 +161,69 @@ inline const uint Shader::ProgramID() const
     return m_programID;
 }
 
+class GeometryPassShader : public Shader
+{
+public:
+    GeometryPassShader();
+    ~GeometryPassShader();
+
+    void Initialize() override;
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::GeometryPassShader;
+    }
+
+    void GetMaterialUniformLocations() override;
+    void SetMaterialUniforms(const Material* m) override;
+};
+
+class LightingPassShader : public Shader
+{
+public:
+    LightingPassShader();
+    ~LightingPassShader();
+
+    void Initialize() override;
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::LightingPassShader;
+    }
+
+    /*
+        #define GBUFFER_TEXTURE_TYPE_DIFFUSE  1
+        #define GBUFFER_TEXTURE_TYPE_NORMAL   2
+        #define GBUFFER_TEXTURE_TYPE_TEXCOORD 3
+        #define GBUFFER_TEXTURE_TYPE_SPECULAR 4
+        #define GBUFFER_NUM_TEXTURES          5
+    */
+
+    void SetActiveTexture(uint i) {
+        int loc;
+        if (i == 0) {
+            loc = glGetUniformLocation(m_programID, "positionTexture");
+        } 
+        else if (i == 1){
+            loc = glGetUniformLocation(m_programID, "diffuseTexture");
+        } 
+        else if (i == 2){
+            loc = glGetUniformLocation(m_programID, "normalTexture");
+        }
+        else if (i == 3){
+            loc = glGetUniformLocation(m_programID, "texCoordTexture");
+        }
+        else if (i == 4){
+            loc = glGetUniformLocation(m_programID, "specularTexture");
+        }
+        if (loc > -1) {
+            glUniform1i(loc, i);
+        }
+    }
+    void GetDirectionalLightUniformLocations() override;
+    void SetDirectionalLightUniforms(const DirectionalLight* dl) override;
+    void SetCameraPosition(const Vector3& position);
+    //void GetMaterialUniformLocations();
+    //void SetMaterialUniforms(const Material* m);
+};
 
 
 

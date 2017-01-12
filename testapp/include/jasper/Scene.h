@@ -110,10 +110,10 @@ public:
         return m_meshManager.CreateInstance<T>(std::forward<Args>(args)...);
     }
 
-    template<typename T, typename... Args>
-    T* CreateModel(Args&&... args) {
-        return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
-    }
+//    template<typename T, typename... Args>
+//    T* CreateModel(Args&&... args) {
+//        return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
+//    }
 
     GameObject* MousePickGameObject(int x, int y, Vector3& hit_point, Vector3& hit_normal);
     void MouseSelectGameObject(int x, int y);
@@ -138,7 +138,7 @@ public:
         return m_meshManager;
     }
 
-    ResourceManager<Model>& GetModelCache() {
+    ResourceManager<ModelData>& GetModelCache() {
         return m_modelManager;
     }
 
@@ -159,10 +159,6 @@ public:
     double PhysicsFrameTime;
     double UpdateFrameTime;
     double RendererFrameTime;
-
-//    Matrix4 GetProjectionMatrix() const {
-//        return m_projectionMatrix;
-//    }
     
     GameObject* GetSelectedGameObject() const {
         return m_selected_game_object;
@@ -191,7 +187,7 @@ private:
     ResourceManager<Mesh> m_meshManager;
     ResourceManager<Material> m_materialManager;
     ResourceManager<Texture> m_textureManager;
-    ResourceManager<Model> m_modelManager;
+    ResourceManager<ModelData> m_modelManager;
 
     std::unique_ptr<FontRenderer> m_fontRenderer;
 

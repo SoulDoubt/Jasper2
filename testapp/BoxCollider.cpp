@@ -4,13 +4,13 @@
 
 namespace Jasper
 {
-
-//BoxCollider::BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
-//    :PhysicsCollider(name, mesh, world)
-//{
-//    m_colliderType = PHYSICS_COLLIDER_TYPE::Box;
 //
-//}
+BoxCollider::BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
+    :PhysicsCollider(name, mesh, world)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Box;
+
+}
 
 using namespace std;
 
@@ -29,7 +29,7 @@ void BoxCollider::Awake()
 {
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
-    auto btTrans = trans.AsBtTransform();
+    auto btTrans = trans.AsBtTransform();    
 
     float halfX, halfY, halfZ;
     if (m_mesh) {

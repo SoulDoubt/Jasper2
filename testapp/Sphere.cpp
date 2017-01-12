@@ -42,7 +42,7 @@ void Sphere::Initialize()
     }
 
     CalculateExtents();
-
+    Mesh::Initialize();
 }
 
 void Sphere::Destroy()

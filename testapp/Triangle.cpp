@@ -27,6 +27,8 @@ void Triangle::Initialize()
     Indices.push_back(0);
     Indices.push_back(1);
     Indices.push_back(2);
+    
+    Mesh::Initialize();
 }
 
 void Triangle::Destroy()

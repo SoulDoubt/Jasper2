@@ -10,7 +10,7 @@ class BoxCollider :
     public PhysicsCollider
 {
 public:
-    //explicit BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
     explicit BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~BoxCollider();
 
