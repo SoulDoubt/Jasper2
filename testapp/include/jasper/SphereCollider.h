@@ -10,7 +10,7 @@ class SphereCollider :
     public PhysicsCollider
 {
 public:
-    //SphereCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    SphereCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
     SphereCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~SphereCollider();
 

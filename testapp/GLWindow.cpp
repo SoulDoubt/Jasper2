@@ -139,10 +139,11 @@ bool GLWindow::Init()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    
     m_context = SDL_GL_CreateContext(m_window);
         
     SDL_GL_MakeCurrent(m_window, m_context);
-
+    SDL_GL_SetSwapInterval(0);
     
     glewExperimental = GL_TRUE;
     GLenum glewStatus = glewInit();

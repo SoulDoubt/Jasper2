@@ -27,6 +27,15 @@ public:
     unsigned m_latLines = 24;
     unsigned m_longLines = 24;
     float m_radius;
+    
+    static float icosPositions[];
+    static float icosTexCoords[];
+    static uint32_t icosIndices[];
+    
+    void Subdivide(int subdivisions);
+    void RecalcTexCoords();
+    void LoadIcosphere();
+    void LoadUVSphere();
 };
 
 }

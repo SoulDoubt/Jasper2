@@ -110,11 +110,13 @@ void Quad::Initialize()
         break;
     }
 
-    CalculateFaceNormals();
+    
     if (m_reverseWinding) {
         ReverseWinding();
     }
-    
+    CalculateExtents();
+    CalculateFaceNormals();
+    CalculateTangentSpace();
     Mesh::Initialize();
 }
 

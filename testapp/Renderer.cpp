@@ -32,8 +32,10 @@ void Renderer::Initialize()
     ProcessGameObject(root);
     SortByMaterial();
     SortByTransparancy();
+    
+    CreateShadowMapObjects();
 
-    m_lightingPassShader = (LightingPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
+    m_lightingPassShader = (DirectionalLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
     auto fsquadmat = m_scene->GetMaterialCache().CreateInstance<Material>(m_lightingPassShader, "fs_quad_mat");
     m_fullScreenQuad = make_unique<Quad>("dl_pass_quad"s, Vector2(1.0, 1.0), Quad::AxisAlignment::XY);
     m_fullScreenQuad->SetMaterial(fsquadmat);
@@ -160,8 +162,15 @@ void Renderer::CreateShadowMapObjects()
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMapBufferID);
     glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_shadowMapTextureID, 0);
 
+    GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (Status != GL_FRAMEBUFFER_COMPLETE) {
+        printf("Shadown Map FB error, status: 0x%x\n", Status);        
+    } else {
+        printf("Shadow Map Framebuffer OK!\n");
+    }
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
@@ -255,15 +264,14 @@ void Renderer::RenderGeometryPass()
         }
     }    
     
-    // When we get here the depth buffer is already populated and the stencil pass
-    // depends on it, but it does not write to it.
-    glDepthMask(GL_FALSE);
-    glDisable(GL_DEPTH_TEST);
+   
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    RenderDirectionalLightPass();
+    
+    
+    
 
     //GLint HalfWidth = (GLint)(m_windowWidth / 2.0f);
     //GLint HalfHeight = (GLint)(m_windowHeight / 2.0f);
@@ -284,6 +292,10 @@ void Renderer::RenderGeometryPass()
 }
 
 void Renderer::RenderDirectionalLightPass(){
+    // When we get here the depth buffer is already populated and the stencil pass
+    // depends on it, but it does not write to it.
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
     // create a full screen quad to render
     glEnable(GL_BLEND);
    	glBlendEquation(GL_FUNC_ADD);
@@ -295,9 +307,11 @@ void Renderer::RenderDirectionalLightPass(){
     Material* material = m_fullScreenQuad->GetMaterial();
     material->SetShader(m_lightingPassShader);
     material->Bind();
-    GBuffer* gb = m_gBuffer.get();
-    const auto directionalLight = m_scene->GetGameObjectByName("d_light"s);
+    SetMaterialUniforms(material);
+   
+    const auto directionalLight = m_scene->GetDirectionalLight();
     m_lightingPassShader->SetDirectionalLightUniforms((DirectionalLight*)directionalLight);
+    m_lightingPassShader->SetCameraPosition(m_scene->GetCamera().GetPosition());
     
     glActiveTexture(GL_TEXTURE0);
     m_lightingPassShader->SetActiveTexture(0);
@@ -306,15 +320,19 @@ void Renderer::RenderDirectionalLightPass(){
     glActiveTexture(GL_TEXTURE1);
     m_lightingPassShader->SetActiveTexture(1);
     glBindTexture(GL_TEXTURE_2D, m_gBuffer->gDiffuse);
+    
     glActiveTexture(GL_TEXTURE2);
     m_lightingPassShader->SetActiveTexture(2);
     glBindTexture(GL_TEXTURE_2D, m_gBuffer->gNormal);
+    
     glActiveTexture(GL_TEXTURE3);
     m_lightingPassShader->SetActiveTexture(3);    
     glBindTexture(GL_TEXTURE_2D, m_gBuffer->gTexCoords);
+    
     glActiveTexture(GL_TEXTURE4);
     m_lightingPassShader->SetActiveTexture(4);    
     glBindTexture(GL_TEXTURE_2D, m_gBuffer->gSpecular);
+    
     int poly_mode[2];
     glGetIntegerv(GL_POLYGON_MODE, poly_mode);
     glBindVertexArray(m_fullScreenQuad->VaoID());
@@ -327,7 +345,45 @@ void Renderer::RenderDirectionalLightPass(){
     
     material->Release();
     
+    m_gBuffer->BindForReading();
+    // now blit the gbuffer's depth buffer into the default FB for any forward rendering to come
+    glBlitFramebuffer(0, 0, m_windowWidth, m_windowHeight, 0, 0, m_windowWidth, m_windowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     
+    
+   	//glBlendEquation(GL_FUNC_ADD);
+   	//glBlendFunc(GL_ONE, GL_ONE);
+        
+}
+
+void Renderer::RenderPointLightPass(){
+    
+    // GL Setup stuff.
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    // create a full screen quad to render
+    glEnable(GL_BLEND);
+   	glBlendEquation(GL_FUNC_ADD);
+   	glBlendFunc(GL_ONE, GL_ONE);
+
+    m_gBuffer->BindForReading();
+    
+    auto pointLights = m_scene->GetPointLights();
+    for (const auto pl : pointLights){
+        Vector3 lightPosition = pl->GetWorldTransform().Position;
+        Vector3 cameraPosition = m_scene->GetCamera().GetPosition();
+        
+    }
+    
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::RenderSkybox(){
+    auto mat = m_skyboxRenderer->GetMaterial();
+    mat->Bind();
+    m_skyboxRenderer->Render();
+    mat->Release();
 }
 
 

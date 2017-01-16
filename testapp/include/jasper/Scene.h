@@ -149,6 +149,10 @@ public:
     ResourceManager<Shader>& GetShaderCache() {
         return m_shaderManager;
     }
+    
+    std::vector<PointLight*>& GetPointLights() {
+        return m_pointLights;
+    }
 
     Camera* GetPlayer() const {
         return m_player;
@@ -167,6 +171,10 @@ public:
     void SetSelectedGameObject(GameObject* go){
         if (go) m_selected_game_object = go;
         else m_selected_game_object = nullptr;
+    }
+    
+    DirectionalLight* GetDirectionalLight() const {
+        return m_directionalLight.get();
     }
 
 private:
@@ -188,7 +196,11 @@ private:
     ResourceManager<Material> m_materialManager;
     ResourceManager<Texture> m_textureManager;
     ResourceManager<ModelData> m_modelManager;
-
+    
+    std::vector<PointLight*> m_pointLights;
+    
+    std::unique_ptr<DirectionalLight> m_directionalLight;
+    
     std::unique_ptr<FontRenderer> m_fontRenderer;
 
     std::unique_ptr<Renderer> m_renderer;
@@ -196,6 +208,7 @@ private:
     // std::unique_ptr<CharacterController> m_player;
 
     std::vector<ScriptComponent> m_scripts;
+    std::unique_ptr<GameObject> m_skybox;
 
     bool debug_draw_physics = true;
     

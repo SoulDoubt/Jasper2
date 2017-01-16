@@ -40,6 +40,7 @@ protected:
     uint m_polymode0 = 0x0404;
     uint m_polymode1 = 0x1B02;
     bool m_wireframe = false;
+    bool m_castsShadows = false;
 public:
 
     bool IsVisible() const {

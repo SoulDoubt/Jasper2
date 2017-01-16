@@ -139,7 +139,6 @@ private:
     }
 
 
-
     struct VertexBoneWeight {
         uint Index;
         float Weight;
@@ -154,7 +153,7 @@ private:
     };
 
     std::vector<BoneData> Bones;
-    //Mesh();
+    
     explicit Mesh(const std::string& name);
     virtual ~Mesh();
 
@@ -241,6 +240,7 @@ private:
     //std::vector<Vertex> Vertices;
     std::vector<uint> Indices;
 
+    void CalculateTangentSpace();
     void CalculateFaceNormals();
     void CalculateExtents();
     

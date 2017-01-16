@@ -196,6 +196,11 @@ void Shader::LinkShaderProgram()
     m_shaders.clear();
 
     //PrintAttribsAndUniforms();
+    
+    glUseProgram(m_programID);
+    GetMaterialUniformLocations();
+    GetDirectionalLightUniformLocations();
+    glUseProgram(0);
 }
 
 void Shader::Destroy()
@@ -441,7 +446,7 @@ void GeometryPassShader::GetMaterialUniformLocations()
     if (m_mus.isPopulated) {
         return;
     } else {
-        GLuint id = ProgramID();
+        GLuint id = m_programID;
         m_mus.Ka = glGetUniformLocation(id, "material0.ka");
         m_mus.Kd = glGetUniformLocation(id, "material0.kd");
         m_mus.Ks = glGetUniformLocation(id, "material0.ks");
@@ -452,25 +457,25 @@ void GeometryPassShader::GetMaterialUniformLocations()
 
 void GeometryPassShader::SetMaterialUniforms(const Material* m)
 {
-    if (!m_mus.isPopulated) {
-        GetMaterialUniformLocations();
-    }
+    //if (!m_mus.isPopulated) {
+    //    GetMaterialUniformLocations();
+    //}
     glUniform3fv(m_mus.Ka, 1, m->Ambient.AsFloatPtr());
     glUniform3fv(m_mus.Kd, 1, m->Diffuse.AsFloatPtr());
     glUniform3fv(m_mus.Ks, 1, m->Specular.AsFloatPtr());
     glUniform1fv(m_mus.Ns, 1, &(m->Shine));
 }
 
-LightingPassShader::LightingPassShader() : Shader("lighting_pass_shader")
+DirectionalLightPassShader::DirectionalLightPassShader() : Shader("lighting_pass_shader")
 {
     Initialize();
 }
 
-LightingPassShader::~LightingPassShader()
+DirectionalLightPassShader::~DirectionalLightPassShader()
 {
 }
 
-void LightingPassShader::Initialize()
+void DirectionalLightPassShader::Initialize()
 {
     const string vsFile = "../Shaders/lightingpass_vert.glsl";
     const string fsFile = "../Shaders/lightingpass_frag.glsl";
@@ -481,7 +486,7 @@ void LightingPassShader::Initialize()
     LinkShaderProgram();
 }
 
-void LightingPassShader::GetDirectionalLightUniformLocations() {
+void DirectionalLightPassShader::GetDirectionalLightUniformLocations() {
 	if (m_dlus.isPopulated) {
 		return;
 	} else {
@@ -494,19 +499,45 @@ void LightingPassShader::GetDirectionalLightUniformLocations() {
 	}
 }
 
-void LightingPassShader::SetDirectionalLightUniforms(const DirectionalLight* dl) {
-	if (!m_dlus.isPopulated) {
-		GetDirectionalLightUniformLocations();
-	}
+void DirectionalLightPassShader::SetDirectionalLightUniforms(const DirectionalLight* dl) {
+	//if (!m_dlus.isPopulated) {
+	//	GetDirectionalLightUniformLocations();
+	//}
 	glUniform3fv(m_dlus.Color, 1, dl->Color.AsFloatPtr());
 	glUniform3fv(m_dlus.Direction, 1, dl->Direction.AsFloatPtr());
 	glUniform1fv(m_dlus.DiffuseIntensity, 1, &dl->Diffuseintensity);
 	glUniform1fv(m_dlus.AmbientIntensity, 1, &dl->AmbientIntensity);
 }
 
-void LightingPassShader::SetCameraPosition(const Vector3& position){
+void DirectionalLightPassShader::SetCameraPosition(const Vector3& position){
     int loc = glGetUniformLocation(m_programID, "cameraPosition");
+    glUniform3fv(loc, 1, position.AsFloatPtr());
     
+}
+
+void DirectionalLightPassShader::GetMaterialUniformLocations()
+{
+    if (m_mus.isPopulated) {
+        return;
+    } else {
+        GLuint id = ProgramID();
+        m_mus.Ka = glGetUniformLocation(id, "material0.ka");
+        m_mus.Kd = glGetUniformLocation(id, "material0.kd");
+        m_mus.Ks = glGetUniformLocation(id, "material0.ks");
+        m_mus.Ns = glGetUniformLocation(id, "material0.ns");
+        m_mus.isPopulated = true;
+    }
+}
+
+void DirectionalLightPassShader::SetMaterialUniforms(const Material* m)
+{
+    //if (!m_mus.isPopulated) {
+    //    GetMaterialUniformLocations();
+    //}
+    glUniform3fv(m_mus.Ka, 1, m->Ambient.AsFloatPtr());
+    glUniform3fv(m_mus.Kd, 1, m->Diffuse.AsFloatPtr());
+    glUniform3fv(m_mus.Ks, 1, m->Specular.AsFloatPtr());
+    glUniform1fv(m_mus.Ns, 1, &(m->Shine));
 }
 
 

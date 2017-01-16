@@ -50,6 +50,9 @@ void Cube::Initialize()
     } else {
         LoadStandardVerts();
     }
+    CalculateExtents();
+    //CalculateFaceNormals();
+    //CalculateTangentSpace();
     Mesh::Initialize();
 }
 
@@ -136,8 +139,7 @@ void Cube::LoadCubemapVerts()
     Indices.push_back(33);
     Indices.push_back(34);
     Indices.push_back(35);
-    //CalculateFaceNormals();
-    CalculateExtents();
+    
 }
 
 void Cube::LoadStandardVerts()
@@ -316,7 +318,6 @@ void Cube::LoadStandardVerts()
     Indices.push_back(22);
     Indices.push_back(23);
 
-    CalculateExtents();
 }
 
 

@@ -317,7 +317,8 @@ void Scene::InitializeManual()
     // perform actual game object initialization
 
     //create the skybox
-    auto skybox = m_rootNode->AttachNewChild<GameObject>("skybox");
+    m_skybox = make_unique<GameObject>("skybox");
+    m_skybox->SetScene(this);
     auto skyboxMesh = m_meshManager.CreateInstance<Cube>("skybox_cube_mesh", Vector3(100.0f, 100.0f, 100.0f), true);
     skyboxMesh->SetCubemap(true); // we want to render the inside of the cube    
     auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
@@ -329,21 +330,26 @@ void Scene::InitializeManual()
     string posz = "../textures/CloudyLightRays/CloudyLightRaysFront2048.png"s;
     string negz = "../textures/CloudyLightRays/CloudyLightRaysBack2048.png"s;
     skyboxMaterial->SetCubemapTextures(posx, negx, posy, negy, posz, negz);
-    skybox->AttachNewComponent<SkyboxRenderer>("skybox_renderer", skyboxMesh, skyboxMaterial); 
+    auto sbr = m_skybox->AttachNewComponent<SkyboxRenderer>("skybox_renderer", skyboxMesh, skyboxMaterial); 
+    m_renderer->SetSkyboxRenderer(sbr);    
     skyboxMesh->SetMaterial(skyboxMaterial);
+    
     //skyboxMesh->Initialize();
     // create the Lit Shader Instance to render most objects
     //auto defaultShader = m_shaderManager.CreateInstance<LitShader>();
     auto defaultShader =  m_shaderManager.CreateInstance<GeometryPassShader>();
-    m_shaderManager.CreateInstance<LightingPassShader>();
+    m_shaderManager.CreateInstance<DirectionalLightPassShader>();
+    
+    Material* icosMat = m_materialManager.CreateInstance<Material>(defaultShader, "icosmat");
+    icosMat->SetTextureDiffuse("../textures/icos.png");
 
     m_fontRenderer = make_unique<FontRenderer>();
     m_fontRenderer->Initialize();
     m_fontRenderer->SetOrthoMatrix(m_orthoMatrix);
 
     Material* m1 = m_materialManager.CreateInstance<Material>(defaultShader, "wall_material");
-    m1->SetTextureDiffuse("../textures/196.JPG");
-    m1->SetTextureNormalMap("../textures/196_norm.JPG");
+    m1->SetTextureDiffuse("../textures/154.JPG");
+    m1->SetTextureNormalMap("../textures/154_norm.JPG");
     m1->Diffuse = { 0.85f, 0.85f, 0.85f };
     m1->Ambient = { 0.25f, 0.25f, 0.25f };
     m1->Specular = { 0.99f, 0.99f, 0.9f };
@@ -436,8 +442,20 @@ void Scene::InitializeManual()
 //    }
 
     auto ml = make_unique<ModelLoader>(this, defaultShader);
-    ml->LoadModel("../models/Mathias/Mathias.obj"s, "Mathias");
-
+    ml->LoadModel("../models/Mathias/Mathias.obj"s, "Cyborg");
+    
+    auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 5.0f);  
+    ss->SetMaterial(m1);
+    auto icos = m_rootNode->AttachNewChild<GameObject>("icos");
+    icos->GetLocalTransform().Position = {0.f, 25.f, 0.f };
+    icos->AttachNewComponent<MeshRenderer>("icos_renderer", ss, icosMat);
+    auto sc = icos->AttachNewComponent<SphereCollider>("icos_collider", ss, m_physicsWorld.get());
+    sc->Mass = 50.f;
+    sc->Friction = 0.75f;
+    sc->Restitution = 0.86f;
+    
+    
+    
     float cx = 0;
     float cz = 10;
     float radius = 5;
@@ -445,8 +463,9 @@ void Scene::InitializeManual()
         float a = DEG_TO_RAD(i * 30);
         float ax = cx + radius * sinf(a);
         float az = cz + radius * cosf(a);
-        auto& model = m_rootNode->AttachChild(ml->CreateModelInstance("Mathias_model"s + to_string(i), "Mathias", true, false));
+        auto& model = m_rootNode->AttachChild(ml->CreateModelInstance("cyborg_model"s + to_string(i), "Cyborg", true, false));
         model.GetLocalTransform().Position = { ax, 1.5f, az };
+        //model.GetLocalTransform().Scale = {0.1, 0.1, 0.1};
     }
     
 //    auto debris = m_rootNode->AttachNewChild<GameObject>("debris"s);
@@ -491,12 +510,14 @@ void Scene::InitializeManual()
     //lightMesh->Initialize();    
     light0->AttachNewComponent<MeshRenderer>("point_light_renderer"s, lightMesh, lightMaterial);
     light0->AttachNewComponent<RotateAboutPointScript>("Rotate_Light_Script"s, Vector3(0.f, 7.5f, 0.f), Vector3(0.f, 1.f, 0.f), 45);
+    m_pointLights.push_back(light0);
     //
 
-    auto dlight = m_rootNode->AttachNewChild<DirectionalLight>("d_light"s);
-    dlight->Direction = Normalize(Vector3(0.0, -1.f, 1.0f));
-    dlight->AmbientIntensity = 0.75f;
-    dlight->Diffuseintensity = 1.5f;
+    auto dlight = make_unique<DirectionalLight>("d_light"s);
+    dlight->Direction = Normalize(Vector3(-0.5, -1.f,-0.5f));
+    dlight->AmbientIntensity = 0.005f;
+    dlight->Diffuseintensity = 1.0f;
+    m_directionalLight = move(dlight);
 }
 
 
@@ -600,6 +621,8 @@ void Scene::Update(float dt)
     m_rootNode->LateUpdate();
     const auto renderStart = high_resolution_clock::now();
     m_renderer->RenderGeometryPass();
+    m_renderer->RenderDirectionalLightPass();
+    m_renderer->RenderSkybox();
 
     const auto renderEnd = high_resolution_clock::now();
     const auto renderTime = duration_cast<nanoseconds>(renderEnd - renderStart);
@@ -608,7 +631,7 @@ void Scene::Update(float dt)
 
     debug_draw_physics = true;
     if (debug_draw_physics) {
-        //DebugDrawPhysicsWorld();
+        DebugDrawPhysicsWorld();
     }
 
 }

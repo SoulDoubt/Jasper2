@@ -44,11 +44,6 @@ bool GBuffer::Initialize(uint w, uint h){
     //GLuint gPosition, gDiffuse, gNormal, gTexCoords, gSpecular;
     uint SCR_WIDTH = w;
     uint SCR_HEIGHT = h;
-//  layout (location = 0) out vec4 WorldPosOut;   
-//  layout (location = 1) out vec4 DiffuseOut;     
-//  layout (location = 2) out vec4 NormalOut;     
-//  layout (location = 3) out vec4 TexCoordOut; 
-//  layout (location = 4) out vec4 SpecularOut; 
     
     // - Position color buffer
     glGenTextures(1, &gPosition);
@@ -101,10 +96,10 @@ bool GBuffer::Initialize(uint w, uint h){
 	// - Finally check if framebuffer is complete
 	GLenum Status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (Status != GL_FRAMEBUFFER_COMPLETE) {
-        printf("FB error, status: 0x%x\n", Status);
+        printf("GBuffer FB error, status: 0x%x\n", Status);
         return false;
     } else {
-        printf("Framebuffer OK!\n");
+        printf("GBuffer Framebuffer OK!\n");
     }
 		
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

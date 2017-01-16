@@ -23,7 +23,8 @@ enum class ShaderClassType
     FontShader,
     GuiShader,
     GeometryPassShader,
-    LightingPassShader
+    DirectionalLightPassShader,
+    PointLightPassShader,
 };
 
 class Material;
@@ -177,16 +178,16 @@ public:
     void SetMaterialUniforms(const Material* m) override;
 };
 
-class LightingPassShader : public Shader
+class DirectionalLightPassShader : public Shader
 {
 public:
-    LightingPassShader();
-    ~LightingPassShader();
+    DirectionalLightPassShader();
+    ~DirectionalLightPassShader();
 
     void Initialize() override;
 
     ShaderClassType GetShaderClassType() const override {
-        return ShaderClassType::LightingPassShader;
+        return ShaderClassType::DirectionalLightPassShader;
     }
 
     /*
@@ -221,6 +222,8 @@ public:
     void GetDirectionalLightUniformLocations() override;
     void SetDirectionalLightUniforms(const DirectionalLight* dl) override;
     void SetCameraPosition(const Vector3& position);
+    void GetMaterialUniformLocations() override;
+    void SetMaterialUniforms(const Material* m) override;
     //void GetMaterialUniformLocations();
     //void SetMaterialUniforms(const Material* m);
 };

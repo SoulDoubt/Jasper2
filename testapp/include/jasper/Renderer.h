@@ -31,6 +31,8 @@ public:
     void RenderScene();
     void RenderGeometryPass();
     void RenderDirectionalLightPass();
+    void RenderPointLightPass();
+    void RenderSkybox();
 
     void RegisterGameObject(GameObject* obj);
     void UnregisterGameObject(GameObject* obj);
@@ -38,6 +40,10 @@ public:
 
     const size_t GetMeshRendererCount() const {
         return m_renderersToRender.size();
+    }
+    
+    void SetSkyboxRenderer(MeshRenderer* sbr){
+        m_skyboxRenderer = sbr;
     }
 
 private:
@@ -60,7 +66,8 @@ private:
     std::unique_ptr<Quad> m_fullScreenQuad;
     Shader* m_geometryPassShader;
     Shader* m_forwardLitShader;
-    LightingPassShader* m_lightingPassShader;
+    DirectionalLightPassShader* m_lightingPassShader;
+    MeshRenderer* m_skyboxRenderer;
 
 
     Scene* m_scene;

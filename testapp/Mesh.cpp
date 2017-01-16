@@ -32,12 +32,13 @@ Mesh::~Mesh()
     Destroy();
 }
 
-void Mesh::OptimizeIndices(){
+void Mesh::OptimizeIndices()
+{
     uint16_t* oldIndices = new uint16_t[Indices.size()];
     uint16_t* newIndices = new uint16_t[Indices.size()];
     uint indexSize = Indices.size();
     printf("Old Indices: \n");
-    for (uint j = 0; j < indexSize; ++j){
+    for (uint j = 0; j < indexSize; ++j) {
         uint16_t idx = (uint16_t)Indices[j];
         oldIndices[j] = idx;
         //printf("%d, ", idx);
@@ -48,11 +49,11 @@ void Mesh::OptimizeIndices(){
     Indices.clear();
     Indices.reserve(indexSize);
     printf("New Indices: \n");
-    for (uint j = 0; j < indexSize; j++){
-        uint newIdx = (uint)newIndices[j];        
+    for (uint j = 0; j < indexSize; j++) {
+        uint newIdx = (uint)newIndices[j];
         Indices.push_back(newIdx);
         //printf("%d, ", newIdx);
-    }    
+    }
     delete[] oldIndices;
     delete[] newIndices;
 }
@@ -60,7 +61,7 @@ void Mesh::OptimizeIndices(){
 void Mesh::Initialize()
 {
     GLERRORCHECK;
-    OptimizeIndices();
+    //OptimizeIndices();
 
     //m_mesh->Initialize();
     // gather mesh data and create GL Buffers and such for future rendering...
@@ -176,6 +177,11 @@ void Mesh::FlipTextureCoords()
 
 void Mesh::CalculateFaceNormals()
 {
+
+    if (Normals.size() == 0) {
+        Normals.resize(Positions.size());
+    }
+
     for (unsigned int i = 0; i < Indices.size(); i += 3) {
         const unsigned index0 = Indices[i];
         const unsigned index1 = Indices[i + 1];
@@ -189,41 +195,70 @@ void Mesh::CalculateFaceNormals()
         const auto& t2 = TexCoords[index1];
         const auto& t3 = TexCoords[index2];
 
-        // Tangent Space calculations adapted from
-        // Lengyel, Eric. Computing Tangent Space Basis Vectors for an Arbitrary Mesh.
-        // Terathon Software 3D Graphics Library, 2001. http://www.terathon.com/code/tangent.html
 
-        const float x1 = v2.x - v1.x;
-        const float x2 = v3.x - v1.x;
-        const float y1 = v2.y - v1.y;
-        const float y2 = v3.y - v1.y;
-        const float z1 = v2.z - v1.z;
-        const float z2 = v3.z - v1.z;
-
-        const float s1 = t2.x - t1.x;
-        const float s2 = t3.x - t1.x;
-        const float tt1 = t2.y - t1.y;
-        const float tt2 = t3.y - t1.y;
-
-        const float r = 1.0F / (s1 * tt2 - s2 * tt1);
-        const Vector3 sdir((tt2 * x1 - tt1 * x2) * r, (tt2 * y1 - tt1 * y2) * r,
-                           (tt2 * z1 - tt1 * z2) * r);
-        const Vector3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
-                           (s1 * z2 - s2 * z1) * r);
-
-        const Vector4 tangent = { sdir, 0.0f };
-        const Vector3 bitangent = tdir;
 
         const Vector3 edge1 = v2 - v1;
         const Vector3 edge2 = v3 - v1;
 
-        Vector3 normal = (edge1).Cross(edge2);
-        normal = Normalize(normal);
+        const Vector2 uvedge1 = t2 - t1;
+        const Vector2 uvedge2 = t3 - t1;
 
-        //const Vector3 tangent = Normalize((v0.Position * uv1.y - v1.Position * uv1.y) * c);
+        Vector3 normal = Normalize(Cross(edge1, edge2));
+
         Normals[index0] += normal;
         Normals[index1] += normal;
         Normals[index2] += normal;
+
+    }
+
+    for (auto index : Indices) {
+        auto& norm = Normals[index];
+        norm = Normalize(norm);
+    }
+
+    printf("Calculated Face Normals\n");
+}
+
+void Mesh::CalculateTangentSpace()
+{
+    // Tangent Space calculations adapted from
+    // Lengyel, Eric. Computing Tangent Space Basis Vectors for an Arbitrary Mesh.
+    // Terathon Software 3D Graphics Library, 2001. http://www.terathon.com/code/tangent.html
+    if (Tangents.size() == 0) {
+        Tangents.resize(Positions.size());
+    }
+
+    if (Bitangents.size() == 0) {
+        Bitangents.resize(Positions.size());
+    }
+
+    if (Normals.size() == 0) {
+        Normals.resize(Positions.size());
+    }
+
+    for (unsigned int i = 0; i < Indices.size(); i += 3) {
+        const unsigned index0 = Indices[i];
+        const unsigned index1 = Indices[i + 1];
+        const unsigned index2 = Indices[i + 2];
+
+        const auto& v1 = Positions[index0];
+        const auto& v2 = Positions[index1];
+        const auto& v3 = Positions[index2];
+
+        const auto& t1 = TexCoords[index0];
+        const auto& t2 = TexCoords[index1];
+        const auto& t3 = TexCoords[index2];
+
+        const Vector3 edge1 = v2 - v1;
+        const Vector3 edge2 = v3 - v1;
+
+        const Vector2 uvedge1 = t2 - t1;
+        const Vector2 uvedge2 = t3 - t1;
+
+        float r = 1.0f / (uvedge1.x * uvedge2.y - uvedge1.y * uvedge2.x);
+        Vector4 tangent   = Vector4((edge1 * uvedge2.y   - edge2 * uvedge1.y)*r, 1.f);
+        Vector3 bitangent = (edge2 * uvedge1.x   - edge1 * uvedge2.x)*r;
+
 
         Tangents[index0] += tangent;
         Tangents[index1] += tangent;
@@ -243,11 +278,12 @@ void Mesh::CalculateFaceNormals()
         norm = Normalize(norm);
         // Gram-Schmidt orthogonalize
         tan = { (tan.AsVector3() - norm * Dot(norm, tan.AsVector3())).Normalized(), 0.0f };
-        tan.w = (Dot(Cross(norm, tan.AsVector3()), bitan) > 0.0f) ? -1.0f : 1.0f;
+        tan.w = (Dot(Cross(norm, tan.AsVector3()), bitan) > 0.0f) ? 1.0f : -1.0f;
         tan = Normalize(tan);
     }
 
-    printf("Calculated some normals and Tangents\n");
+    printf("Calculated Tangent Space\n");
+
 }
 
 void Mesh::CalculateExtents()
