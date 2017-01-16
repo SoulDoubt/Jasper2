@@ -1,0 +1,1 @@
+digraph e {0 [label="The call-graph is empty; the node threshold ceiling is -2 !", shape=none, height=2, width=2, fontname=Arial, fontsize=14.00];}

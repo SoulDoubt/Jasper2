@@ -1,0 +1,42 @@
+# 
+# 
+newmtl Mathias_head
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.999900 0.999990 0.999900
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd Mathias_head_D.tga
+map_Bump Mathias_head_N.tga
+map_Ks Mathias_head_S.tga
+
+
+
+newmtl Mathias_legs
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.00000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd Mathias_legs_D.tga
+map_Bump Mathias_legs_N.tga
+map_Ks Mathias_legs_S.tga
+
+
+newmtl Mathias_torso
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd Mathias_torso_D.tga
+map_Bump Mathias_torso_N.tga
+map_Ks Mathias_torso_S.tga
+
+

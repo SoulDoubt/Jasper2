@@ -1,0 +1,11 @@
+newmtl rock_01
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.640000 0.640000
+Ks 0.999900 0.999990 0.999900
+Ni 1.000000
+d 1.000000
+illum 1
+map_Kd diffuse.tga
+map_Bump normal.tga
+map_Ks specular.tga
