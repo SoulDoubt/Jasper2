@@ -48,7 +48,6 @@
     <File Name="PhysicsCollider.cpp"/>
     <File Name="PhysicsDebugDraw.cpp"/>
     <File Name="PhysicsWorld.cpp"/>
-    <File Name="PlaneCollider.cpp"/>
     <File Name="Quad.cpp"/>
     <File Name="quaternion.cpp"/>
     <File Name="Renderer.cpp"/>
@@ -98,7 +97,6 @@
       <File Name="include/jasper/Model.h"/>
       <File Name="include/jasper/PhysicsDebugDraw.h"/>
       <File Name="include/jasper/PhysicsWorld.h"/>
-      <File Name="include/jasper/PlaneCollider.h"/>
       <File Name="include/jasper/Quad.h"/>
       <File Name="include/jasper/quaternion.h"/>
       <File Name="include/jasper/Renderer.h"/>
@@ -123,7 +121,6 @@
       <File Name="include/jasper/imconfig.h"/>
       <File Name="include/jasper/imgui.h"/>
       <File Name="include/jasper/imgui_internal.h"/>
-      <File Name="include/jasper/GuiShader.h"/>
       <File Name="include/jasper/VHACD.h"/>
       <File Name="include/jasper/ParticleSystem.h"/>
       <File Name="include/jasper/ForsythIndexOptimizer.h"/>
