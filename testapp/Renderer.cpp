@@ -7,7 +7,7 @@
 #include "GLError.h"
 #include "GLWindow.h"
 #include <algorithm>
-#include "BasicShader.h"
+#include "Shader.h"
 #include "PhysicsCollider.h"
 #include "GBuffer.h"
 
@@ -349,7 +349,9 @@ void Renderer::RenderDirectionalLightPass(){
     // now blit the gbuffer's depth buffer into the default FB for any forward rendering to come
     glBlitFramebuffer(0, 0, m_windowWidth, m_windowHeight, 0, 0, m_windowWidth, m_windowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     
-    
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
    	//glBlendEquation(GL_FUNC_ADD);
    	//glBlendFunc(GL_ONE, GL_ONE);
         

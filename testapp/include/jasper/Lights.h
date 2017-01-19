@@ -13,7 +13,7 @@ public:
 	~PointLight();
 
 	Vector3 Color = { 1.0f, 1.0f, 1.0f };
-	float AmbientIntensity = 0.5f;
+	float AmbientIntensity = 0.05f;
 	float DiffuseIntensity = 1.0f;
 	float ConstAtten = 1.0f;
 	float LinearAtten = 0.09f;
@@ -25,6 +25,8 @@ public:
 	GameObjectType GetGameObjectType() const override {
 		return GameObjectType::PointLight;
 	}
+    
+    
 };
 
 class DirectionalLight final : public GameObject

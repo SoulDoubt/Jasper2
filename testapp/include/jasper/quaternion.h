@@ -285,6 +285,45 @@ inline Quaternion operator*(float f, const Quaternion& q)
     return Quaternion(q.x * f, q.y * f, q.z * f, q.w * f);
 }
 
+inline Quaternion Rotation(const Vector3& orig, const Vector3& dest){
+        float cosTheta = Dot(orig, dest);
+		Vector3 rotationAxis;
+        float epsilon = 0.000001f;
+
+		if(cosTheta >= 1.f - epsilon)
+			return Quaternion();
+
+		if(cosTheta < -1.f + epsilon)
+		{
+			// special case when vectors in opposite directions :
+			// there is no "ideal" rotation axis
+			// So guess one; any will do as long as it's perpendicular to start
+			// This implementation favors a rotation around the Up axis (Y),
+			// since it's often what you want to do.
+			rotationAxis = Cross(Vector3(0.f, 0.f, 1.f), orig);
+			if(rotationAxis.LengthSquared() < epsilon) // bad luck, they were parallel, try again!
+				rotationAxis = Cross(Vector3(1.f, 0.f, 0.f), orig);
+
+			rotationAxis = Normalize(rotationAxis);
+            return Quaternion::FromAxisAndAngle(rotationAxis, M_PI);
+			//return angleAxis(pi<T>(), rotationAxis);
+		}
+
+		// Implementation from Stan Melax's Game Programming Gems 1 article
+		rotationAxis = Cross(orig, dest);
+
+		float s = sqrtf((1.f + cosTheta) * 2.f);
+		float invs = 1.f / s;
+        
+        Quaternion qq(Vector3(rotationAxis * invs), s * 0.5);
+        return qq;
+//		return tquat<T, P>(
+//			s * static_cast<T>(0.5f), 
+//			rotationAxis.x * invs,
+//			rotationAxis.y * invs,
+//			rotationAxis.z * invs);
+}
+
 
 }
 

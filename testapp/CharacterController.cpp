@@ -1,6 +1,6 @@
 #include "CharacterController.h"
 #include <btBulletDynamicsCommon.h>
-#include "CapsuleCollider.h"
+#include "PhysicsCollider.h"
 
 namespace Jasper
 {

@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Al
-Date                   :=16/01/17
+Date                   :=18/01/17
 CodeLitePath           :="/home/al/.codelite"
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
@@ -60,12 +60,11 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/Camera.cpp$(ObjectSuffix) $(IntermediateDirectory)/CapsuleCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/CharacterController.cpp$(ObjectSuffix) $(IntermediateDirectory)/Component.cpp$(ObjectSuffix) $(IntermediateDirectory)/ConvexHullCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Cube.cpp$(ObjectSuffix) $(IntermediateDirectory)/CylinderCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/FontRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/FontShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/GBuffer.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/GLBuffer.cpp$(ObjectSuffix) $(IntermediateDirectory)/GLWindow.cpp$(ObjectSuffix) $(IntermediateDirectory)/Lights.cpp$(ObjectSuffix) $(IntermediateDirectory)/LitShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/Material.cpp$(ObjectSuffix) $(IntermediateDirectory)/matrix.cpp$(ObjectSuffix) $(IntermediateDirectory)/Memory.cpp$(ObjectSuffix) $(IntermediateDirectory)/MeshRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Model.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/PhysicsCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsDebugDraw.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsWorld.cpp$(ObjectSuffix) $(IntermediateDirectory)/PlaneCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Quad.cpp$(ObjectSuffix) $(IntermediateDirectory)/quaternion.cpp$(ObjectSuffix) $(IntermediateDirectory)/Renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Room.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scene.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Transform.cpp$(ObjectSuffix) $(IntermediateDirectory)/Triangle.cpp$(ObjectSuffix) $(IntermediateDirectory)/DefaultScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) $(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui_draw.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/GuiRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) $(IntermediateDirectory)/ParticleSystem.cpp$(ObjectSuffix) $(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/Camera.cpp$(ObjectSuffix) $(IntermediateDirectory)/CharacterController.cpp$(ObjectSuffix) $(IntermediateDirectory)/Component.cpp$(ObjectSuffix) $(IntermediateDirectory)/ConvexHullCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/Cube.cpp$(ObjectSuffix) $(IntermediateDirectory)/FontRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/GBuffer.cpp$(ObjectSuffix) $(IntermediateDirectory)/GLBuffer.cpp$(ObjectSuffix) $(IntermediateDirectory)/GLWindow.cpp$(ObjectSuffix) $(IntermediateDirectory)/Lights.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/Material.cpp$(ObjectSuffix) $(IntermediateDirectory)/matrix.cpp$(ObjectSuffix) $(IntermediateDirectory)/Memory.cpp$(ObjectSuffix) $(IntermediateDirectory)/MeshRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Model.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsDebugDraw.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsWorld.cpp$(ObjectSuffix) $(IntermediateDirectory)/PlaneCollider.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/Quad.cpp$(ObjectSuffix) $(IntermediateDirectory)/quaternion.cpp$(ObjectSuffix) $(IntermediateDirectory)/Renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scene.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Transform.cpp$(ObjectSuffix) $(IntermediateDirectory)/Triangle.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/DefaultScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui_draw.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) \
+	$(IntermediateDirectory)/ParticleSystem.cpp$(ObjectSuffix) $(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(ObjectSuffix) 
 
 
 
@@ -104,14 +103,6 @@ $(IntermediateDirectory)/Camera.cpp$(DependSuffix): Camera.cpp
 $(IntermediateDirectory)/Camera.cpp$(PreprocessSuffix): Camera.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Camera.cpp$(PreprocessSuffix) "Camera.cpp"
 
-$(IntermediateDirectory)/CapsuleCollider.cpp$(ObjectSuffix): CapsuleCollider.cpp $(IntermediateDirectory)/CapsuleCollider.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/CapsuleCollider.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/CapsuleCollider.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/CapsuleCollider.cpp$(DependSuffix): CapsuleCollider.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/CapsuleCollider.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/CapsuleCollider.cpp$(DependSuffix) -MM "CapsuleCollider.cpp"
-
-$(IntermediateDirectory)/CapsuleCollider.cpp$(PreprocessSuffix): CapsuleCollider.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/CapsuleCollider.cpp$(PreprocessSuffix) "CapsuleCollider.cpp"
-
 $(IntermediateDirectory)/CharacterController.cpp$(ObjectSuffix): CharacterController.cpp $(IntermediateDirectory)/CharacterController.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/CharacterController.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/CharacterController.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/CharacterController.cpp$(DependSuffix): CharacterController.cpp
@@ -144,14 +135,6 @@ $(IntermediateDirectory)/Cube.cpp$(DependSuffix): Cube.cpp
 $(IntermediateDirectory)/Cube.cpp$(PreprocessSuffix): Cube.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Cube.cpp$(PreprocessSuffix) "Cube.cpp"
 
-$(IntermediateDirectory)/CylinderCollider.cpp$(ObjectSuffix): CylinderCollider.cpp $(IntermediateDirectory)/CylinderCollider.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/CylinderCollider.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/CylinderCollider.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/CylinderCollider.cpp$(DependSuffix): CylinderCollider.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/CylinderCollider.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/CylinderCollider.cpp$(DependSuffix) -MM "CylinderCollider.cpp"
-
-$(IntermediateDirectory)/CylinderCollider.cpp$(PreprocessSuffix): CylinderCollider.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/CylinderCollider.cpp$(PreprocessSuffix) "CylinderCollider.cpp"
-
 $(IntermediateDirectory)/FontRenderer.cpp$(ObjectSuffix): FontRenderer.cpp $(IntermediateDirectory)/FontRenderer.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/FontRenderer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/FontRenderer.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/FontRenderer.cpp$(DependSuffix): FontRenderer.cpp
@@ -159,14 +142,6 @@ $(IntermediateDirectory)/FontRenderer.cpp$(DependSuffix): FontRenderer.cpp
 
 $(IntermediateDirectory)/FontRenderer.cpp$(PreprocessSuffix): FontRenderer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/FontRenderer.cpp$(PreprocessSuffix) "FontRenderer.cpp"
-
-$(IntermediateDirectory)/FontShader.cpp$(ObjectSuffix): FontShader.cpp $(IntermediateDirectory)/FontShader.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/FontShader.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/FontShader.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/FontShader.cpp$(DependSuffix): FontShader.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/FontShader.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/FontShader.cpp$(DependSuffix) -MM "FontShader.cpp"
-
-$(IntermediateDirectory)/FontShader.cpp$(PreprocessSuffix): FontShader.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/FontShader.cpp$(PreprocessSuffix) "FontShader.cpp"
 
 $(IntermediateDirectory)/GBuffer.cpp$(ObjectSuffix): GBuffer.cpp $(IntermediateDirectory)/GBuffer.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/GBuffer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/GBuffer.cpp$(ObjectSuffix) $(IncludePath)
@@ -199,14 +174,6 @@ $(IntermediateDirectory)/Lights.cpp$(DependSuffix): Lights.cpp
 
 $(IntermediateDirectory)/Lights.cpp$(PreprocessSuffix): Lights.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Lights.cpp$(PreprocessSuffix) "Lights.cpp"
-
-$(IntermediateDirectory)/LitShader.cpp$(ObjectSuffix): LitShader.cpp $(IntermediateDirectory)/LitShader.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/LitShader.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/LitShader.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/LitShader.cpp$(DependSuffix): LitShader.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/LitShader.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/LitShader.cpp$(DependSuffix) -MM "LitShader.cpp"
-
-$(IntermediateDirectory)/LitShader.cpp$(PreprocessSuffix): LitShader.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/LitShader.cpp$(PreprocessSuffix) "LitShader.cpp"
 
 $(IntermediateDirectory)/main.cpp$(ObjectSuffix): main.cpp $(IntermediateDirectory)/main.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/main.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IncludePath)
@@ -312,14 +279,6 @@ $(IntermediateDirectory)/Renderer.cpp$(DependSuffix): Renderer.cpp
 $(IntermediateDirectory)/Renderer.cpp$(PreprocessSuffix): Renderer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Renderer.cpp$(PreprocessSuffix) "Renderer.cpp"
 
-$(IntermediateDirectory)/Room.cpp$(ObjectSuffix): Room.cpp $(IntermediateDirectory)/Room.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/Room.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Room.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/Room.cpp$(DependSuffix): Room.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/Room.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/Room.cpp$(DependSuffix) -MM "Room.cpp"
-
-$(IntermediateDirectory)/Room.cpp$(PreprocessSuffix): Room.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Room.cpp$(PreprocessSuffix) "Room.cpp"
-
 $(IntermediateDirectory)/Scene.cpp$(ObjectSuffix): Scene.cpp $(IntermediateDirectory)/Scene.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/Scene.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Scene.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/Scene.cpp$(DependSuffix): Scene.cpp
@@ -336,14 +295,6 @@ $(IntermediateDirectory)/Shader.cpp$(DependSuffix): Shader.cpp
 $(IntermediateDirectory)/Shader.cpp$(PreprocessSuffix): Shader.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Shader.cpp$(PreprocessSuffix) "Shader.cpp"
 
-$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix): ShadowMapShader.cpp $(IntermediateDirectory)/ShadowMapShader.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/ShadowMapShader.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/ShadowMapShader.cpp$(DependSuffix): ShadowMapShader.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/ShadowMapShader.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/ShadowMapShader.cpp$(DependSuffix) -MM "ShadowMapShader.cpp"
-
-$(IntermediateDirectory)/ShadowMapShader.cpp$(PreprocessSuffix): ShadowMapShader.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/ShadowMapShader.cpp$(PreprocessSuffix) "ShadowMapShader.cpp"
-
 $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix): SkyboxRenderer.cpp $(IntermediateDirectory)/SkyboxRenderer.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/SkyboxRenderer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/SkyboxRenderer.cpp$(DependSuffix): SkyboxRenderer.cpp
@@ -352,14 +303,6 @@ $(IntermediateDirectory)/SkyboxRenderer.cpp$(DependSuffix): SkyboxRenderer.cpp
 $(IntermediateDirectory)/SkyboxRenderer.cpp$(PreprocessSuffix): SkyboxRenderer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/SkyboxRenderer.cpp$(PreprocessSuffix) "SkyboxRenderer.cpp"
 
-$(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix): SkyboxShader.cpp $(IntermediateDirectory)/SkyboxShader.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/SkyboxShader.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/SkyboxShader.cpp$(DependSuffix): SkyboxShader.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/SkyboxShader.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/SkyboxShader.cpp$(DependSuffix) -MM "SkyboxShader.cpp"
-
-$(IntermediateDirectory)/SkyboxShader.cpp$(PreprocessSuffix): SkyboxShader.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/SkyboxShader.cpp$(PreprocessSuffix) "SkyboxShader.cpp"
-
 $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix): Sphere.cpp $(IntermediateDirectory)/Sphere.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/Sphere.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/Sphere.cpp$(DependSuffix): Sphere.cpp
@@ -367,14 +310,6 @@ $(IntermediateDirectory)/Sphere.cpp$(DependSuffix): Sphere.cpp
 
 $(IntermediateDirectory)/Sphere.cpp$(PreprocessSuffix): Sphere.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Sphere.cpp$(PreprocessSuffix) "Sphere.cpp"
-
-$(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix): SphereCollider.cpp $(IntermediateDirectory)/SphereCollider.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/SphereCollider.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/SphereCollider.cpp$(DependSuffix): SphereCollider.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/SphereCollider.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/SphereCollider.cpp$(DependSuffix) -MM "SphereCollider.cpp"
-
-$(IntermediateDirectory)/SphereCollider.cpp$(PreprocessSuffix): SphereCollider.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/SphereCollider.cpp$(PreprocessSuffix) "SphereCollider.cpp"
 
 $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix): Texture.cpp $(IntermediateDirectory)/Texture.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/Texture.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IncludePath)
@@ -407,22 +342,6 @@ $(IntermediateDirectory)/DefaultScript.cpp$(DependSuffix): DefaultScript.cpp
 
 $(IntermediateDirectory)/DefaultScript.cpp$(PreprocessSuffix): DefaultScript.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/DefaultScript.cpp$(PreprocessSuffix) "DefaultScript.cpp"
-
-$(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix): BoxCollider.cpp $(IntermediateDirectory)/BoxCollider.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/BoxCollider.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/BoxCollider.cpp$(DependSuffix): BoxCollider.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/BoxCollider.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/BoxCollider.cpp$(DependSuffix) -MM "BoxCollider.cpp"
-
-$(IntermediateDirectory)/BoxCollider.cpp$(PreprocessSuffix): BoxCollider.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/BoxCollider.cpp$(PreprocessSuffix) "BoxCollider.cpp"
-
-$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix): include/jasper/CapsuleCollider.cpp $(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/include/jasper/CapsuleCollider.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(DependSuffix): include/jasper/CapsuleCollider.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(DependSuffix) -MM "include/jasper/CapsuleCollider.cpp"
-
-$(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(PreprocessSuffix): include/jasper/CapsuleCollider.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/jasper_CapsuleCollider.cpp$(PreprocessSuffix) "include/jasper/CapsuleCollider.cpp"
 
 $(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix): GameObject.cpp $(IntermediateDirectory)/GameObject.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/GameObject.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IncludePath)
@@ -472,14 +391,6 @@ $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(DependSuffix): include/jasp
 $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(PreprocessSuffix): include/jasper/AssetSerializer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/jasper_AssetSerializer.cpp$(PreprocessSuffix) "include/jasper/AssetSerializer.cpp"
 
-$(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix): BasicShader.cpp $(IntermediateDirectory)/BasicShader.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/BasicShader.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/BasicShader.cpp$(DependSuffix): BasicShader.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/BasicShader.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/BasicShader.cpp$(DependSuffix) -MM "BasicShader.cpp"
-
-$(IntermediateDirectory)/BasicShader.cpp$(PreprocessSuffix): BasicShader.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/BasicShader.cpp$(PreprocessSuffix) "BasicShader.cpp"
-
 $(IntermediateDirectory)/imgui.cpp$(ObjectSuffix): imgui.cpp $(IntermediateDirectory)/imgui.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/imgui.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/imgui.cpp$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/imgui.cpp$(DependSuffix): imgui.cpp
@@ -495,14 +406,6 @@ $(IntermediateDirectory)/imgui_draw.cpp$(DependSuffix): imgui_draw.cpp
 
 $(IntermediateDirectory)/imgui_draw.cpp$(PreprocessSuffix): imgui_draw.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/imgui_draw.cpp$(PreprocessSuffix) "imgui_draw.cpp"
-
-$(IntermediateDirectory)/GuiRenderer.cpp$(ObjectSuffix): GuiRenderer.cpp $(IntermediateDirectory)/GuiRenderer.cpp$(DependSuffix)
-	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/GuiRenderer.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/GuiRenderer.cpp$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/GuiRenderer.cpp$(DependSuffix): GuiRenderer.cpp
-	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/GuiRenderer.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/GuiRenderer.cpp$(DependSuffix) -MM "GuiRenderer.cpp"
-
-$(IntermediateDirectory)/GuiRenderer.cpp$(PreprocessSuffix): GuiRenderer.cpp
-	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/GuiRenderer.cpp$(PreprocessSuffix) "GuiRenderer.cpp"
 
 $(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix): Scriptable.cpp $(IntermediateDirectory)/Scriptable.cpp$(DependSuffix)
 	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/Scriptable.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) $(IncludePath)

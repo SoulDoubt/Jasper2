@@ -7,17 +7,8 @@
 #include "Material.h"
 #include "Shader.h"
 #include "Scene.h"
-#include "BasicShader.h"
-#include "TextureShader.h"
-#include "GuiShader.h"
-#include "LitShader.h"
-#include "FontShader.h"
-#include "SkyboxShader.h"
 #include "SkyboxRenderer.h"
-#include "BoxCollider.h"
-#include "CapsuleCollider.h"
-#include "SphereCollider.h"
-#include "PlaneCollider.h"
+#include "PhysicsCollider.h"
 #include "Scriptable.h"
 #include <memory>
 

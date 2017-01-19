@@ -20,22 +20,47 @@ public:
         return ComponentType::Mesh;
     }
 
-	MeshType GetMeshType() const override {
-		return MeshType::Sphere;
-	}
+    MeshType GetMeshType() const override {
+        return MeshType::Sphere;
+    }
 
     unsigned m_latLines = 24;
     unsigned m_longLines = 24;
     float m_radius;
-    
+
     static float icosPositions[];
     static float icosTexCoords[];
     static uint32_t icosIndices[];
-    
+
     void Subdivide(int subdivisions);
     void RecalcTexCoords();
     void LoadIcosphere();
     void LoadUVSphere();
+};
+
+
+class Cylinder : public Mesh
+{
+private:
+
+    float m_height;
+    float m_radius;    
+    float m_heightSubdivisions = 24.f;
+    float m_axisSubdivisions = 24.f;
+    float m_capSubdivisions = 6.f;
+    float m_radiusBase = 1.f;
+    float m_radiusApex = 1.f;
+    int m_segments = 24;
+    int m_slices =24;
+    Vector3 m_direction = {0.f, 1.f, 0.f};    
+    void LoadVerts();
+    void GenerateCaps(bool flip, float height);
+
+public:
+
+    Cylinder(const std::string& name, float height, float radius);
+    ~Cylinder();
+    void Initialize() override;
 };
 
 }

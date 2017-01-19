@@ -3,7 +3,7 @@
 #include "GameObject.h"
 #include "Scene.h"
 #include "Sphere.h"
-#include "SphereCollider.h"
+#include "PhysicsCollider.h"
 #include "CharacterController.h"
 
 

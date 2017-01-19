@@ -257,7 +257,10 @@ void Mesh::CalculateTangentSpace()
 
         float r = 1.0f / (uvedge1.x * uvedge2.y - uvedge1.y * uvedge2.x);
         Vector4 tangent   = Vector4((edge1 * uvedge2.y   - edge2 * uvedge1.y)*r, 1.f);
+        //Vector3 tangent   = (edge1 * uvedge2.y   - edge2 * uvedge1.y)*r;
+        //tangent = Normalize(tangent - Dot(tangent, normal) * normal);
         Vector3 bitangent = (edge2 * uvedge1.x   - edge1 * uvedge2.x)*r;
+        //Vector4 outTan = Vector4(tangent, 1.0);
 
 
         Tangents[index0] += tangent;
@@ -308,6 +311,13 @@ void Mesh::CalculateExtents()
     m_minExtents = Vector3(xmin, ymin, zmin);
     m_maxExtents = Vector3(xmax, ymax, zmax);
 
+}
+
+void Mesh::AddTriangle(const Tri& t)
+{
+    Indices.push_back(t.a);
+    Indices.push_back(t.b);
+    Indices.push_back(t.c);
 }
 
 } // namespace Jasper

@@ -3,12 +3,12 @@
 struct point_light{
 	vec3 Color;
 	vec3 Position;
-	float AmbientIntensity;
-	float DiffuseIntensity;	
+	float AmbientCoefficient
+	float Attenuation;	
 	
-	float ConstAtten;
-	float LinearAtten;
-	float ExpAtten;
+	float ConeAngle;
+	vec3  ConeDirection;
+	
 	float Radius;
 };
 

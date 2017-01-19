@@ -6,6 +6,8 @@
 #include <GL/glew.h>
 #include <vector>
 #include "Lights.h"
+#include <string>
+
 
 
 /*
@@ -134,7 +136,7 @@ public:
 
 private:
     NON_COPYABLE(Shader);
-    
+
     std::vector<uint> m_shaders;
     GLboolean m_transpose = GL_FALSE;
 
@@ -190,29 +192,17 @@ public:
         return ShaderClassType::DirectionalLightPassShader;
     }
 
-    /*
-        #define GBUFFER_TEXTURE_TYPE_DIFFUSE  1
-        #define GBUFFER_TEXTURE_TYPE_NORMAL   2
-        #define GBUFFER_TEXTURE_TYPE_TEXCOORD 3
-        #define GBUFFER_TEXTURE_TYPE_SPECULAR 4
-        #define GBUFFER_NUM_TEXTURES          5
-    */
-
     void SetActiveTexture(uint i) {
         int loc;
         if (i == 0) {
             loc = glGetUniformLocation(m_programID, "positionTexture");
-        } 
-        else if (i == 1){
+        } else if (i == 1) {
             loc = glGetUniformLocation(m_programID, "diffuseTexture");
-        } 
-        else if (i == 2){
+        } else if (i == 2) {
             loc = glGetUniformLocation(m_programID, "normalTexture");
-        }
-        else if (i == 3){
+        } else if (i == 3) {
             loc = glGetUniformLocation(m_programID, "texCoordTexture");
-        }
-        else if (i == 4){
+        } else if (i == 4) {
             loc = glGetUniformLocation(m_programID, "specularTexture");
         }
         if (loc > -1) {
@@ -228,8 +218,146 @@ public:
     //void SetMaterialUniforms(const Material* m);
 };
 
+class PointLightPassShader : public Shader
+{
+    PointLightPassShader() : Shader("pointlightpass_shader") {}
+    ~PointLightPassShader() {}
+    void Initialize() override {
+        const std::string vsFile = "../Shaders/pointlightpass_vert.glsl";
+        const std::string fsFile = "../Shaders/pointlightpass_frag.glsl";
 
+        AddShader(vsFile, ShaderType::VERTEX);
+        AddShader(fsFile, ShaderType::FRAGMENT);
 
+        LinkShaderProgram();
+    }
+
+};
+
+class BasicShader :
+    public Shader
+{
+public:
+    BasicShader();
+    ~BasicShader();
+
+    void Initialize() override;
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::BasicShader;
+    }
+
+    void SetColor(Vector4 color);
+};
+
+class FontShader :
+    public Shader
+{
+public:
+    FontShader();
+    ~FontShader();
+
+    void Initialize() override;
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::FontShader;
+    }
+};
+
+class GuiShader : public Shader
+{
+    void Initialize() override;
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::GuiShader;
+    }
+};
+
+inline void GuiShader::Initialize()
+{
+    std::string vsFile = "../Shaders/texture_vert.glsl";
+    std::string fsFile = "../Shaders/texture_frag.glsl";
+
+    AddShader(vsFile, ShaderType::VERTEX);
+    AddShader(fsFile, ShaderType::FRAGMENT);
+
+    LinkShaderProgram();
+}
+
+class LitShader :
+    public Shader
+{
+public:
+    LitShader();
+    ~LitShader();
+
+    void Initialize() override;
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::LitShader;
+    }
+
+    void GetDirectionalLightUniformLocations() override;
+    void SetDirectionalLightUniforms(const DirectionalLight* dl) override;
+
+    void GetMaterialUniformLocations()override;
+    void SetMaterialUniforms(const Material* m) override;
+
+    void GetPointLightUniformLocations() override;
+    void SetPointLightUniforms(const PointLight* dl, const Vector3& eslp) override;
+
+    void SetTransformUniforms(const Transform& trans) override;
+};
+
+class SkyboxShader :
+    public Shader
+{
+public:
+    SkyboxShader(std::string name);
+    ~SkyboxShader();
+
+    void Initialize() override;
+
+    virtual void SetProjectionMatrix(const Matrix4& proj) override;
+    virtual void SetViewMatrix(const Matrix4& view) override;
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::SkyboxShader;
+    }
+
+};
+
+class ShadowMapShader : public Shader
+{
+
+public:
+    ShadowMapShader();
+    ~ShadowMapShader();
+
+    void Initialize() override;
+
+};
+
+class TextureShader : public Shader
+{
+public:
+
+    TextureShader() : Shader("Texture_Shader") {
+        Initialize();
+    }
+
+    void Initialize() override {
+        std::string vsFile = "./Shaders/texture_vert.glsl";
+        std::string fsFile = "./Shaders/texture_fragment.glsl";
+
+        AddShader(vsFile, ShaderType::VERTEX);
+        AddShader(fsFile, ShaderType::FRAGMENT);
+
+        LinkShaderProgram();
+    }
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::TextureShader;
+    }
+};
 
 }
 

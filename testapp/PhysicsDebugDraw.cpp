@@ -1,6 +1,6 @@
 #include "PhysicsDebugDraw.h"
 #include "Scene.h"
-#include "BasicShader.h"
+#include "Shader.h"
 
 
 namespace Jasper

@@ -26,23 +26,6 @@ enum class PHYSICS_COLLIDER_TYPE
     Compound
 };
 
-//enum class PHYSICS_COLLIDER_FLAGS : u_int32_t
-//{
-//    NONE = 0x00,
-//    DRAW = 0x01
-//};
-//
-//using PCF = std::underlying_type_t<PHYSICS_COLLIDER_FLAGS>;
-//
-//inline PHYSICS_COLLIDER_FLAGS operator|(PHYSICS_COLLIDER_FLAGS a, PHYSICS_COLLIDER_FLAGS b)
-//{
-//    return static_cast<PHYSICS_COLLIDER_FLAGS>(static_cast<PCF>(a) | static_cast<PCF>(b));
-//}
-//
-//inline PHYSICS_COLLIDER_FLAGS operator&(PHYSICS_COLLIDER_FLAGS a, PHYSICS_COLLIDER_FLAGS b)
-//{
-//    return static_cast<PHYSICS_COLLIDER_FLAGS>(static_cast<PCF>(a) & static_cast<PCF>(b));
-//}
 
 class PhysicsCollider :	public Component
 {
@@ -141,6 +124,90 @@ public:
 
 private:
     std::vector<std::unique_ptr<btConvexHullShape>> m_hulls;
+};
+
+class BoxCollider :
+    public PhysicsCollider
+{
+public:
+    explicit BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    ~BoxCollider();
+
+    void Awake() override;
+
+
+    void Serialize(std::ofstream& ofs) {
+        PhysicsCollider::Serialize(ofs);
+    }
+};
+
+
+class CapsuleCollider : public PhysicsCollider
+{
+
+public:
+
+    //CapsuleCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    ~CapsuleCollider();
+
+    void Awake() override;
+
+
+};
+
+
+class ConvexHullCollider : public PhysicsCollider
+{
+public:
+    explicit ConvexHullCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    void Awake() override;
+    void Initialize() override;
+    void InitFromMeshes(const std::vector<Mesh*>& meshes);
+
+private:
+    std::vector<Mesh*> m_meshes;
+    std::unique_ptr<btTriangleMesh> m_btm;
+
+};
+
+
+class CylinderCollider : public PhysicsCollider
+{
+public:
+    explicit CylinderCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
+    void Awake() override;
+
+};
+
+
+class PlaneCollider :
+    public PhysicsCollider
+{
+public:
+    PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld* world);
+    ~PlaneCollider();
+	void Serialize(std::ofstream& ofs) const override;
+
+    void Awake() override;
+
+	Vector3 Normal;
+	float Constant;
+    
+};
+
+
+class SphereCollider :
+    public PhysicsCollider
+{
+public:
+    SphereCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    SphereCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    ~SphereCollider();
+
+    void Awake() override;
+
 };
 
 } // namespace Jasper

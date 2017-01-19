@@ -31,9 +31,7 @@ void main(){
 	vec3 normal;
 	if (has_normal_map){
 		vec3 fn = texture( normalMap, v_texCoords ).xyz;
-		fn.x = (2*fn.x) - 1;
-		fn.y = (2*fn.y) - 1;
-		fn.z = (2*fn.z) - 1;
+		fn = fn * 2.0 - 1.0;
 		vec3 fragNormal = v_tbnMatrix * fn;				
 		normal = normalize(fragNormal);
 	}

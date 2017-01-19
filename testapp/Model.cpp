@@ -8,11 +8,7 @@
 #include "Mesh.h"
 #include "MeshRenderer.h"
 #include "Material.h"
-#include "BoxCollider.h"
-#include "CapsuleCollider.h"
-#include "ConvexHullCollider.h"
-#include "CylinderCollider.h"
-#include "SphereCollider.h"
+#include "PhysicsCollider.h"
 #include "Scene.h"
 #include <string>
 #include <iostream>

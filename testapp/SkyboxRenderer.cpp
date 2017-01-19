@@ -2,7 +2,7 @@
 #include "Material.h"
 #include "GameObject.h"
 #include "Scene.h"
-#include "SkyboxShader.h"
+#include "Shader.h"
 
 #include <GL/glew.h>
 

@@ -72,6 +72,12 @@ struct Vertex {
 
 };
 
+struct Tri {
+    uint a, b, c;
+
+    Tri(float x, float y, float z) : a(x), b(y), c(z) {}
+};
+
 enum class MeshType
 {
     Arbitrary,
@@ -249,6 +255,8 @@ private:
     }
     
     void OptimizeIndices();
+    
+    void AddTriangle(const Tri& t);
 
 protected:
 

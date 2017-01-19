@@ -56,50 +56,18 @@ uint32_t Sphere::icosIndices[60] = {
 };
 
 
-struct Triangle {
-    uint a, b, c;
 
-    Triangle(float x, float y, float z) : a(x), b(y), c(z) {}
-};
 
-void AddTriangle(std::vector<uint>& indices, const Triangle& t)
+
+
+void Sphere::LoadIcosphere()
 {
-    indices.push_back(t.a);
-    indices.push_back(t.b);
-    indices.push_back(t.c);
-}
-
-void Sphere::LoadIcosphere(){
     Positions.reserve( 60 );
     Normals.resize( 60 ); // needs to be resize rather than reserve
     Colors.reserve( 60 );
     TexCoords.reserve( 60 );
     Indices.reserve( 60 );
-//    
-//    for (uint i = 0; i < 60; i++){
-//        Vector3 a;
-//        a.x = icosPositions[icosIndices[i]];
-//        a.y = icosPositions[icosIndices[i] + 1]];
-//        a.z = icosPositions[icosIndices[i] + 2]];
-//        
-//        Vector2 t;
-//        t.x = icosTexCoords[icosIndices[i]]
-//        Positions.push_back(a);        
-//        Normals.push_back(a);        
-//        Indices.push_back(i);                
-//    }
-//        
-//    
-//    for (uint i = 0; i < 120; i += 2){
-//        Vector2 p;
-//        p.x = icosTexCoords[i];
-//        p.y = icosTexCoords[i + 1];        
-//        TexCoords.emplace_back(p);
-//    }
-//    
-//    for( size_t i = 0; i < 60; ++i ) {
-//        Indices.push_back(icosIndices[i]);
-//    }
+
 
     for( size_t i = 0; i < 60; ++i ) {
         Positions.emplace_back( *reinterpret_cast<const Vector3*>(&icosPositions[icosIndices[i]*3]) );
@@ -154,53 +122,54 @@ void Sphere::LoadIcosphere(){
     Mesh::Initialize();
 }
 
-void Sphere::LoadUVSphere(){
+void Sphere::LoadUVSphere()
+{
     int numSegments = m_longLines;
     int numRings = m_latLines;
     Vector3 mCenter = {0.f, 0.f, 0.f};
-    
+
     Positions.resize( numSegments * numRings );
-	Normals.resize( numSegments * numRings );
-	TexCoords.resize( numSegments * numRings );
-	Colors.resize( numSegments * numRings );
-	Indices.resize( (numSegments - 1) * (numRings - 1) * 6 );
+    Normals.resize( numSegments * numRings );
+    TexCoords.resize( numSegments * numRings );
+    Colors.resize( numSegments * numRings );
+    Indices.resize( (numSegments - 1) * (numRings - 1) * 6 );
 
-	float ringIncr = 1.0f / (float)( numRings - 1 );
-	float segIncr = 1.0f / (float)( numSegments - 1 );
-	float radius = m_radius;
+    float ringIncr = 1.0f / (float)( numRings - 1 );
+    float segIncr = 1.0f / (float)( numSegments - 1 );
+    float radius = m_radius;
 
-	auto vertIt = Positions.begin();
-	auto normIt = Normals.begin();
-	auto texIt = TexCoords.begin();
-	auto colorIt = Colors.begin();
-	for( int r = 0; r < numRings; r++ ) {
-		float v = r * ringIncr;
-		for( int s = 0; s < numSegments; s++ ) {
-			float u = 1.0f - s * segIncr;
-			float x = sinf( float(M_PI * 2) * u ) * sinf( float(M_PI) * v );
-			float y = sinf( float(M_PI) * (v - 0.5f) );
-			float z = cosf( float(M_PI * 2) * u ) * sinf( float(M_PI) * v );
+    auto vertIt = Positions.begin();
+    auto normIt = Normals.begin();
+    auto texIt = TexCoords.begin();
+    auto colorIt = Colors.begin();
+    for( int r = 0; r < numRings; r++ ) {
+        float v = r * ringIncr;
+        for( int s = 0; s < numSegments; s++ ) {
+            float u = 1.0f - s * segIncr;
+            float x = sinf( float(M_PI * 2) * u ) * sinf( float(M_PI) * v );
+            float y = sinf( float(M_PI) * (v - 0.5f) );
+            float z = cosf( float(M_PI * 2) * u ) * sinf( float(M_PI) * v );
 
-			*vertIt++ = Vector3( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
+            *vertIt++ = Vector3( x * radius + mCenter.x, y * radius + mCenter.y, z * radius + mCenter.z );
 
-			*normIt++ = Vector3( x, y, z );
-			*texIt++ = Vector2( u, v );
-			*colorIt++ = Vector3( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f );
-		}
-	}
+            *normIt++ = Vector3( x, y, z );
+            *texIt++ = Vector2( u, v );
+            *colorIt++ = Vector3( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f );
+        }
+    }
 
-	auto indexIt = Indices.begin();
-	for( int r = 0; r < numRings - 1; r++ ) {
-		for( int s = 0; s < numSegments - 1 ; s++ ) {
-			*indexIt++ = (uint32_t)(r * numSegments + ( s + 1 ));
-			*indexIt++ = (uint32_t)(r * numSegments + s);
-			*indexIt++ = (uint32_t)(( r + 1 ) * numSegments + ( s + 1 ));
+    auto indexIt = Indices.begin();
+    for( int r = 0; r < numRings - 1; r++ ) {
+        for( int s = 0; s < numSegments - 1 ; s++ ) {
+            *indexIt++ = (uint32_t)(r * numSegments + ( s + 1 ));
+            *indexIt++ = (uint32_t)(r * numSegments + s);
+            *indexIt++ = (uint32_t)(( r + 1 ) * numSegments + ( s + 1 ));
 
-			*indexIt++ = (uint32_t)(( r + 1 ) * numSegments + s);
-			*indexIt++ = (uint32_t)(( r + 1 ) * numSegments + ( s + 1 ));
-			*indexIt++ = (uint32_t)(r * numSegments + s);
-		}
-	}
+            *indexIt++ = (uint32_t)(( r + 1 ) * numSegments + s);
+            *indexIt++ = (uint32_t)(( r + 1 ) * numSegments + ( s + 1 ));
+            *indexIt++ = (uint32_t)(r * numSegments + s);
+        }
+    }
 }
 
 void Sphere::Initialize()
@@ -303,6 +272,148 @@ void Sphere::RecalcTexCoords()
 
 void Sphere::Destroy()
 {
+}
+
+
+// ------------------------ Cylinder -------------------------//
+
+Cylinder::Cylinder(const std::string& name, float height, float radius)
+    : Mesh(name), m_height(height), m_radius(radius)
+{
+
+}
+
+Cylinder::~Cylinder()
+{
+
+}
+
+float lerp(float x, float y, float a)
+{
+    return x * (1.0 - a) + y * a;
+}
+
+void Cylinder::GenerateCaps(bool flip, float height){    
+    const size_t index = Positions.size();
+	const Vector3 n = flip ? -m_direction : m_direction;
+	Normals.resize( index + m_capSubdivisions * m_segments * 2, n );
+	Colors.resize( index + m_capSubdivisions * m_segments * 2, Vector3( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f ) );
+
+	const Quaternion axis = Rotation( Vector3( 0, 1, 0 ), m_direction );
+
+	// vertices
+	const float segmentIncr = 1.0f / ( m_segments - 1 );
+	for( int r = 0; r < m_capSubdivisions; ++r ) {
+		for( int i = 0; i < m_segments; ++i ) {
+			float cosPhi = -cosf( i * segmentIncr * float( M_PI * 2 ) );
+			float sinPhi = sinf( i * segmentIncr * float( M_PI * 2 ) );
+
+			// inner point
+			float x = ( m_radius * cosPhi * float( r ) ) / m_capSubdivisions;
+			float y = m_height;
+			float z = ( m_radius * sinPhi * float( r ) ) / m_capSubdivisions;
+
+			Positions.emplace_back( Vector3(0.f, 0.f, 0.f) + axis * Vector3( x, y, z ) );
+			TexCoords.emplace_back( i * segmentIncr, 1.0f - height / m_height );
+
+			// outer point
+			x = ( m_radius * cosPhi * float( r + 1 ) ) / m_capSubdivisions;
+			y = m_height;
+			z = ( m_radius * sinPhi * float( r + 1 ) ) / m_capSubdivisions;
+
+			Positions.emplace_back( Vector3(0.f, 0.f, 0.f) + axis * Vector3( x, y, z ) );
+			TexCoords.emplace_back( i * segmentIncr, 1.0f - height / m_height );
+		}
+	}
+
+	// index buffer
+	Indices.reserve( Indices.size() + 6 * m_segments * m_capSubdivisions );
+
+	for( int r = 0; r < m_capSubdivisions; ++r ) {
+		for( int i = 0; i < ( m_segments - 1 ); ++i ) {
+			if( flip ) {
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 0 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 2 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 3 ) );
+                       
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 0 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 3 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 1 ) );
+			}
+			else {
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 0 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 3 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 2 ) );
+                                                         
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 0 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 1 ) );
+				Indices.push_back( (uint32_t)( index + r * m_segments * 2 + i * 2 + 3 ) );
+			}
+		}
+	}
+}
+
+void Cylinder::LoadVerts()
+{
+    Positions.reserve( m_segments * m_slices );
+    Normals.reserve( m_segments * m_slices );
+    TexCoords.reserve( m_segments * m_slices );
+    Indices.reserve( (m_segments - 1) * (m_slices - 1) * 6 );
+
+    Colors.reserve( m_segments * m_slices );
+
+    const float segmentIncr = 1.0f / (m_segments - 1);
+    const float ringIncr = 1.0f / (m_slices - 1);
+    const Quaternion axis = Quaternion::FromAxisAndAngle( m_direction, 0.f);
+
+
+    // vertex, normal, tex coord and color buffers
+    for( int i = 0; i < m_segments; ++i ) {
+        for( int j = 0; j < m_slices; ++j ) {
+            float cosPhi = -cosf( i * segmentIncr * float(M_PI * 2) );
+            float sinPhi =  sinf( i * segmentIncr * float(M_PI * 2) );
+
+            float r = lerp( m_radiusBase, m_radiusApex, j * ringIncr );
+            float x = r * cosPhi;
+            float y = m_height * j * ringIncr;
+            float z = r * sinPhi;
+            const Vector3 n = Normalize( Vector3( m_height * cosPhi, m_radiusBase - m_radiusApex, m_height * sinPhi ) );
+
+            Positions.emplace_back( Vector3(0.f, 0.f, 0.f) + axis * Vector3( x, y, z ) );
+            TexCoords.emplace_back( Vector2(i * segmentIncr, 1.0f - j * ringIncr) );
+            Normals.emplace_back( axis * n );
+            Colors.emplace_back( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f );
+        }
+    }
+
+    // index buffer
+    for ( int j = 0; j < m_slices - 1; ++j ) {
+        for( int i = 0; i < m_segments - 1; ++i ) {
+            Indices.push_back( (uint32_t)((i + 0) * m_slices + (j + 0)) );
+            Indices.push_back( (uint32_t)((i + 1) * m_slices + (j + 0)) );
+            Indices.push_back( (uint32_t)((i + 1) * m_slices + (j + 1)) );
+
+            Indices.push_back( (uint32_t)((i + 0) * m_slices + (j + 0)) );
+            Indices.push_back( (uint32_t)((i + 1) * m_slices + (j + 1)) );
+            Indices.push_back( (uint32_t)((i + 0) * m_slices + (j + 1)) );
+        }
+    }
+
+    // caps
+    if( m_radiusBase > 0.0f )
+        GenerateCaps( true, 0.f);// 0.0f, mRadiusBase, positions, normals, texCoords, colors, indices );
+
+    if( m_radiusApex > 0.0f )
+        GenerateCaps( false, m_height);//, mHeight, mRadiusApex, positions, normals, texCoords, colors, indices );
+}
+
+void Cylinder::Initialize()
+{
+    LoadVerts();
+    CalculateExtents();
+    CalculateTangentSpace();
+    Mesh::Initialize();
+
 }
 
 }

@@ -1,8 +1,6 @@
 #include "Scriptable.h"
 #include "GameObject.h"
 #include "PhysicsCollider.h"
-#include "SphereCollider.h"
-#include "BoxCollider.h"
 #include "Scene.h"
 #include "Material.h"
 #include "Mesh.h"

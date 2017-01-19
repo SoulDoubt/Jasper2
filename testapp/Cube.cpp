@@ -52,7 +52,7 @@ void Cube::Initialize()
     }
     CalculateExtents();
     //CalculateFaceNormals();
-    //CalculateTangentSpace();
+    CalculateTangentSpace();
     Mesh::Initialize();
 }
 

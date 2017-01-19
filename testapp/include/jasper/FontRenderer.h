@@ -5,7 +5,7 @@
 #include "MeshRenderer.h"
 #include "GLBuffer.h"
 #include "matrix.h"
-#include "FontShader.h"
+#include "Shader.h"
 
 namespace Jasper
 {

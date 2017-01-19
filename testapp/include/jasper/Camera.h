@@ -6,7 +6,7 @@
 #include "matrix.h"
 #include "GameObject.h"
 #include <memory>
-#include "CapsuleCollider.h"
+#include "PhysicsCollider.h"
 
 namespace Jasper
 {

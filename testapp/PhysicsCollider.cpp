@@ -144,6 +144,7 @@ void PhysicsCollider::Serialize(std::ofstream& ofs) const{
     ofs.write(ConstCharPtr(m_halfExtents.AsFloatPtr()), sizeof(Vector3));
 }
 
+// ----------------- Compound Collider -----------------------//
 
 CompoundCollider::CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld * world)
 	: PhysicsCollider(name, { 0.f, 0.f, 0.f }, world), m_hulls()
@@ -174,6 +175,308 @@ void CompoundCollider::Awake()
     m_rigidBody->setUserPointer(GetGameObject());
 	m_world->AddCollider(this);
 
+}
+
+// ------------------------ Box Collider --------------------//
+BoxCollider::BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world)
+    :PhysicsCollider(name, mesh, world)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Box;
+
+}
+
+using namespace std;
+
+BoxCollider::BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
+    :PhysicsCollider(name, halfExtents, world)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Box;
+}
+
+
+BoxCollider::~BoxCollider()
+{
+}
+
+void BoxCollider::Awake()
+{
+    auto go = GetGameObject();
+    auto& trans = go->GetLocalTransform();
+    auto btTrans = trans.AsBtTransform();    
+
+    float halfX, halfY, halfZ;
+    if (m_mesh) {
+        Vector3 halfExtents = m_mesh->GetHalfExtents();
+        halfX = halfExtents.x;
+        halfY = halfExtents.y;
+        halfZ = halfExtents.z;
+    } else {
+        halfX = m_halfExtents.x;
+        halfY = m_halfExtents.y;
+        halfZ = m_halfExtents.z;
+    }
+
+    m_collisionShape = make_unique<btBoxShape>(btVector3(halfX, halfY, halfZ));
+    m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
+
+    btVector3 inertia;
+    m_collisionShape->calculateLocalInertia(Mass, inertia);
+
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
+    m_rigidBody->setRestitution(Restitution);
+    m_rigidBody->setFriction(Friction);
+    m_rigidBody->setUserPointer(GetGameObject());
+    m_world->AddCollider(this);
+}
+
+
+// ------------------- CapsuleCollider -----------------------//
+CapsuleCollider::CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
+    : PhysicsCollider(name, halfExtents, world)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Capsule;
+}
+
+CapsuleCollider::~CapsuleCollider()
+{
+}
+
+void CapsuleCollider::Awake()
+{
+    auto go = GetGameObject();
+    auto& trans = go->GetLocalTransform();
+    auto btTrans = trans.AsBtTransform();
+
+    float halfX, halfY, halfZ;
+    if (m_mesh != nullptr) {
+        //Vector3 halfExtents = m_mesh->GetHalfExtents();
+        Vector3 minExtents = m_mesh->GetMinExtents();
+        Vector3 maxExtents = m_mesh->GetMaxExtents();
+        halfX = (maxExtents.x - minExtents.x) / 2.0f;
+        halfY = (maxExtents.y - minExtents.y) / 2.0f;
+        halfZ = (maxExtents.z - minExtents.z) / 2.0f;
+    } else {
+        halfX = m_halfExtents.x;
+        halfY = m_halfExtents.y;
+        halfZ = m_halfExtents.z;
+    }
+
+    float radius = std::max(halfX, halfZ);
+    if (radius == halfX) {
+        radius *= trans.Scale.x;
+    } else {
+        radius *= trans.Scale.y;
+    }
+
+    float height = (halfY) * trans.Scale.y * 2;
+    height = height - (2 * radius);
+
+    m_collisionShape = make_unique<btCapsuleShape>(radius, height);
+
+    btVector3 inertia;
+    m_collisionShape->calculateLocalInertia(Mass, inertia);
+
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
+    m_rigidBody->setUserPointer(GetGameObject());
+    m_world->AddCollider(this);
+}
+
+// ------------------- Cylinder Collider -------------------//
+
+CylinderCollider::CylinderCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world)
+    : PhysicsCollider(name, halfExtents, world)
+{
+
+}
+
+void CylinderCollider::Awake()
+{
+
+    auto go = GetGameObject();
+    auto& trans = go->GetLocalTransform();
+    auto btTrans = trans.AsBtTransform();
+
+    float halfX = m_halfExtents.x;
+    float halfY = m_halfExtents.y;
+    float halfZ = m_halfExtents.z;
+
+    halfX *= trans.Scale.x;
+    halfY *= trans.Scale.y;
+    halfZ *= trans.Scale.z;
+
+    m_collisionShape = make_unique<btCylinderShape>(btVector3(halfX, halfY, halfZ));
+
+    btVector3 inertia;
+    m_collisionShape->calculateLocalInertia(Mass, inertia);
+
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
+    m_rigidBody->setUserPointer(GetGameObject());
+    m_world->AddCollider(this);
+}
+
+// -------------------- ConvexHull Collider --------------------//
+
+ConvexHullCollider::ConvexHullCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
+    : PhysicsCollider(name, halfExtents, world), m_meshes()
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::ConvexHull;
+}
+
+void ConvexHullCollider::Awake()
+{
+
+    auto go = GetGameObject();
+    auto& trans = go->GetLocalTransform();
+    auto btTrans = trans.AsBtTransform();
+
+   
+    m_btm = std::make_unique<btTriangleMesh>(true, false);
+
+    for (const auto mesh : m_meshes) {
+        int sz = mesh->Indices.size();
+        for (int i = 0; i < sz; i += 3) {
+            const unsigned index0 = mesh->Indices[i];
+            const unsigned index1 = mesh->Indices[i + 1];
+            const unsigned index2 = mesh->Indices[i + 2];
+            btVector3 p0 = mesh->Positions[index0].AsBtVector3();
+            btVector3 p1 = mesh->Positions[index1].AsBtVector3();
+            btVector3 p2 = mesh->Positions[index2].AsBtVector3();
+
+            m_btm->addTriangle(p0, p1, p2, false);
+        }
+    }
+    std::unique_ptr<btBvhTriangleMeshShape> bvh = make_unique<btBvhTriangleMeshShape>(m_btm.get(), true);
+    bvh->buildOptimizedBvh();
+    //bvh->usesQuantizedAabbCompression();
+    //btShapeHull* shull = new btShapeHull(bcs);
+    //shull->buildHull(bcs->getMargin());
+    //btConvexHullShape* shape = new btConvexHullShape((btScalar*)shull->getVertexPointer(), shull->numVertices());
+    m_collisionShape = move(bvh);
+
+    btVector3 inertia;
+    Mass = 0.0f;
+    //m_collisionShape->calculateLocalInertia(Mass, inertia);
+
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
+    m_rigidBody->setUserPointer(GetGameObject());
+    m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
+
+    m_world->AddCollider(this);
+    //delete shull;
+    //delete bcs;
+    //delete btm;
+}
+
+void ConvexHullCollider::Initialize()
+{
+
+}
+
+void ConvexHullCollider::InitFromMeshes(const std::vector<Mesh*>& meshes)
+{
+    for (const auto m : meshes) {
+        m_meshes.push_back(m);
+    }
+}
+
+// ------------------- PlaneCollider ---------------------------------//
+
+
+PlaneCollider::PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld * world) :
+	PhysicsCollider(name, Vector3(), world), Normal(normal), Constant(constant)
+{	
+	m_colliderType = PHYSICS_COLLIDER_TYPE::Plane;	
+}
+
+PlaneCollider::~PlaneCollider()
+{
+}
+
+void PlaneCollider::Serialize(std::ofstream & ofs) const
+{	
+	using namespace AssetSerializer;
+	PhysicsCollider::Serialize(ofs);
+	ofs.write(ConstCharPtr(Normal.AsFloatPtr()), sizeof(Normal));
+	ofs.write(ConstCharPtr(&Constant), sizeof(Constant));
+}
+
+void PlaneCollider::Awake()
+{
+    auto go = GetGameObject();
+    auto& trans = go->GetLocalTransform();
+    auto btTrans = trans.AsBtTransform();
+    m_collisionShape = make_unique<btStaticPlaneShape>(Normal.AsBtVector3(), Constant);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), btVector3(0.f, -1.f, 0.f));
+    m_rigidBody = make_unique<btRigidBody>(rbci);
+    m_rigidBody->setRestitution(Restitution);
+    m_rigidBody->setFriction(Friction);
+    m_rigidBody->setUserPointer(GetGameObject());
+    m_world->AddCollider(this);
+
+}
+
+// -------------------- SphereCollider ----------------------//
+
+SphereCollider::SphereCollider(std::string name, Mesh * mesh, PhysicsWorld * world)
+    :PhysicsCollider(name, mesh, world)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Sphere;
+}
+
+using namespace std;
+
+SphereCollider::SphereCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
+    :PhysicsCollider(name, halfExtents, world)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Sphere;
+}
+
+SphereCollider::~SphereCollider()
+{
+}
+
+void SphereCollider::Awake()
+{
+    auto go = GetGameObject();
+    auto& trans = go->GetLocalTransform();
+    auto btTrans = trans.AsBtTransform();
+    float radius = 0.f;
+    if (m_mesh) {
+        m_halfExtents = m_mesh->GetHalfExtents();
+    }
+
+    m_halfExtents.x = m_halfExtents.x * trans.Scale.x;
+    m_halfExtents.y = m_halfExtents.y * trans.Scale.y;
+    m_halfExtents.z = m_halfExtents.z * trans.Scale.z;
+
+    auto extents = m_halfExtents.AsFloatPtr();
+    for (int i = 0; i < 3; ++i) {
+        float r = fabs(extents[i]);
+        if (r > radius) {
+            radius = r;
+        }
+    }
+    m_collisionShape = make_unique<btSphereShape>(radius);
+
+    btVector3 inertia;
+    m_collisionShape->calculateLocalInertia(Mass, inertia);
+
+    m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
+    m_rigidBody->setRestitution(Restitution);
+    m_rigidBody->setFriction(Friction);
+    m_rigidBody->setUserPointer(GetGameObject());
+    m_world->AddCollider(this);
 }
 
 } // namespace Jasper

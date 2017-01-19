@@ -4,17 +4,12 @@
 #include "Quad.h"
 #include "Cube.h"
 #include "Material.h"
-#include "BasicShader.h"
-#include "LitShader.h"
-#include "SkyboxShader.h"
-#include "TextureShader.h"
+#include "Shader.h"
 #include "MeshRenderer.h"
 #include "SkyboxRenderer.h"
 #include "Model.h"
-#include "PlaneCollider.h"
-#include "BoxCollider.h"
+#include "PhysicsCollider.h"
 #include "Sphere.h"
-#include "SphereCollider.h"
 #include <fstream>
 #include "AssetSerializer.h"
 #include <random>
@@ -348,12 +343,12 @@ void Scene::InitializeManual()
     m_fontRenderer->SetOrthoMatrix(m_orthoMatrix);
 
     Material* m1 = m_materialManager.CreateInstance<Material>(defaultShader, "wall_material");
-    m1->SetTextureDiffuse("../textures/154.JPG");
-    m1->SetTextureNormalMap("../textures/154_norm.JPG");
+    m1->SetTextureDiffuse("../textures/176.JPG");
+    m1->SetTextureNormalMap("../textures/176_norm.JPG");
     m1->Diffuse = { 0.85f, 0.85f, 0.85f };
     m1->Ambient = { 0.25f, 0.25f, 0.25f };
-    m1->Specular = { 0.99f, 0.99f, 0.9f };
-    m1->Shine = 255;
+    m1->Specular = { 0.65f, 0.65f, 0.65f };
+    m1->Shine = 32;
 
     //    std::ofstream serializer;
     //    serializer.open("scenedata.scene", ios::binary | ios::out);
@@ -388,7 +383,7 @@ void Scene::InitializeManual()
 
     // wall
     auto wall = m_rootNode->AttachNewChild<GameObject>("wall_0");
-    auto wallMesh = m_meshManager.CreateInstance<Cube>("wall_mesh", Vector3(50.f, 10.0f, 3.0f), 10.f, 1.f);    
+    auto wallMesh = m_meshManager.CreateInstance<Cube>("wall_mesh", Vector3(50.f, 10.0f, 3.0f), 20.f, 4.f);    
     wall->GetLocalTransform().Translate(0.0f, 25.0f, -20.0f);    
     wall->AttachNewComponent<MeshRenderer>("wall_renderer", wallMesh, m1);
     wallMesh->SetMaterial(m1);
@@ -444,7 +439,7 @@ void Scene::InitializeManual()
     auto ml = make_unique<ModelLoader>(this, defaultShader);
     ml->LoadModel("../models/Mathias/Mathias.obj"s, "Cyborg");
     
-    auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 5.0f);  
+    auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 2.0f);  
     ss->SetMaterial(m1);
     auto icos = m_rootNode->AttachNewChild<GameObject>("icos");
     icos->GetLocalTransform().Position = {0.f, 25.f, 0.f };
@@ -454,6 +449,11 @@ void Scene::InitializeManual()
     sc->Friction = 0.75f;
     sc->Restitution = 0.86f;
     
+    auto cylMesh = m_meshManager.CreateInstance<Cylinder>("base_cyl", 5.f, 1.f);
+    cylMesh->SetMaterial(m1);    
+    auto cyl = m_rootNode->AttachNewChild<GameObject>("Cyl");
+    auto cylrend = cyl->AttachNewComponent<MeshRenderer>("cyl_renderer", cylMesh, m1);
+    cylrend->ToggleWireframe(true);
     
     
     float cx = 0;
@@ -464,7 +464,7 @@ void Scene::InitializeManual()
         float ax = cx + radius * sinf(a);
         float az = cz + radius * cosf(a);
         auto& model = m_rootNode->AttachChild(ml->CreateModelInstance("cyborg_model"s + to_string(i), "Cyborg", true, false));
-        model.GetLocalTransform().Position = { ax, 1.5f, az };
+        model.GetLocalTransform().Position = { ax, 1.2f, az };
         //model.GetLocalTransform().Scale = {0.1, 0.1, 0.1};
     }
     
@@ -515,8 +515,8 @@ void Scene::InitializeManual()
 
     auto dlight = make_unique<DirectionalLight>("d_light"s);
     dlight->Direction = Normalize(Vector3(-0.5, -1.f,-0.5f));
-    dlight->AmbientIntensity = 0.005f;
-    dlight->Diffuseintensity = 1.0f;
+    dlight->AmbientIntensity = 0.05f;
+    dlight->Diffuseintensity = 0.2f;
     m_directionalLight = move(dlight);
 }
 
@@ -620,6 +620,7 @@ void Scene::Update(float dt)
     // after update the scene is ready for rendering...
     m_rootNode->LateUpdate();
     const auto renderStart = high_resolution_clock::now();
+    //m_renderer->RenderScene();
     m_renderer->RenderGeometryPass();
     m_renderer->RenderDirectionalLightPass();
     m_renderer->RenderSkybox();
@@ -629,10 +630,10 @@ void Scene::Update(float dt)
     long long rt = renderTime.count();
     this->RendererFrameTime = (double)rt / 1000000.0;
 
-    debug_draw_physics = true;
-    if (debug_draw_physics) {
-        DebugDrawPhysicsWorld();
-    }
+//    debug_draw_physics = true;
+//    if (debug_draw_physics) {
+//        DebugDrawPhysicsWorld();
+//    }
 
 }
 
@@ -724,7 +725,7 @@ void Scene::ShootMouse(int x, int y)
     if (go) {
         if (auto cc = go->GetComponentByType<PhysicsCollider>()) {
             btRigidBody* rb = cc->GetRigidBody();
-            Transform t = cc->GetCurrentWorldTransform();
+            //Transform t = cc->GetCurrentWorldTransform();
             btVector3 offset = hit_point.AsBtVector3() - rb->getWorldTransform().getOrigin();
             rb->activate();
             rb->applyImpulse(-(hit_normal.AsBtVector3() * 100.f), offset);
