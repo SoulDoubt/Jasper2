@@ -194,10 +194,10 @@ void SerializeMaterial(std::ofstream& ofs, const Material* mat) {
 	ofs.write(ConstCharPtr(mat->Specular.AsFloatPtr()), sizeof(Vector3));
 	ofs.write(ConstCharPtr(&(mat->Shine)), sizeof(float));
 
-	const string shaderName = mat->GetShaderName();
-	const size_t shaderNameLength = shaderName.size();
-	ofs.write(ConstCharPtr(&shaderNameLength), sizeof(shaderNameLength));
-	ofs.write(shaderName.c_str(), sizeof(char) * shaderNameLength);
+	//const string shaderName = mat->GetShaderName();
+	//const size_t shaderNameLength = shaderName.size();
+	//ofs.write(ConstCharPtr(&shaderNameLength), sizeof(shaderNameLength));
+	//ofs.write(shaderName.c_str(), sizeof(char) * shaderNameLength);
 
 	const bool hasDiffuseMap = mat->GetTextureDiffuseMap() != nullptr;
 	ofs.write(ConstCharPtr(&hasDiffuseMap), sizeof(hasDiffuseMap));
@@ -348,7 +348,7 @@ void ConstructMaterial(std::ifstream& ifs, Scene* scene) {
 		return;
 	}
 
-	Material* mm = scene->GetMaterialCache().CreateInstance<Material>(mShader, matName);
+	Material* mm = scene->GetMaterialCache().CreateInstance<Material>(matName);
 	mm->Ambient = ambient;
 	mm->Diffuse = diffuse;
 	mm->Specular = specular;

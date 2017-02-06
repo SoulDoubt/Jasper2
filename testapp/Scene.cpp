@@ -246,6 +246,8 @@ void Scene::DrawPickRay()
 
 void Scene::DebugDrawPhysicsWorld()
 {
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
     auto viewMatrix = m_camera->GetViewMatrix();
     auto projMatrix = m_camera->GetProjectionMatrix();
     auto& dd = m_physicsWorld->debugDrawer;
@@ -316,8 +318,8 @@ void Scene::InitializeManual()
     m_skybox->SetScene(this);
     auto skyboxMesh = m_meshManager.CreateInstance<Cube>("skybox_cube_mesh", Vector3(100.0f, 100.0f, 100.0f), true);
     skyboxMesh->SetCubemap(true); // we want to render the inside of the cube    
-    auto skyboxShader = m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
-    auto skyboxMaterial = m_materialManager.CreateInstance<Material>(skyboxShader, "skybox_material");
+    m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
+    auto skyboxMaterial = m_materialManager.CreateInstance<Material>("skybox_material");
     string posx = "../textures/CloudyLightRays/CloudyLightRaysLeft2048.png"s;
     string negx = "../textures/CloudyLightRays/CloudyLightRaysRight2048.png"s;
     string posy = "../textures/CloudyLightRays/CloudyLightRaysUp2048.png"s;
@@ -332,23 +334,28 @@ void Scene::InitializeManual()
     //skyboxMesh->Initialize();
     // create the Lit Shader Instance to render most objects
     //auto defaultShader = m_shaderManager.CreateInstance<LitShader>();
-    auto defaultShader =  m_shaderManager.CreateInstance<GeometryPassShader>();
+    m_shaderManager.CreateInstance<GeometryPassShader>();
     m_shaderManager.CreateInstance<DirectionalLightPassShader>();
+    m_shaderManager.CreateInstance<PointLightPassShader>();
+    m_shaderManager.CreateInstance<DeferredStencilPassShader>();
+    m_shaderManager.CreateInstance<LitShader>();
     
-    Material* icosMat = m_materialManager.CreateInstance<Material>(defaultShader, "icosmat");
+    Material* icosMat = m_materialManager.CreateInstance<Material>("icosmat");
     icosMat->SetTextureDiffuse("../textures/icos.png");
 
     m_fontRenderer = make_unique<FontRenderer>();
     m_fontRenderer->Initialize();
     m_fontRenderer->SetOrthoMatrix(m_orthoMatrix);
 
-    Material* m1 = m_materialManager.CreateInstance<Material>(defaultShader, "wall_material");
-    m1->SetTextureDiffuse("../textures/176.JPG");
-    m1->SetTextureNormalMap("../textures/176_norm.JPG");
-    m1->Diffuse = { 0.85f, 0.85f, 0.85f };
+    Material* m1 = m_materialManager.CreateInstance<Material>("wall_material");
+    //m1->SetTextureDiffuse("../textures/176.JPG");
+    //m1->SetTextureNormalMap("../textures/176_norm.JPG");
+    m1->Diffuse = { 0.85f, 0.34f, 0.05f };
     m1->Ambient = { 0.25f, 0.25f, 0.25f };
     m1->Specular = { 0.65f, 0.65f, 0.65f };
     m1->Shine = 32;
+    
+    m1->Flags = Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 
     //    std::ofstream serializer;
     //    serializer.open("scenedata.scene", ios::binary | ios::out);
@@ -362,7 +369,7 @@ void Scene::InitializeManual()
     // Floor
     auto floor = m_rootNode->AttachNewChild<GameObject>("floor");
     auto quadMesh = m_meshManager.CreateInstance<Quad>("floor_quad", Vector2(100.0f, 100.0f), 25, 25, Quad::AxisAlignment::XZ);
-    Material* floorMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "floor_material");
+    Material* floorMaterial = m_materialManager.CreateInstance<Material>("floor_material");
     floorMaterial->SetTextureDiffuse("../textures/186.JPG");
     floorMaterial->SetTextureNormalMap("../textures/186_norm.JPG");
     floorMaterial->Specular = { 0.8f, .9f, .9f };
@@ -370,16 +377,16 @@ void Scene::InitializeManual()
     floor->AttachNewComponent<MeshRenderer>("quad_renderer", quadMesh, floorMaterial);
     floor->GetLocalTransform().Translate(Vector3(0.0f, -1.f, 0.0f));    
     floorMaterial->Ambient = { 0.0f, 0.0f, 0.0f };
+    
     quadMesh->SetMaterial(floorMaterial);
     //quadMesh->Initialize();
     auto floorP = floor->AttachNewComponent<PlaneCollider>("floor_collider", Vector3(0.0, 1.0, 0.0), 0.0, m_physicsWorld.get());
     floorP->Friction = 0.9f;    
 
     auto basic = m_shaderManager.GetResourceByName("basic_shader"s);
-    auto red = m_materialManager.CreateInstance<Material>(basic, "red_material"s);
+    auto red = m_materialManager.CreateInstance<Material>("red_material"s);
 
-    
-    
+
 
     // wall
     auto wall = m_rootNode->AttachNewChild<GameObject>("wall_0");
@@ -389,13 +396,7 @@ void Scene::InitializeManual()
     wallMesh->SetMaterial(m1);
     //wallMesh->Initialize();
     auto wallCollider = wall->AttachNewComponent<BoxCollider>("wall_0_collider", wallMesh, m_physicsWorld.get());
-    wallCollider->Mass = 100.0f;
-    
-    
-    
-    //wall->GetLocalTransform().Scale = {2.5f, 2.5f, 2.5f};
-    //wallCollider->GetCollisionShape()->setLocalScaling({0.5f, 0.5f, 0.5f});
-    //wallCollider->Serialize(serializer);
+    wallCollider->Mass = 100.0f;    
 
     // launcher
     auto launcher = m_rootNode->AttachNewChild<GameObject>("Launcher"s);
@@ -405,56 +406,44 @@ void Scene::InitializeManual()
     // secondary launcher
     auto launcher2 = launcher->AttachNewChild<GameObject>("Launcher2"s);
     launcher2->GetLocalTransform().Translate(10.f, 2.f, 5.f);
-    //launcher2->AttachNewComponent<LauncherScript>("Launcher2_script");
+   
 
-//    auto model = m_rootNode->AttachNewChild<GameObject>("mathias_model"s);
-//    auto mdl = model->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-//    mdl->ColliderType = PHYSICS_COLLIDER_TYPE::Capsule;
-//    //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
-//    model->GetLocalTransform().Position = { 0.f, 2.f, -1.5f };
-//    //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
-//    mdl->Setup(this);
-//    auto collider = model->GetComponentByType<PhysicsCollider>();
-//    if (collider) {
-//        collider->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
-//        //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
-//        collider->Mass = 10.f;
-//    }
-//
-//    auto model2 = m_rootNode->AttachNewChild<GameObject>("mathias_model2"s);
-//    auto mdl2 = model2->AttachNewComponent<Model>("mathias"s, "../models/Mathias/Mathias.obj"s, defaultShader, true, m_physicsWorld.get());
-//    mdl2->ColliderType = PHYSICS_COLLIDER_TYPE::Capsule;
-//    //model->GetLocalTransform().Scale = { 1.5f, 5.f, 1.5f };
-//    model2->GetLocalTransform().Position = { -2.f, 2.f, 1.5f };
-//    //model->GetLocalTransform().Rotate( { 1.f, 0.f, 0.f }, -90.f);
-//    mdl2->Setup(this);
-//
-//    auto collider2 = model2->GetComponentByType<PhysicsCollider>();
-//    if (collider2) {
-//        collider2->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
-//        //collider->GetCollisionShape()->setLocalScaling({ 0.035f, 0.035f, 0.035f });
-//        collider2->Mass = 10.f;
-//    }
-
-    auto ml = make_unique<ModelLoader>(this, defaultShader);
-    ml->LoadModel("../models/Mathias/Mathias.obj"s, "Cyborg");
     
-    auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 2.0f);  
+    //ml->LoadModel("../models/Mathias/Mathias.obj"s, "Cyborg");
+    
+    auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 1.0f);  
     ss->SetMaterial(m1);
     auto icos = m_rootNode->AttachNewChild<GameObject>("icos");
-    icos->GetLocalTransform().Position = {0.f, 25.f, 0.f };
+    icos->GetLocalTransform().Position = {0.f, 1.f, 0.f };
     icos->AttachNewComponent<MeshRenderer>("icos_renderer", ss, icosMat);
     auto sc = icos->AttachNewComponent<SphereCollider>("icos_collider", ss, m_physicsWorld.get());
     sc->Mass = 50.f;
     sc->Friction = 0.75f;
     sc->Restitution = 0.86f;
     
-    auto cylMesh = m_meshManager.CreateInstance<Cylinder>("base_cyl", 5.f, 1.f);
+    ModelLoader ml(this);
+    ml.LoadModel("../models/nanosuit/nanosuit.obj"s, "teapot");
+    
+   
+    
+    
+    
+    //auto& ninja = m_rootNode->AttachChild(ml->CreateModelInstance("teapot_model", "pot1", true, false));
+    //ninja.GetLocalTransform().Position = {1.f, 1.f, 0.f};
+    //ninja.GetLocalTransform().Scale = {0.05f, 0.05f, 0.05f};
+        
+    //auto& pot2 = m_rootNode->AttachChild(ml->CreateModelInstance("teapot_model1", "pot2", true, false));
+    //pot2.GetLocalTransform().Position = {-1.f, 1.f, 0.f};
+    //pot2.GetLocalTransform().Scale = {0.05f, 0.05f, 0.05f};
+
+        
+    auto cylMesh = m_meshManager.CreateInstance<Cylinder>("base_cyl", 2.f, 1.f);    
     cylMesh->SetMaterial(m1);    
     auto cyl = m_rootNode->AttachNewChild<GameObject>("Cyl");
     auto cylrend = cyl->AttachNewComponent<MeshRenderer>("cyl_renderer", cylMesh, m1);
+    auto cylcol = cyl->AttachNewComponent<CylinderCollider>("cyl_collider", cylMesh, m_physicsWorld.get());    
     cylrend->ToggleWireframe(true);
-    
+    cylcol->Mass = 20.f;
     
     float cx = 0;
     float cz = 10;
@@ -463,10 +452,16 @@ void Scene::InitializeManual()
         float a = DEG_TO_RAD(i * 30);
         float ax = cx + radius * sinf(a);
         float az = cz + radius * cosf(a);
-        auto& model = m_rootNode->AttachChild(ml->CreateModelInstance("cyborg_model"s + to_string(i), "Cyborg", true, false));
+        auto& model = m_rootNode->AttachChild(ml.CreateModelInstance("teapot"s + to_string(i), "teapot", true, false));
         model.GetLocalTransform().Position = { ax, 1.2f, az };
+        model.GetLocalTransform().UniformScale(0.4f);
         //model.GetLocalTransform().Scale = {0.1, 0.1, 0.1};
     }
+    
+     ml.LoadModel("../models/ArmyPilot/ArmyPilot.dae"s, "lara");
+     auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("lara", "lara", true, false));
+     lara.GetLocalTransform().Position = { 15.f, 2.f, 4.f};
+     lara.GetLocalTransform().Rotate({1.4, 0.f, 0.f}, -90.f);
     
 //    auto debris = m_rootNode->AttachNewChild<GameObject>("debris"s);
 //    auto debrismodel = debris->AttachNewComponent<Model>("debris"s, "../models/rocks/01/rock_01.obj"s, defaultShader, true, m_physicsWorld.get());
@@ -498,26 +493,41 @@ void Scene::InitializeManual()
 
     auto light0 = m_rootNode->AttachNewChild<PointLight>("p_light"s);
     light0->GetLocalTransform().Translate( { 0.0f, 10.f, 15.0f });
-    light0->ConstAtten = 0.002f;
+    light0->Attenuation = 0.f;
     light0->Color = { 1.f, 1.f, 1.f };
     light0->AmbientIntensity = 0.3f;
-    light0->DiffuseIntensity = 1.f;
-    light0->Radius = 12.0f;
+    light0->DiffuseIntensity = 0.85f;
+    light0->Radius = 20.0f;
     auto lightMesh = m_meshManager.CreateInstance<Cube>("point_light_mesh"s, Vector3(0.1f, 0.1f, 0.1f));
-    auto lightMaterial = m_materialManager.CreateInstance<Material>(defaultShader, "point_light_material"s);
+    auto lightMaterial = m_materialManager.CreateInstance<Material>("point_light_material"s);
     lightMaterial->SetTextureDiffuse("../textures/white.jpg"s);
     lightMesh->SetMaterial(lightMaterial);
     //lightMesh->Initialize();    
     light0->AttachNewComponent<MeshRenderer>("point_light_renderer"s, lightMesh, lightMaterial);
-    light0->AttachNewComponent<RotateAboutPointScript>("Rotate_Light_Script"s, Vector3(0.f, 7.5f, 0.f), Vector3(0.f, 1.f, 0.f), 45);
+    //light0->AttachNewComponent<RotateAboutPointScript>("Rotate_Light_Script"s, Vector3(0.f, 7.5f, 0.f), Vector3(0.f, 1.f, 0.f), 45);
     m_pointLights.push_back(light0);
     //
+    
+    auto light1 = m_rootNode->AttachNewChild<PointLight>("light1");
+    light1->GetLocalTransform().Position = {5.f, 10.f, 5.f};
+    light1->Radius = 15.f;
+    m_pointLights.push_back(light1);
+    
+    auto light2 = m_rootNode->AttachNewChild<PointLight>("light2");
+    light2->GetLocalTransform().Position = {-5.f, 10.f, 5.f};
+    light2->Radius = 15.f;
+    m_pointLights.push_back(light2);
+    
+    auto light3 = m_rootNode->AttachNewChild<PointLight>("light3");
+    light3->GetLocalTransform().Position = {0.f, 10.f, 10.f};
+    light3->Radius = 15.f;
+    m_pointLights.push_back(light3);
 
-    auto dlight = make_unique<DirectionalLight>("d_light"s);
+    auto dlight = m_rootNode->AttachNewChild<DirectionalLight>("d_light"s);
     dlight->Direction = Normalize(Vector3(-0.5, -1.f,-0.5f));
-    dlight->AmbientIntensity = 0.05f;
+    dlight->AmbientIntensity = 0.005f;
     dlight->Diffuseintensity = 0.2f;
-    m_directionalLight = move(dlight);
+    m_directionalLight = dlight;
 }
 
 
@@ -546,7 +556,7 @@ void Scene::Initialize()
     for (const auto& m : m_meshManager.GetCache()){
         m->Initialize();
     }
-    m_renderer->Initialize();
+    m_renderer->Initialize();    
     m_rootNode->Initialize();
     //Serialize("../scenes/scenedata.scene");
 }
@@ -614,15 +624,14 @@ void Scene::Update(float dt)
     const auto updateStart = high_resolution_clock::now();
     m_rootNode->Update(dt);
     const auto updateEnd = high_resolution_clock::now();
-    auto updateMili = duration_cast<milliseconds>(updateEnd - updateStart);
-    double ut = updateMili.count();
+    auto updateMili = duration_cast<nanoseconds>(updateEnd - updateStart);
+    double ut = (double)updateMili.count() / 1000000.0;
     this->UpdateFrameTime = ut;
     // after update the scene is ready for rendering...
     m_rootNode->LateUpdate();
     const auto renderStart = high_resolution_clock::now();
     //m_renderer->RenderScene();
-    m_renderer->RenderGeometryPass();
-    m_renderer->RenderDirectionalLightPass();
+    m_renderer->RenderScene();        
     m_renderer->RenderSkybox();
 
     const auto renderEnd = high_resolution_clock::now();
@@ -739,9 +748,11 @@ void Scene::Awake()
 
     m_rootNode->Awake();
 
-    for (auto& mesh : m_meshManager.GetCache()) {
-        //mesh->UnloadClientData();
-    }
+//    for (auto& mesh : m_meshManager.GetCache()) {
+//        //mesh->UnloadClientData();
+//    }
+    
+
 
 }
 

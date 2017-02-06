@@ -100,4 +100,13 @@ int GLBuffer::Size()
     glGetBufferParameteriv(m_type, GL_BUFFER_SIZE, &sz);
     return sz;
 }
+
+void* GLBuffer::MapForReading(){
+    return glMapBuffer(m_type, GL_WRITE_ONLY);
+}
+
+void GLBuffer::Unmap(){
+    glUnmapBuffer(m_type);
+}
+
 }

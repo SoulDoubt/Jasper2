@@ -195,7 +195,7 @@ void MeshRenderer::Render()
     glPolygonMode(GL_FRONT, poly_mode[0]);
     GLERRORCHECK;
     glBindVertexArray(0);
-
+      
 }
 
 } // namespace Jasper

@@ -25,6 +25,7 @@ struct Vector2 {
     float x, y;
 
     Vector2(float x, float y);
+    Vector2(float x) : x(x), y(x){}
     Vector2() = default;
     std::string ToString() const;
     float* AsFloatPtr() {
@@ -90,7 +91,7 @@ struct Vector3 {
 
     float x, y, z;
 
-    Vector3() : x(0.0f), y(0.0f), z(0.0f) {}
+    Vector3() : x(0.0f), y(0.0f), z(0.0f) {}    
     Vector3(float x, float y, float z) : x(x), y(y), z(z) {}
     Vector3(const btVector3& v) : x(v.x()), y(v.y()), z(v.z()) {}
     Vector3(float a) : x(a), y(a), z(a) {}
@@ -329,7 +330,7 @@ inline Vector3 SmoothStep(const Vector3& a, const Vector3& b, const float pct)
 
 inline Vector3 AbsVal(const Vector3& v)
 {
-    return {fabs(v.x), fabs(v.y), fabs(v.z)};
+    return {std::abs(v.x), std::abs(v.y), std::abs(v.z)};
 }
 
 inline std::string Vector3::ToString(int precision) const
@@ -356,6 +357,7 @@ public:
     Vector4(const float x, const float y, const float z, const float w) : x(x), y(y), z(z), w(w) {}
 
     Vector4() : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+    Vector4(float x) : x(x), y(x), z(x), w(x){}
     Vector4(const Vector3& xyz, float w);
 
     Vector4 operator-() const {

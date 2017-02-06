@@ -28,21 +28,9 @@ void SkyboxRenderer::Update(float dt)
 
 void SkyboxRenderer::Render()
 {
-    SkyboxShader* shader = (SkyboxShader*)m_material->GetShader();
-    const int shaderID = shader->ProgramID();
-    auto& camera = GetGameObject()->GetScene()->GetCamera();
+    //SkyboxShader* shader = (SkyboxShader*)m_material->GetShader();
+    //const int shaderID = shader->ProgramID();
     
-    shader->Bind();
-
-    // we need the current view matrix and projection matrix of the scene
-    const auto projection = camera.GetProjectionMatrix();
-    const auto view = camera.GetCubemapViewMatrix();
-
-    //trix4 view;
-    //view.SetToIdentity();
-    const auto pv = projection * view;
-    shader->SetProjectionMatrix(projection);
-    shader->SetViewMatrix(view);
 
     glBindVertexArray(m_mesh->VaoID());
     glActiveTexture(GL_TEXTURE0 + 0);
@@ -51,7 +39,7 @@ void SkyboxRenderer::Render()
     glBindTexture(GL_TEXTURE_CUBE_MAP, texID);
     glDrawElements(GL_TRIANGLES, m_mesh->ElementCount(), GL_UNSIGNED_INT, 0);
     glDepthMask(GL_TRUE);
-    shader->Release();
+    //shader->Release();
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     glBindVertexArray(0);
 

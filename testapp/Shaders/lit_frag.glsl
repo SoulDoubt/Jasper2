@@ -48,8 +48,9 @@ uniform material material0;
 
 uniform bool has_normal_map;
 uniform bool has_specular_map;
+uniform bool has_diffuse_map;
 
-vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
+vec4 CalculatePointLight(point_light plight, vec3 normal, vec4 specular){
 
 	vec4 diffuse_color = vec4(0,0,0,1);
 	vec4 specular_color = vec4(0,0,0,1);
@@ -69,20 +70,21 @@ vec4 CalculatePointLight(point_light plight, vec3 normal, vec3 specular){
 		float specular_factor = max(dot(reflection, vert_to_eye), 0.0);
 		if (specular_factor > 0){
 			specular_factor = pow(specular_factor, material0.ns);
-			vec3 spec = plight.Color * specular_factor * specular; 
-			specular_color = vec4(spec, 1.0f);
+			float sf = pow(specular_factor, specular.a * 255);	
+	   		specular_color = vec4(plight.Color * specular.rgb, 1.0) * sf;
+			//specular_color = vec4(spec, 1.0f);
 		}
 	}
 
-	float d = max(dist_to_light - plight.Radius, 0.0f);
+	float d = max(dist_to_light - 10, 0.0f);
 	float dnom = d/plight.Radius + 1;
 	float attenuation = 1 / (dnom * dnom);
 	attenuation = max(attenuation, 0.0f);
 
-	return (ambient_color + diffuse_color + specular_color) * attenuation;	
+	return (ambient_color + diffuse_color + specular_color);// * attenuation;	
 }
 
-vec4 CalculateDirectionalLight(directional_light dlight, vec3 normal, vec3 specular){
+vec4 CalculateDirectionalLight(directional_light dlight, vec3 normal, vec4 specular){
 	vec4 diffuse_color = vec4(0,0,0,1);
 	vec4 specular_color = vec4(0,0,0,1);
 	vec3 light_direction = (dlight.Direction);
@@ -99,9 +101,8 @@ vec4 CalculateDirectionalLight(directional_light dlight, vec3 normal, vec3 specu
 		vec3 reflection = normalize(reflect(-light_direction, normal));
 		float specular_factor = max(dot(reflection, vert_to_eye), 0.0);
 		if (specular_factor > 0){
-			specular_factor = pow(specular_factor, material0.ns);
-			vec3 spec = dlight.Color * specular_factor * specular; 
-			specular_color = vec4(spec, 1.0f);
+			float sf = pow(specular_factor, specular.a * 255);	
+	   		specular_color = vec4(dlight.Color * specular.rgb, 1.0) * sf;
 		}
 	}
 	return ambient_color + diffuse_color + specular_color;	
@@ -121,22 +122,24 @@ void main()
 		normal = normalize(v_normal); 	
 	}
 
-	vec3 materialSpecular;
+	vec4 materialSpecular;
 	if (has_specular_map){
-		materialSpecular = texture( specularMap, v_texCoords ).xyz;
+		materialSpecular = texture( specularMap, v_texCoords );
 	}
 	else{
-		materialSpecular = material0.ks;
+		materialSpecular = vec4(material0.ks, material0.ns / 255);
 	}
 	
-	vec4 map_color = texture(colorMap, v_texCoords);
+	vec4 map_color = vec4 (0,0,0,1);
 	
-	if (map_color == vec4(0,0,0,0)){
-	 	map_color = vec4(material0.kd, 1.0);
+	if (has_diffuse_map){
+	 	map_color = texture(colorMap, v_texCoords);	 	
+	} else {
+		map_color = vec4(material0.kd, 1.0);
 	}
 	vec4 lighting = vec4(0,0,0,1);
 	lighting += CalculatePointLight(plight0, normal, materialSpecular);
-	lighting += CalculateDirectionalLight(dlight0, normal, materialSpecular);
+	//lighting += CalculateDirectionalLight(dlight0, normal, materialSpecular);
 	
 
 	//float attenuation = plight0.ConstAtten + plight0.LinearAtten * dist_to_light + plight0.ExpAtten * dist_to_light * dist_to_light;

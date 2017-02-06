@@ -45,8 +45,8 @@ public:
     }
 
 private:
-    std::string m_name;
-    std::vector<Mesh*> m_meshes;
+    std::string            m_name;
+    std::vector<Mesh*>     m_meshes;
     std::vector<Material*> m_materials;
 
 
@@ -60,7 +60,7 @@ class ModelInstance : public Component
 class ModelLoader //: public Component
 {
 public:
-    ModelLoader(Scene* scene, Shader* shader);
+    ModelLoader(Scene* scene);
     ~ModelLoader();
 
     float Mass = 0.0f;
@@ -91,8 +91,7 @@ private:
     std::string m_name;
     Scene* m_scene;
     std::string m_filename;
-    std::string m_directory;
-    Shader* m_shader;
+    std::string m_directory;    
     std::vector<Mesh*> m_model_meshes;
     std::vector<Material*> m_model_materials;
     PhysicsWorld* m_physicsWorld = nullptr;

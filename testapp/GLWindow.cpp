@@ -2,7 +2,7 @@
 #include "GLWindow.h"
 #include "GLError.h"
 #include "Scene.h"
-#include "GuiShader.h"
+#include "Shader.h"
 
 #include "imgui.h"
 
@@ -139,6 +139,7 @@ bool GLWindow::Init()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 1);
     
     m_context = SDL_GL_CreateContext(m_window);
         
@@ -208,7 +209,7 @@ void GLWindow::RunLoop()
 
         // DO ALL THE THINGS HERE!!:)
         //ProcessInput(m_window, m_scene.get(), deltaTime);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         m_scene->Update(dt);
         // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
         if (SHOW_GUI) {

@@ -174,7 +174,7 @@ public:
     }
     
     DirectionalLight* GetDirectionalLight() const {
-        return m_directionalLight.get();
+        return m_directionalLight;
     }
 
 private:
@@ -199,7 +199,7 @@ private:
     
     std::vector<PointLight*> m_pointLights;
     
-    std::unique_ptr<DirectionalLight> m_directionalLight;
+    DirectionalLight* m_directionalLight;
     
     std::unique_ptr<FontRenderer> m_fontRenderer;
 

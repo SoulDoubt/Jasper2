@@ -24,8 +24,8 @@ public:
         return MeshType::Sphere;
     }
 
-    unsigned m_latLines = 24;
-    unsigned m_longLines = 24;
+    unsigned m_latLines = 16;
+    unsigned m_longLines = 16;
     float m_radius;
 
     static float icosPositions[];
@@ -51,7 +51,7 @@ private:
     float m_radiusBase = 1.f;
     float m_radiusApex = 1.f;
     int m_segments = 24;
-    int m_slices =24;
+    int m_slices = 3;
     Vector3 m_direction = {0.f, 1.f, 0.f};    
     void LoadVerts();
     void GenerateCaps(bool flip, float height);

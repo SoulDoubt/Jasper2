@@ -20,6 +20,11 @@ public:
     Texture();
     ~Texture();
 
+    bool LoadSRGBA(std::string filename);
+    bool LoadSRGBA(const unsigned char* data, int width, int height, uint format);
+
+    void LoadDDS(const std::string& filename, bool linear);
+    
     bool Load(std::string filename);
     bool Load(const unsigned char* data, int width, int height, uint format);
     

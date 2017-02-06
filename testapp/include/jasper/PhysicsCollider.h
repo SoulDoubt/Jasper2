@@ -23,7 +23,8 @@ enum class PHYSICS_COLLIDER_TYPE
     Cylinder,
     Plane,
     Sphere,
-    Compound
+    Compound,
+    StaticTriangleMesh
 };
 
 
@@ -34,7 +35,7 @@ public:
     const static u_int32_t DRAW_COLLISION_SHAPE = 0x01;
 
 
-    explicit PhysicsCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit PhysicsCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     virtual ~PhysicsCollider();
 
@@ -62,6 +63,7 @@ public:
     btRigidBody* GetRigidBody() const {
         return m_rigidBody.get();
     }
+
     btCollisionShape* GetCollisionShape() const {
         return m_collisionShape.get();
     }
@@ -105,7 +107,7 @@ protected:
     Vector3 m_halfExtents;
     PHYSICS_COLLIDER_TYPE m_colliderType;
     Vector4 m_debugColor;
-    Mesh* m_mesh = nullptr;
+    const Mesh* m_mesh = nullptr;
 
 
 };
@@ -130,7 +132,7 @@ class BoxCollider :
     public PhysicsCollider
 {
 public:
-    explicit BoxCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    explicit BoxCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
     explicit BoxCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~BoxCollider();
 
@@ -148,7 +150,7 @@ class CapsuleCollider : public PhysicsCollider
 
 public:
 
-    //CapsuleCollider(std::string name, Mesh* mesh, PhysicsWorld* world);
+    CapsuleCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
     CapsuleCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     ~CapsuleCollider();
 
@@ -161,6 +163,7 @@ public:
 class ConvexHullCollider : public PhysicsCollider
 {
 public:
+    explicit ConvexHullCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
     explicit ConvexHullCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     void Awake() override;
     void Initialize() override;
@@ -172,10 +175,25 @@ private:
 
 };
 
+class StaticTriangleMeshCollider : public PhysicsCollider
+{
+public:
+    explicit StaticTriangleMeshCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
+    explicit StaticTriangleMeshCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    void Awake() override;
+    void Initialize() override;
+    void InitFromMeshes(const std::vector<Mesh*>& meshes);
+
+private:
+    std::vector<Mesh*> m_meshes;
+    std::unique_ptr<btTriangleMesh> m_btm;
+};
+
 
 class CylinderCollider : public PhysicsCollider
 {
 public:
+    explicit CylinderCollider(const std::string& name, const Mesh* mesh, PhysicsWorld* world);
     explicit CylinderCollider(const std::string& name, const Vector3& halfExtents, PhysicsWorld* world);
     void Awake() override;
 
@@ -188,13 +206,13 @@ class PlaneCollider :
 public:
     PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld* world);
     ~PlaneCollider();
-	void Serialize(std::ofstream& ofs) const override;
+    void Serialize(std::ofstream& ofs) const override;
 
     void Awake() override;
 
-	Vector3 Normal;
-	float Constant;
-    
+    Vector3 Normal;
+    float Constant;
+
 };
 
 

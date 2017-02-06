@@ -51,57 +51,66 @@ void Cube::Initialize()
         LoadStandardVerts();
     }
     CalculateExtents();
+    
     //CalculateFaceNormals();
-    CalculateTangentSpace();
+    
     Mesh::Initialize();
 }
 
 void Cube::LoadCubemapVerts()
 {
+    this->SetVertexFormat(VERTEX_FORMAT::Vertex_P);
     const float x = Dimensions.x;
     const float y = Dimensions.y;
     const float z = Dimensions.z;
-    AddVertex( { Vector3(-x, y, -z) });
-    AddVertex( { Vector3(-x, -y, -z) });
-    AddVertex( { Vector3(x, -y, -z) });
-    AddVertex( { Vector3(x, -y, -z) });
-    AddVertex( { Vector3(x, y, -z) });
-    AddVertex( { Vector3(-x, y, -z) });
-
-    AddVertex( { Vector3(-x, -y, z) });
-    AddVertex( { Vector3(-x, -y, -z) });
-    AddVertex( { Vector3(-x, y, -z) });
-    AddVertex( { Vector3(-x, y, -z) });
-    AddVertex( { Vector3(-x, y, z) });
-    AddVertex( { Vector3(-x, -y, z) });
-
-    AddVertex( { Vector3(x, -y, -z) });
-    AddVertex( { Vector3(x, -y, z) });
-    AddVertex( { Vector3(x, y, z) });
-    AddVertex( { Vector3(x, y, z) });
-    AddVertex( { Vector3(x, y, -z) });
-    AddVertex( { Vector3(x, -y, -z) });
-
-    AddVertex( { Vector3(-x, -y, z) });
-    AddVertex( { Vector3(-x, y, z) });
-    AddVertex( { Vector3(x, y, z) });
-    AddVertex( { Vector3(x, y, z) });
-    AddVertex( { Vector3(x, -y, z) });
-    AddVertex( { Vector3(-x, -y, z) });
-
-    AddVertex( { Vector3(-x, y, -z) });
-    AddVertex( { Vector3(x, y, -z) });
-    AddVertex( { Vector3(x, y, z) });
-    AddVertex( { Vector3(x, y, z) });
-    AddVertex( { Vector3(-x, y, z) });
-    AddVertex( { Vector3(-x, y, -z) });
-
-    AddVertex( { Vector3(-x, -y, -z) });
-    AddVertex( { Vector3(-x, -y, z) });
-    AddVertex( { Vector3(x, -y, -z) });
-    AddVertex( { Vector3(x, -y, -z) });
-    AddVertex( { Vector3(-x, -y, z) });
-    AddVertex( { Vector3(x, -y, z) });
+    Positions.push_back(Vector3(-x, y, -z) );
+    Positions.push_back(Vector3(-x, -y, -z) );
+    Positions.push_back(Vector3(x, -y, -z) );
+    Positions.push_back(Vector3(x, -y, -z) );
+    Positions.push_back(Vector3(x, y, -z) );
+    Positions.push_back(Vector3(-x, y, -z) );
+                  
+    Positions.push_back(Vector3(-x, -y, z) );
+    Positions.push_back(Vector3(-x, -y, -z) );
+    Positions.push_back(Vector3(-x, y, -z) );
+    Positions.push_back(Vector3(-x, y, -z) );
+    Positions.push_back(Vector3(-x, y, z) );
+    Positions.push_back(Vector3(-x, -y, z) );
+                  
+    Positions.push_back(Vector3(x, -y, -z) );
+    Positions.push_back(Vector3(x, -y, z) );
+    Positions.push_back(Vector3(x, y, z) );
+    Positions.push_back(Vector3(x, y, z) );
+    Positions.push_back(Vector3(x, y, -z) );
+    Positions.push_back(Vector3(x, -y, -z) );
+                  
+    Positions.push_back(Vector3(-x, -y, z) );
+    Positions.push_back(Vector3(-x, y, z) );
+    Positions.push_back(Vector3(x, y, z) );
+    Positions.push_back(Vector3(x, y, z) );
+    Positions.push_back(Vector3(x, -y, z) );
+    Positions.push_back(Vector3(-x, -y, z) );
+                  
+    Positions.push_back(Vector3(-x, y, -z) );
+    Positions.push_back(Vector3(x, y, -z) );
+    Positions.push_back(Vector3(x, y, z) );
+    Positions.push_back(Vector3(x, y, z) );
+    Positions.push_back(Vector3(-x, y, z) );
+    Positions.push_back(Vector3(-x, y, -z) );
+                  
+    Positions.push_back(Vector3(-x, -y, -z) );
+    Positions.push_back(Vector3(-x, -y, z) );
+    Positions.push_back(Vector3(x, -y, -z) );
+    Positions.push_back(Vector3(x, -y, -z) );
+    Positions.push_back(Vector3(-x, -y, z) );
+    Positions.push_back(Vector3(x, -y, z) );
+    
+    //for (uint i = 0; i < Positions.size(); ++i){
+    //    TexCoords.emplace_back(Vector2(0.0f, 1.0f));
+    //}
+    
+    //CalculateFaceNormals();
+    //CalculateTangentSpace();
 
     Indices.push_back(0);
     Indices.push_back(1);
@@ -317,6 +326,8 @@ void Cube::LoadStandardVerts()
     Indices.push_back(20);
     Indices.push_back(22);
     Indices.push_back(23);
+    
+    CalculateTangentSpace();
 
 }
 

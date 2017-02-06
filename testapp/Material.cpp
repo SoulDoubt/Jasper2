@@ -5,6 +5,8 @@
 
 namespace Jasper
 {
+    
+   
 
 
 bool Material::ShowGui()
@@ -25,11 +27,11 @@ bool Material::ShowGui()
     return false;
 }
 
-Material::Material(Shader* shader, const std::string& name)
+Material::Material(/*Shader* shader,*/ const std::string& name)
 {
-    m_shader = shader;
-    m_shader->SetBoundMaterial(this);
-    m_shaderName = shader->GetName();
+    //m_shader = shader;
+    //m_shader->SetBoundMaterial(this);
+    //m_shaderName = shader->GetName();
     // material defaults
     Ambient = { 0.5f, 0.5f, 0.5f };
     Diffuse = { 0.85f, 0.85f, 0.85f };
@@ -49,9 +51,9 @@ void Material::Serialize(std::ofstream& ofs) const {
     ofs.write(ConstCharPtr(Specular.AsFloatPtr()), sizeof(Vector3));
     ofs.write(ConstCharPtr(&Shine), sizeof(float));
     
-    const size_t shaderNameLength = m_shaderName.size();
-    ofs.write(ConstCharPtr(&shaderNameLength), sizeof(shaderNameLength));
-    ofs.write(m_shaderName.c_str(), sizeof(char) * shaderNameLength);
+//    const size_t shaderNameLength = m_shaderName.size();
+//    ofs.write(ConstCharPtr(&shaderNameLength), sizeof(shaderNameLength));
+//    ofs.write(m_shaderName.c_str(), sizeof(char) * shaderNameLength);
     
     const size_t diffuseLength = m_diffuseTextureFileName.size();
     ofs.write(ConstCharPtr(&diffuseLength), sizeof(diffuseLength));

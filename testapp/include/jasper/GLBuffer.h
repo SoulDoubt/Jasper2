@@ -12,7 +12,8 @@ public:
 
     enum BufferType {
         VERTEX = 0x8892, // GL_ARRAY_BUFFER
-        INDEX = 0x8893 // GL_ELEMENT_ARRAY_BUFFER
+        INDEX = 0x8893,  // GL_ELEMENT_ARRAY_BUFFER
+        UNIFORM = 0x8A11 // GL_UNIFORM_BUFFER
     };
 
     enum Usage {
@@ -47,6 +48,9 @@ public:
     void UpdateContents(uint offset, uint size, const void* data);
 
     int Size();
+    
+    void* MapForReading();
+    void Unmap();
 
 
 

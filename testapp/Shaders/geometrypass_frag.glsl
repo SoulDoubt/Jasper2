@@ -9,12 +9,13 @@ uniform sampler2D colorMap;
 uniform sampler2D normalMap;
 uniform sampler2D specularMap;
 
-layout (location = 0) out vec3 WorldPosOut;   
-layout (location = 1) out vec3 DiffuseOut;     
-layout (location = 2) out vec3 NormalOut;     
-layout (location = 3) out vec3 TexCoordOut; 
-layout (location = 4) out vec3 SpecularOut; 
+layout (location = 0) out vec4 WorldPosOut;   
+layout (location = 1) out vec4 DiffuseOut;     
+layout (location = 2) out vec4 NormalOut;     
+layout (location = 3) out vec4 SpecularOut; 
+layout (location = 4) out vec4 FinalOut; 
 
+uniform bool has_diffuse_map;
 uniform bool has_normal_map;
 uniform bool has_specular_map;
 
@@ -28,6 +29,7 @@ struct material{
 uniform  material material0;
 
 void main(){
+
 	vec3 normal;
 	if (has_normal_map){
 		vec3 fn = texture( normalMap, v_texCoords ).xyz;
@@ -39,26 +41,26 @@ void main(){
 		normal = normalize(v_normal); 	
 	}
 
-	vec3 materialSpecular;
+	vec4 specular;
 	if (has_specular_map){
-		materialSpecular = texture( specularMap, v_texCoords ).xyz;
+		specular = texture( specularMap, v_texCoords );
 	}
 	else{
-		materialSpecular = material0.ks;
+		specular = vec4(material0.ks, material0.ns);
 	}
-	
-	vec4 map_color = texture(colorMap, v_texCoords);
-	
-	if (map_color == vec4(0,0,0,0)){
-		map_color = vec4(material0.kd, 1.0);
+
+	vec4 color;
+	if (has_diffuse_map){
+		color = texture(colorMap, v_texCoords);
 	}
-	
-	//map_color = vec4(1.0, 0.0, 0.0, 1.0);
-	WorldPosOut = v_fragPosition.xyz;
-	DiffuseOut  = map_color.xyz;
-	NormalOut   = normal;
-	TexCoordOut = vec3(v_texCoords, 0.0);
-	SpecularOut = materialSpecular;
+	else {
+		color = vec4(material0.kd, 1.0);
+	}
+		
+	WorldPosOut = v_fragPosition;
+	DiffuseOut  = color;
+	NormalOut   = vec4(normal, 0.0);	
+	SpecularOut = specular;
 	
 }
 

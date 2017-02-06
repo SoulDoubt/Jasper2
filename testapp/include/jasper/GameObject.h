@@ -68,6 +68,10 @@ public:
 	Transform& GetLocalTransform() {
 		return m_transform;
 	}
+    
+    void UniformScale(float s){
+        m_transform.Scale = {s, s, s};
+    }
 	
 
 	std::chrono::high_resolution_clock::time_point GetTimeAwakened() const {

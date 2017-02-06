@@ -15,12 +15,20 @@ namespace Jasper
 {
 
 class Material;
+class Shader;
+
+struct UV{
+    //GLubyte u;
+    //GLubyte v;
+    
+    
+};
 
 struct Vertex {
     Vector3 Position;
+    Vector4 Color;
     Vector3 Normal;
     Vector2 TexCoords;
-    Vector4 Color;
     Vector4 Tangent;
     Vector3 Bitangent;
 
@@ -69,7 +77,182 @@ struct Vertex {
         Tangent = Vector4();
         Bitangent = Vector3();
     }
+};
 
+struct Vertex_P {
+    Vector3 Position;
+
+    Vertex_P() : Position(0.f) {}
+    Vertex_P(const Vector3& position): Position(position) {}
+};
+
+struct Vertex_PCNUTB {
+    Vector3 Position;
+    Vector4 Color;
+    Vector3 Normal;
+    Vector2 TexCoords;
+    Vector4 Tangent;
+    Vector3 Bitangent;
+
+    Vertex_PCNUTB(float x, float y, float z, float u, float v) {
+        Position = { x, y, z };
+        TexCoords = { u, v };
+        Normal = { 0.0f, 0.0f, 0.0f };
+        Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PCNUTB(const Vector3& position, const Vector3& normal, float u, float v) {
+        Position = position;
+        Normal = normal;
+        Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        TexCoords.x = u;
+        TexCoords.y = v;
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PCNUTB(const Vector3& position) {
+        Position = position;
+        TexCoords = { 0.0f, 1.0f };
+        Normal = { 0.0f, 0.0f, 0.0f };
+        Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PCNUTB(const Vector3& position, const Vector3& normal, const Vector4& color, const Vector2& texCoords) {
+        Position = position;
+        Normal = normal;
+        Color = color;
+        TexCoords = texCoords;
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PCNUTB() {
+        Position = Vector3();
+        Normal = Vector3();
+        Color = Vector4();
+        TexCoords = Vector2();
+        Tangent = Vector4();
+        Bitangent = Vector3();
+    }
+
+};
+
+struct Vertex_PNUTB {
+    Vector3 Position;
+    Vector3 Normal;
+    Vector2 TexCoords;
+    Vector4 Tangent;
+    Vector3 Bitangent;
+    
+    std::vector<std::string> BonesAffecting;
+    
+
+    Vertex_PNUTB(float x, float y, float z, float u, float v) {
+        Position = { x, y, z };
+        TexCoords = { u, v };
+        Normal = { 0.0f, 0.0f, 0.0f };
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB(const Vector3& position, const Vector3& normal, float u, float v) {
+        Position = position;
+        Normal = normal;
+        TexCoords.x = u;
+        TexCoords.y = v;
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB(const Vector3& position) {
+        Position = position;
+        TexCoords = { 0.0f, 1.0f };
+        Normal = { 0.0f, 0.0f, 0.0f };
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB(const Vector3& position, const Vector3& normal, const Vector2& texCoords) {
+        Position = position;
+        Normal = normal;
+        TexCoords = texCoords;
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB() {
+        Position = Vector3();
+        Normal = Vector3();
+        TexCoords = Vector2();
+        Tangent = Vector4();
+        Bitangent = Vector3();
+    }
+
+};
+
+struct Vertex_PNU {
+    Vector3 Position;
+    Vector3 Normal;
+    Vector2 TexCoords;
+
+    Vertex_PNU(float x, float y, float z, float u, float v) {
+        Position = { x, y, z };
+        TexCoords = { u, v };
+        Normal = { 0.0f, 0.0f, 0.0f };
+    }
+
+    Vertex_PNU(const Vector3& position, const Vector3& normal, float u, float v) {
+        Position = position;
+        Normal = normal;
+        TexCoords.x = u;
+        TexCoords.y = v;
+    }
+
+    Vertex_PNU(const Vector3& position) {
+        Position = position;
+        TexCoords = { 0.0f, 1.0f };
+        Normal = { 0.0f, 0.0f, 0.0f };
+    }
+
+    Vertex_PNU(const Vector3& position, const Vector3& normal, const Vector2& texCoords) {
+        Position = position;
+        Normal = normal;
+        TexCoords = texCoords;
+    }
+
+    Vertex_PNU() {
+        Position = Vector3();
+        Normal = Vector3();
+        TexCoords = Vector2();
+    }
+
+};
+
+struct Vertex_PCN {
+
+    Vector3 Position;
+    Vector4 Color;
+    Vector3 Normal;
+
+
+    Vertex_PCN() : Position(0.f), Color(1.f), Normal(0.f) {
+
+    }
+
+    Vertex_PCN(const Vector3& position, const Vector3& normal, const Vector4& color) : Position(position), Color(color), Normal(normal) {}
+};
+
+struct Vertex_PN {
+    Vector3 Position;
+    Vector3 Normal;
+    
+    Vertex_PN() : Position(0.f), Normal(0.f){}
+    Vertex_PN(const Vector3& p, const Vector3& n) : Position(p), Normal(n) {}    
 };
 
 struct Tri {
@@ -90,24 +273,42 @@ enum class MeshType
 
 class Mesh : public Component
 {
+public:
+    enum class VERTEX_FORMAT
+    {
+        None,
+        Vertex_PCNUTB,
+        Vertex_PNUTB,
+        Vertex_PNU,
+        Vertex_PCN,
+        Vertex_PN,
+        Vertex_P
+    };
+    // TODO: get rif of this
     friend class Model;
 private:
     uint m_vaoID;
-    int m_elementCount;
+    uint m_elementCount;
+    VERTEX_FORMAT m_vertexFormat = VERTEX_FORMAT::None;
+
     GLBuffer m_vertexBuffer;
-    GLBuffer m_texCoordBuffer;
-    GLBuffer m_normalBuffer;
-    GLBuffer m_tangentBuffer;
-    GLBuffer m_bitangentBuffer;
+    //GLBuffer m_texCoordBuffer;
+    //GLBuffer m_normalBuffer;
+    //GLBuffer m_tangentBuffer;
+    //GLBuffer m_bitangentBuffer;
     GLBuffer m_indexBuffer;
-    GLBuffer m_colorBuffer;
+    //GLBuffer m_colorBuffer;
 
-    public:
+public:
 
-    void SetMaterial(Material* m){
+    void SetVertexFormat(VERTEX_FORMAT format) {
+        m_vertexFormat = format;
+    }
+
+    void SetMaterial(Material* m) {
         m_material = m;
     }
-    
+
     int ElementCount() const {
         return m_elementCount;
     }
@@ -119,30 +320,34 @@ private:
     GLBuffer& VertexBuffer() {
         return m_vertexBuffer;
     }
-
-    GLBuffer& TexCoordBuffer() {
-        return m_texCoordBuffer;
+    
+    bool HasBones() const {
+        return Bones.size() > 0;
     }
 
-    GLBuffer& NormalBuffer() {
-        return m_normalBuffer;
-    }
-
-    GLBuffer& TangentBuffer() {
-        return m_tangentBuffer;
-    }
-
-    GLBuffer& BitangentBuffer() {
-        return m_bitangentBuffer;
-    }
+//    GLBuffer& TexCoordBuffer() {
+//        return m_texCoordBuffer;
+//    }
+//
+//    GLBuffer& NormalBuffer() {
+//        return m_normalBuffer;
+//    }
+//
+//    GLBuffer& TangentBuffer() {
+//        return m_tangentBuffer;
+//    }
+//
+//    GLBuffer& BitangentBuffer() {
+//        return m_bitangentBuffer;
+//    }
 
     GLBuffer& IndexBuffer() {
         return m_indexBuffer;
     }
 
-    GLBuffer& ColorBuffer() {
-        return m_colorBuffer;
-    }
+//    GLBuffer& ColorBuffer() {
+//        return m_colorBuffer;
+//    }
 
 
     struct VertexBoneWeight {
@@ -159,7 +364,7 @@ private:
     };
 
     std::vector<BoneData> Bones;
-    
+
     explicit Mesh(const std::string& name);
     virtual ~Mesh();
 
@@ -181,7 +386,7 @@ private:
     std::vector<Vector3> Positions;
     std::vector<Vector3> Normals;
     std::vector<Vector2> TexCoords;
-    std::vector<Vector3> Colors;
+    std::vector<Vector4> Colors;
     std::vector<Vector4> Tangents;
     std::vector<Vector3> Bitangents;
 
@@ -189,6 +394,10 @@ private:
 
 
     void AddVertex(const Vertex& vertex);
+    void AddVertex_PCNUTB(const Vertex_PCNUTB& vertex);
+    void AddVertex_PNUTB(const Vertex_PNUTB& vertex);
+    void AddVertex_PNU(const Vertex_PNU& vertex);
+    void AddVertex_PCN(const Vertex_PCN& vertex);
 
     Vector3 GetHalfExtents() const {
         return m_Extents;
@@ -219,14 +428,15 @@ private:
         Tangents.clear();
         Bitangents.clear();
         Indices.clear();
+        Colors.clear();
     }
 
     unsigned GetTriCount() const {
-        return (unsigned)Indices.size() / 3;
+        return static_cast<unsigned>(Indices.size()) / 3;
     }
 
     unsigned GetVertCount() const {
-        return (unsigned)Positions.size();
+        return static_cast<unsigned>(Positions.size());
     }
 
     int IncrementRendererCount() {
@@ -249,21 +459,24 @@ private:
     void CalculateTangentSpace();
     void CalculateFaceNormals();
     void CalculateExtents();
-    
+
     Material* GetMaterial() const {
         return m_material;
     }
-    
+
     void OptimizeIndices();
-    
+
     void AddTriangle(const Tri& t);
+
+    void InitializeForRendering(Shader* shader);
+
 
 protected:
 
     int renderer_count = 0;
 
 
-    
+
 
     bool m_reverseWinding = false;
 
@@ -287,6 +500,41 @@ inline void Mesh::AddVertex(const Vertex& vertex)
 
 
 }
+
+inline void Mesh::AddVertex_PCNUTB(const Vertex_PCNUTB& vertex)
+{
+    TexCoords.push_back(vertex.TexCoords);
+    Normals.push_back(vertex.Normal);
+    Tangents.push_back(vertex.Tangent);
+    Bitangents.push_back(vertex.Bitangent);
+    Positions.push_back(vertex.Position);
+    Colors.push_back(vertex.Color);
+}
+
+inline void Mesh::AddVertex_PNUTB(const Vertex_PNUTB& vertex)
+{
+    TexCoords.push_back(vertex.TexCoords);
+    Normals.push_back(vertex.Normal);
+    Tangents.push_back(vertex.Tangent);
+    Bitangents.push_back(vertex.Bitangent);
+    Positions.push_back(vertex.Position);
+}
+
+inline void Mesh::AddVertex_PNU(const Vertex_PNU& vertex)
+{
+    Positions.push_back(vertex.Position);
+    TexCoords.push_back(vertex.TexCoords);
+    Normals.push_back(vertex.Normal);
+}
+
+inline void Mesh::AddVertex_PCN(const Vertex_PCN& vertex)
+{
+    Positions.push_back(vertex.Position);
+    Colors.push_back(vertex.Color);
+    Normals.push_back(vertex.Normal);
+}
+
+
 
 
 inline void Mesh::ReverseWinding()

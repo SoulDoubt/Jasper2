@@ -15,9 +15,8 @@ public:
 	Vector3 Color = { 1.0f, 1.0f, 1.0f };
 	float AmbientIntensity = 0.05f;
 	float DiffuseIntensity = 1.0f;
-	float ConstAtten = 1.0f;
-	float LinearAtten = 0.09f;
-	float ExpAtten = 0.032f;
+	float Attenuation = 1.0f;	
+	
 	float Radius = 20.0f;
 
 	bool ShowGui() override;
@@ -25,6 +24,10 @@ public:
 	GameObjectType GetGameObjectType() const override {
 		return GameObjectType::PointLight;
 	}
+    
+    Vector3 Position() const {
+        return GetWorldTransform().Position;
+    }
     
     
 };

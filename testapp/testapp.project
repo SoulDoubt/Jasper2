@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="testapp" InternalType="Console">
+<CodeLite_Project Name="testapp" InternalType="Console" Version="10.0.0">
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -124,6 +124,7 @@
       <File Name="include/jasper/VHACD.h"/>
       <File Name="include/jasper/ParticleSystem.h"/>
       <File Name="include/jasper/ForsythIndexOptimizer.h"/>
+      <File Name="include/jasper/stb_dxt.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
@@ -137,17 +138,18 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="GCC" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-Wmain;-g;-O0;-std=c++14;-Wall" C_Options="-g;-O0;-std=c++14;-Wall;-pthread;-fopenmp" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+      <Compiler Options="-Wmain;-g; -pg; -O0;-std=c++14;-Wall" C_Options="-g;-pg; -O0;-std=c++14;-Wall;-pthread;-fopenmp" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
         <IncludePath Value="./include/"/>
         <IncludePath Value="./include/jasper/"/>
         <IncludePath Value="/usr/include/bullet/"/>
       </Compiler>
-      <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;-lvhacd;-pthread;-lgomp" Required="yes">
+      <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;-lvhacd;-pthread;-lgomp; -pg" Required="yes">
         <LibraryPath Value="/usr/local/lib/"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
@@ -190,6 +192,7 @@
       <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
       <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>

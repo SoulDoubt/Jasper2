@@ -15,10 +15,10 @@ using namespace std;
 
 Mesh::Mesh(const std::string& name) : Component(name),
     m_vertexBuffer(GLBuffer::BufferType::VERTEX),
-    m_texCoordBuffer(GLBuffer::BufferType::VERTEX),
-    m_normalBuffer(GLBuffer::BufferType::VERTEX),
-    m_tangentBuffer(GLBuffer::BufferType::VERTEX),
-    m_bitangentBuffer(GLBuffer::BufferType::VERTEX),
+    //m_texCoordBuffer(GLBuffer::BufferType::VERTEX),
+    //m_normalBuffer(GLBuffer::BufferType::VERTEX),
+    //m_tangentBuffer(GLBuffer::BufferType::VERTEX),
+    //m_bitangentBuffer(GLBuffer::BufferType::VERTEX),
     m_indexBuffer(GLBuffer::BufferType::INDEX)
 {
     //Initialize();
@@ -58,6 +58,229 @@ void Mesh::OptimizeIndices()
     delete[] newIndices;
 }
 
+void Mesh::InitializeForRendering(Shader* shader)
+{
+    
+    glGenVertexArrays(1, &m_vaoID);
+    glBindVertexArray(m_vaoID);
+    //GLERRORCHECK;
+
+    m_elementCount = this->Indices.size();
+    const int positionLocation = shader->PositionAttributeLocation();
+    const int normalLocation = shader->NormalAttributeLocation();
+    const int texLocation = shader->TexCoordAttributeLocation();
+    const int tangentLocation = shader->TangentAttributeLocation();
+    const int bitangentLocation = shader->BitangentAttributeLocation();
+    const int colorLocation = shader->ColorsAttributeLocation();
+
+    if (m_vertexFormat == VERTEX_FORMAT::None) {
+        if (m_material->Flags & Material::MATERIAL_FLAGS::HAS_NORMAL_MAP) {
+            // normal mapped materials imply that we will need UVs and Tangent Space
+            SetVertexFormat(VERTEX_FORMAT::Vertex_PNUTB);
+        } else if (m_material->Flags & Material::MATERIAL_FLAGS::HAS_COLOR_MAP) {
+            // we still need UVs
+            SetVertexFormat(VERTEX_FORMAT::Vertex_PNU);
+        } else if (m_material->Flags & Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR) {
+            // dont' need UVs or vertex color
+            SetVertexFormat(VERTEX_FORMAT::Vertex_PN);
+        } else if (m_material->Flags & Material::MATERIAL_FLAGS::USE_VERTEX_COLORS) {
+            SetVertexFormat(VERTEX_FORMAT::Vertex_PCN);
+        }
+    }
+    
+    
+
+    m_vertexBuffer.Create();
+    m_indexBuffer.Create();
+    
+    
+    m_indexBuffer.Bind();
+    m_indexBuffer.Allocate(Indices.data(), Indices.size() * sizeof(uint));
+
+    switch(m_vertexFormat) {
+
+    case VERTEX_FORMAT::Vertex_P: {
+        Vertex_P* verts = new Vertex_P[Positions.size()];
+        for (uint i = 0; i < Positions.size(); ++i) {
+            Vertex_P v;
+            v.Position = Positions[i];
+            verts[i] = v;
+        }
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_P));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_P, Position), 3, sizeof(Vertex_P));
+        delete[] verts;
+    }
+    break;
+
+    case VERTEX_FORMAT::Vertex_PN: {
+        assert(Positions.size() == Normals.size());
+        Vertex_PN* verts = new Vertex_PN[Positions.size()];
+        for (uint i = 0; i < Positions.size(); ++i) {
+            Vertex_PN v;
+            v.Position = Positions[i];
+            v.Normal = Normals[i];
+            verts[i] = v;
+        }
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PN));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PN, Position), 3, sizeof(Vertex_PN));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PN, Normal), 3, sizeof(Vertex_PN));
+        delete[] verts;
+    }
+    break;
+    case VERTEX_FORMAT::Vertex_PNU: {
+        assert(Positions.size() == Normals.size() && Positions.size() == TexCoords.size());
+        Vertex_PNU* verts = new Vertex_PNU[Positions.size()];
+        for (uint i = 0; i < Positions.size(); i++) {
+            Vertex_PNU v;
+            v.Position = Positions[i];
+            v.Normal = Normals[i];
+            v.TexCoords = TexCoords[i];
+            verts[i] = v;
+        }
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PNU));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU, Position), 3, sizeof(Vertex_PNU));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU, Normal), 3, sizeof(Vertex_PNU));
+        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU, TexCoords), 2, sizeof(Vertex_PNU));
+        delete[] verts;
+    }
+    break;
+    case VERTEX_FORMAT::Vertex_PCN: {
+        assert(Positions.size() == Colors.size() && Positions.size() == Normals.size());
+        Vertex_PCN* verts = new Vertex_PCN[Positions.size()];
+        for (uint i = 0; i < Positions.size(); i++) {
+            Vertex_PCN v;
+            v.Position = Positions[i];
+            v.Color = Colors[i];
+            v.Normal = Normals[i];
+            verts[i] = v;
+        }
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PCN));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PCN, Position), 3, sizeof(Vertex_PCN));
+        shader->SetAttributeArray(colorLocation, GL_FLOAT, (void*)offsetof(Vertex_PCN, Color), 3, sizeof(Vertex_PCN));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PCN, Normal), 3, sizeof(Vertex_PCN));
+        delete[] verts;
+    }
+    break;
+    case VERTEX_FORMAT::Vertex_PNUTB: {
+        //assert(Positions.size() == Colors.size() == Normals.size());
+        Vertex_PNUTB* verts = new Vertex_PNUTB[Positions.size()];
+        for (uint i = 0; i < Positions.size(); ++i) {
+            Vertex_PNUTB v;
+            v.Position = Positions[i];
+            v.Normal = Normals[i];
+            v.TexCoords = TexCoords[i];
+            v.Tangent = Tangents[i];
+            v.Bitangent = Bitangents[i];
+            verts[i] = v;
+        }
+        
+        if (HasBones()){
+            for (const BoneData& b : Bones){
+                for (const VertexBoneWeight& w : b.Weights){
+                    Vertex_PNUTB& v = verts[w.Index];
+                    v.BonesAffecting.push_back(b.Name);
+                }
+            }
+            printf("Bone Data for mesh %s : \n", this->GetName().data());
+            int max_bones = 0;
+            int vertex_id = 0;
+            for (uint i = 0; i < Positions.size(); ++i){
+                auto& vv = verts[i];
+                if (vv.BonesAffecting.size() > max_bones){
+                    max_bones = vv.BonesAffecting.size();
+                    vertex_id = i;
+                }
+            }
+            printf("Maximum bones affecting a vertex is: %d\n", max_bones);
+            auto& maxvert = verts[vertex_id];
+            for(const string& bonename : maxvert.BonesAffecting){
+                printf("%s\n", bonename.data());
+            }
+        }
+
+        
+        
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PNUTB));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Position), 3, sizeof(Vertex_PNUTB));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Normal), 3, sizeof(Vertex_PNUTB));
+        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, TexCoords), 2, sizeof(Vertex_PNUTB));
+        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Tangent), 4, sizeof(Vertex_PNUTB));
+        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Bitangent), 3, sizeof(Vertex_PNUTB));
+        delete[] verts;
+    }
+    break;
+    case VERTEX_FORMAT::Vertex_PCNUTB: {
+        //assert(Positions.size() == Colors.size() == Normals.size());
+        Vertex_PCNUTB* verts = new Vertex_PCNUTB[Positions.size()];
+        for (uint i = 0; i < Positions.size(); i++) {
+            Vertex_PCNUTB v;
+            v.Position = Positions[i];
+            v.Color = Colors[i];
+            v.Normal = Normals[i];
+            v.TexCoords = TexCoords[i];
+            v.Tangent = Tangents[i];
+            v.Bitangent = Bitangents[i];
+            verts[i] = v;
+        }
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PCNUTB));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PCNUTB, Position), 3, sizeof(Vertex_PCNUTB));
+        shader->SetAttributeArray(colorLocation, GL_FLOAT, (void*)offsetof(Vertex_PCNUTB, Color), 3, sizeof(Vertex_PCNUTB));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PCNUTB, Normal), 3, sizeof(Vertex_PCNUTB));
+        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)offsetof(Vertex_PCNUTB, TexCoords), 2, sizeof(Vertex_PCNUTB));
+        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PCNUTB, Tangent), 4, sizeof(Vertex_PCNUTB));
+        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PCNUTB, Bitangent), 3, sizeof(Vertex_PCNUTB));
+        delete[] verts;
+    }
+    break;
+    }
+
+//    if (normalLocation > -1) {
+//        m_normalBuffer.Create();
+//        m_normalBuffer.Bind();
+//        m_normalBuffer.Allocate(Normals.data(), Normals.size() * sizeof(Vector3));
+//        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)0, 3, 0);
+//    }
+//    if (texLocation > -1) {
+//        m_texCoordBuffer.Create();
+//        m_texCoordBuffer.Bind();
+//        m_texCoordBuffer.Allocate(TexCoords.data(), TexCoords.size() * sizeof(Vector2));
+//        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)0, 2, 0);
+//    }
+//    if (tangentLocation > -1) {
+//        m_tangentBuffer.Create();
+//        m_tangentBuffer.Bind();
+//        m_tangentBuffer.Allocate(Tangents.data(), Tangents.size() * sizeof(Vector4));
+//        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)0, 4, 0);
+//    }
+//    if (bitangentLocation > -1) {
+//        m_bitangentBuffer.Create();
+//        m_bitangentBuffer.Bind();
+//        m_bitangentBuffer.Allocate(Bitangents.data(), Bitangents.size() * sizeof(Vector3));
+//        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)0, 3, 0);
+//    }
+//    if (this->Color != Vector4(0.f, 0.f, 0.f, 0.f)) {
+//        m_colorBuffer.Create();
+//        int cc = Positions.size();
+//        Vector4* colorData = new Vector4[cc];
+//        for (int i = 0; i < cc; ++i) {
+//            colorData[i] = Color;
+//        }
+//        m_colorBuffer.Bind();
+//        m_colorBuffer.Allocate(colorData, cc * sizeof(Vector4));
+//        delete[] colorData;
+//        shader->SetAttributeArray(colorLocation, GL_FLOAT, 0, 4, 0);
+//    }
+
+    glBindVertexArray(0);
+    GLERRORCHECK;
+}
+
 void Mesh::Initialize()
 {
     GLERRORCHECK;
@@ -69,66 +292,7 @@ void Mesh::Initialize()
     //assert(m_mesh);
 
     // create a VAO first
-    glGenVertexArrays(1, &m_vaoID);
-    glBindVertexArray(m_vaoID);
-    //GLERRORCHECK;
 
-    m_elementCount = this->Indices.size();
-    auto shader = m_material->GetShader();
-    const int positionLocation = shader->PositionAttributeLocation();
-    const int normalLocation = shader->NormalAttributeLocation();
-    const int texLocation = shader->TexCoordAttributeLocation();
-    const int tangentLocation = shader->TangentAttributeLocation();
-    const int bitangentLocation = shader->BitangentAttributeLocation();
-    const int colorLocation = shader->ColorsAttributeLocation();
-
-
-    m_vertexBuffer.Create();
-    m_vertexBuffer.Bind();
-    m_vertexBuffer.Allocate(Positions.data(), Positions.size() * sizeof(Vector3));
-    shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)0, 3, 0);
-    m_indexBuffer.Create();
-    m_indexBuffer.Bind();
-    m_indexBuffer.Allocate(Indices.data(), Indices.size() * sizeof(GLuint));
-    if (normalLocation > -1) {
-        m_normalBuffer.Create();
-        m_normalBuffer.Bind();
-        m_normalBuffer.Allocate(Normals.data(), Normals.size() * sizeof(Vector3));
-        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)0, 3, 0);
-    }
-    if (texLocation > -1) {
-        m_texCoordBuffer.Create();
-        m_texCoordBuffer.Bind();
-        m_texCoordBuffer.Allocate(TexCoords.data(), TexCoords.size() * sizeof(Vector2));
-        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)0, 2, 0);
-    }
-    if (tangentLocation > -1) {
-        m_tangentBuffer.Create();
-        m_tangentBuffer.Bind();
-        m_tangentBuffer.Allocate(Tangents.data(), Tangents.size() * sizeof(Vector4));
-        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)0, 4, 0);
-    }
-    if (bitangentLocation > -1) {
-        m_bitangentBuffer.Create();
-        m_bitangentBuffer.Bind();
-        m_bitangentBuffer.Allocate(Bitangents.data(), Bitangents.size() * sizeof(Vector3));
-        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)0, 3, 0);
-    }
-    if (this->Color != Vector4(0.f, 0.f, 0.f, 0.f)) {
-        m_colorBuffer.Create();
-        int cc = Positions.size();
-        Vector4* colorData = new Vector4[cc];
-        for (int i = 0; i < cc; ++i) {
-            colorData[i] = Color;
-        }
-        m_colorBuffer.Bind();
-        m_colorBuffer.Allocate(colorData, cc * sizeof(Vector4));
-        delete[] colorData;
-        shader->SetAttributeArray(colorLocation, GL_FLOAT, 0, 4, 0);
-    }
-
-    glBindVertexArray(0);
-    GLERRORCHECK;
 }
 
 void Mesh::Serialize(std::ofstream& ofs) const
@@ -155,16 +319,16 @@ void Mesh::Destroy()
 
     m_vertexBuffer.Destroy();
     m_indexBuffer.Destroy();
-    if (m_texCoordBuffer.IsCreated())
-        m_texCoordBuffer.Destroy();
-    if (m_normalBuffer.IsCreated())
-        m_normalBuffer.Destroy();
-    if (m_tangentBuffer.IsCreated())
-        m_tangentBuffer.Destroy();
-    if (m_bitangentBuffer.IsCreated())
-        m_bitangentBuffer.Destroy();
-    if (m_colorBuffer.IsCreated())
-        m_colorBuffer.Destroy();
+//    if (m_texCoordBuffer.IsCreated())
+//        m_texCoordBuffer.Destroy();
+//    if (m_normalBuffer.IsCreated())
+//        m_normalBuffer.Destroy();
+//    if (m_tangentBuffer.IsCreated())
+//        m_tangentBuffer.Destroy();
+//    if (m_bitangentBuffer.IsCreated())
+//        m_bitangentBuffer.Destroy();
+//    if (m_colorBuffer.IsCreated())
+//        m_colorBuffer.Destroy();
     //Vertices.clear();
 }
 
@@ -200,8 +364,8 @@ void Mesh::CalculateFaceNormals()
         const Vector3 edge1 = v2 - v1;
         const Vector3 edge2 = v3 - v1;
 
-        const Vector2 uvedge1 = t2 - t1;
-        const Vector2 uvedge2 = t3 - t1;
+        //const Vector2 uvedge1 = t2 - t1;
+        //const Vector2 uvedge2 = t3 - t1;
 
         Vector3 normal = Normalize(Cross(edge1, edge2));
 
@@ -232,9 +396,6 @@ void Mesh::CalculateTangentSpace()
         Bitangents.resize(Positions.size());
     }
 
-    if (Normals.size() == 0) {
-        Normals.resize(Positions.size());
-    }
 
     for (unsigned int i = 0; i < Indices.size(); i += 3) {
         const unsigned index0 = Indices[i];

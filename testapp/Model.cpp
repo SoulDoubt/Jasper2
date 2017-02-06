@@ -21,8 +21,8 @@ namespace Jasper
 
 using namespace std;
 
-ModelLoader::ModelLoader(Scene* scene, Shader* shader)
-    : m_scene(scene), m_shader(shader)
+ModelLoader::ModelLoader(Scene* scene)
+    : m_scene(scene)
 {
 
 }
@@ -72,13 +72,11 @@ std::unique_ptr<PhysicsCollider> GenerateSinglePhysicsCollider(ModelData* md, Sc
     }
     case PHYSICS_COLLIDER_TYPE::Compound: {
 //        vector<unique_ptr<btConvexHullShape>> hulls;
-//        for (auto m : meshes) {
+//        for (auto m : m_modelMeshes) {
 //            ConvexDecompose(m, hulls, jScene);
 //        }
 //        printf("Created %d convex hulls in model.\n", (int)hulls.size());
 //        CompoundCollider* cmp = GetGameObject()->AttachNewComponent<CompoundCollider>(this->GetName() + "_collider"s, hulls, m_physicsWorld);
-//
-//
 //        collider = cmp;
         break;
     }
@@ -100,6 +98,9 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
     if (modeldata) {
         for (const auto mesh : modeldata->GetMeshes()) {
             auto mat = mesh->GetMaterial();
+            if (!mat){
+                printf("%s had no material bound.\n", mesh->GetName().c_str());
+            }
             go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
         }
         if (generateCollider) {
@@ -112,6 +113,9 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 
 void ModelLoader::LoadModel(const std::string& filename, const std::string& name)
 {
+    m_model_meshes.clear();
+    m_model_materials.clear();
+    m_processedMeshCount = 0;
     m_name = name;
     Assimp::Importer importer;
     printf("Loading model: %s\n", filename.c_str());
@@ -135,6 +139,11 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
     for (auto m : meshes) {
+        //m->Normals.clear();
+        //m->Tangents.clear();
+        //m->Bitangents.clear();
+        //m->CalculateFaceNormals();
+        //m->CalculateTangentSpace();
         this->TriCount += m->Indices.size() / 3;
         this->VertCount += m->Positions.size();
         if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
@@ -165,6 +174,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
     auto md = m_scene->GetModelCache().CreateInstance<ModelData>(m_name);
     for (auto& mesh : m_model_meshes) {
         md->AddMesh(mesh);
+        
         md->AddMaterial(mesh->GetMaterial());
         //modelData.push_back(mesh);
         //modelData.push_back(mesh->GetMaterial());
@@ -225,7 +235,6 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
     string meshName = "";
     if (aiMesh->mName != aiString("")) {
         string ainame = string(aiMesh->mName.data);
-//? meshName = aiMesh->mName.C_Str() : meshName = "unnamed_model_mesh_" + std::to_string(num);
         if (ainame != "defaultobject") {
             meshName = ainame;
         } else {
@@ -234,6 +243,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
     } else {
         meshName = m_name + "_mesh_" + to_string(m_processedMeshCount);
     }
+    printf("Loading mesh: %s\n", meshName.c_str());
     num++;
     Mesh* cachedMesh = m_scene->GetMeshCache().GetResourceByName(meshName);
     if (cachedMesh) {
@@ -242,6 +252,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
     } else {
 
         m = m_scene->GetMeshCache().CreateInstance<Mesh>(meshName);
+        m->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_PNUTB);
         //auto m = this->AttachNewComponent<Mesh>();
         m->Positions.reserve(aiMesh->mNumVertices);
         m->Normals.reserve(aiMesh->mNumVertices);
@@ -270,6 +281,10 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
                 v.Bitangent = { bitang.x, bitang.y, bitang.z };
                 //v.Tangent.w = (Dot(Cross(v.Normal, v.Tangent.AsVector3()), v.Bitangent) > 0.0f) ? -1.0f : 1.0f;
 
+            }
+            if (aiMesh->HasVertexColors(0)){
+                int x = 0;
+                printf("Has colors\n");
             }
             m->AddVertex(v);
         }
@@ -319,6 +334,10 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
                 }
             }
         }
+        
+//        if (aiMesh->HasAnimations()){
+//            int x = 0;
+//        }
         //m->CalculateFaceNormals();
         m->CalculateExtents();
         if (!aiMesh->HasNormals()) {
@@ -338,8 +357,9 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
         if (cachedMaterial) {
             m_model_materials.push_back(cachedMaterial);
             myMaterial = cachedMaterial;
+            m->SetMaterial(myMaterial);
         } else {
-            myMaterial = m_scene->GetMaterialCache().CreateInstance<Material>(m_shader, matName.C_Str());
+            myMaterial = m_scene->GetMaterialCache().CreateInstance<Material>(matName.C_Str());
             aiString texString;
             mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &texString);
             string textureFileName = string(texString.C_Str());
@@ -384,6 +404,8 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
             m->SetMaterial(myMaterial);
         }
 
+    } else {
+        int xx = 0;
     }
     //GetGameObject()->AttachNewComponent<MeshRenderer>(m, m->m_material);
 
@@ -420,88 +442,88 @@ public:
 
 void ModelLoader::ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene)
 {
-    using namespace VHACD;
-    MyCallback mcallback;
-    IVHACD::Parameters params;
-    params.m_resolution = 100000;
-    params.m_depth = 20;
-    params.m_concavity = 0.05;
-    //params.m_planedownsampling = 8;
-    //params.m_convexhulldownsampling = 8;
-    params.m_alpha = 0.05;
-    params.m_beta = 0.05;
-    params.m_gamma = 0.015;//15;
-    params.m_pca = 0;
-    params.m_mode = 0; // 0: voxel-based (recommended), 1: tetrahedron-based
-    //params.m_maxnumverticesperch = 64;
-    //params.m_minvolumeperch = 0.05;
-    params.m_callback = &mcallback;
-//	params.m_logger = 0;
-
-
-    IVHACD* cdInterface = CreateVHACD();
-    int tsz = mesh->Indices.size();
-    int* tris = new int[tsz];
-    for (int i = 0; i < tsz; ++i) {
-        tris[i] = (int)mesh->Indices[i];
-    }
-
-    float* positions = reinterpret_cast<float*>(&(mesh->Positions[0]));
-    int numIndices = mesh->Indices.size() / 3;
-    int numPositions = mesh->Positions.size();
-    bool res = cdInterface->Compute(positions, 3, numPositions, tris, 3, numIndices, params);
-    if (res) {
-        auto debugShader = scene->GetShaderCache().GetResourceByName("basic_shader"s);
-        auto mat = scene->GetMaterialCache().CreateInstance<Material>(debugShader, "ch_material");
-        mat->IsTransparent = true;
-        uint nConvexHulls = cdInterface->GetNConvexHulls();
-
-        IVHACD::ConvexHull ch;
-        for (unsigned int p = 0; p < nConvexHulls; ++p) {
-
-            cdInterface->GetConvexHull(p, ch); // get the p-th convex-hull information
-            std::unique_ptr<btConvexHullShape> bhull = make_unique<btConvexHullShape>(nullptr, 0);
-
-            //interfaceVHACD->GetConvexHull(p, ch); // get the p-th convex-hull information
-            Mesh* testMesh = scene->GetMeshCache().CreateInstance<Mesh>("ch_" + std::to_string(p));
-            //srand(time(nullptr));
-            float dr = ((float)rand() / (RAND_MAX));
-            float dg = ((float)rand() / (RAND_MAX));
-            float db = ((float)rand() / (RAND_MAX));
-            testMesh->Color = { dr, dg, db, 0.8f };
-            for (unsigned int v = 0, idx = 0; v < ch.m_nPoints; ++v, idx += 3) {
-                Vector3 vp = Vector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);
-                testMesh->Positions.push_back(vp);
-                btVector3 vv = btVector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);
-                bhull->addPoint(vv);
-            }
-
-            for (unsigned int t = 0, idx = 0; t < ch.m_nTriangles; ++t, idx += 3) {
-                testMesh->Indices.push_back(ch.m_triangles[idx]);
-                testMesh->Indices.push_back(ch.m_triangles[idx + 1]);
-                testMesh->Indices.push_back(ch.m_triangles[idx + 2]);
-
-            }
-
-
-            //auto go = GetGameObject();
-            //go->AttachNewComponent<MeshRenderer>("ch_renderer_" + to_string(p), testMesh, mat);
-
-
-
-
-
-
-
-            shapes.emplace_back(move(bhull));
-
-        }
-    }
-
-    delete[] tris;
-    //delete[] pos;
-    cdInterface->Clean();
-    cdInterface->Release();
+//    using namespace VHACD;
+//    MyCallback mcallback;
+//    IVHACD::Parameters params;
+//    params.m_resolution = 100000;
+//    params.m_depth = 20;
+//    params.m_concavity = 0.05;
+//    //params.m_planedownsampling = 8;
+//    //params.m_convexhulldownsampling = 8;
+//    params.m_alpha = 0.05;
+//    params.m_beta = 0.05;
+//    params.m_gamma = 0.015;//15;
+//    params.m_pca = 0;
+//    params.m_mode = 0; // 0: voxel-based (recommended), 1: tetrahedron-based
+//    //params.m_maxnumverticesperch = 64;
+//    //params.m_minvolumeperch = 0.05;
+//    params.m_callback = &mcallback;
+////	params.m_logger = 0;
+//
+//
+//    IVHACD* cdInterface = CreateVHACD();
+//    int tsz = mesh->Indices.size();
+//    int* tris = new int[tsz];
+//    for (int i = 0; i < tsz; ++i) {
+//        tris[i] = (int)mesh->Indices[i];
+//    }
+//
+//    float* positions = reinterpret_cast<float*>(&(mesh->Positions[0]));
+//    int numIndices = mesh->Indices.size() / 3;
+//    int numPositions = mesh->Positions.size();
+//    bool res = cdInterface->Compute(positions, 3, numPositions, tris, 3, numIndices, params);
+//    if (res) {
+//        auto debugShader = scene->GetShaderCache().GetResourceByName("basic_shader"s);
+//        auto mat = scene->GetMaterialCache().CreateInstance<Material>("ch_material");
+//        mat->IsTransparent = true;
+//        uint nConvexHulls = cdInterface->GetNConvexHulls();
+//
+//        IVHACD::ConvexHull ch;
+//        for (unsigned int p = 0; p < nConvexHulls; ++p) {
+//
+//            cdInterface->GetConvexHull(p, ch); // get the p-th convex-hull information
+//            std::unique_ptr<btConvexHullShape> bhull = make_unique<btConvexHullShape>(nullptr, 0);
+//
+//            //interfaceVHACD->GetConvexHull(p, ch); // get the p-th convex-hull information
+//            Mesh* testMesh = scene->GetMeshCache().CreateInstance<Mesh>("ch_" + std::to_string(p));
+//            //srand(time(nullptr));
+//            float dr = ((float)rand() / (RAND_MAX));
+//            float dg = ((float)rand() / (RAND_MAX));
+//            float db = ((float)rand() / (RAND_MAX));
+//            testMesh->Color = { dr, dg, db, 0.8f };
+//            for (unsigned int v = 0, idx = 0; v < ch.m_nPoints; ++v, idx += 3) {
+//                Vector3 vp = Vector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);
+//                testMesh->Positions.push_back(vp);
+//                btVector3 vv = btVector3(ch.m_points[idx], ch.m_points[idx + 1], ch.m_points[idx + 2]);
+//                bhull->addPoint(vv);
+//            }
+//
+//            for (unsigned int t = 0, idx = 0; t < ch.m_nTriangles; ++t, idx += 3) {
+//                testMesh->Indices.push_back(ch.m_triangles[idx]);
+//                testMesh->Indices.push_back(ch.m_triangles[idx + 1]);
+//                testMesh->Indices.push_back(ch.m_triangles[idx + 2]);
+//
+//            }
+//
+//
+//            //auto go = GetGameObject();
+//            //go->AttachNewComponent<MeshRenderer>("ch_renderer_" + to_string(p), testMesh, mat);
+//
+//
+//
+//
+//
+//
+//
+//            shapes.emplace_back(move(bhull));
+//
+//        }
+//    }
+//
+//    delete[] tris;
+//    //delete[] pos;
+//    cdInterface->Clean();
+//    cdInterface->Release();
 
 }
 

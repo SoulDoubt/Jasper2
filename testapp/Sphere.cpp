@@ -97,7 +97,7 @@ void Sphere::LoadIcosphere()
     // color
     size_t numPositions = Positions.size();
     for( size_t i = 0; i < numPositions; ++i )
-        Colors.emplace_back( (Positions)[i] * 0.5f + Vector3( 0.5f ) );
+        Colors.emplace_back( Vector4((Positions)[i] * 0.5f + Vector3(0.5f), 1.0f ));
 
     size_t pb = Positions.size();
     // now subdivide
@@ -154,7 +154,7 @@ void Sphere::LoadUVSphere()
 
             *normIt++ = Vector3( x, y, z );
             *texIt++ = Vector2( u, v );
-            *colorIt++ = Vector3( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f );
+            *colorIt++ = Vector4( x * 0.5f + 0.5f, y * 0.5f + 0.5f, z * 0.5f + 0.5f, 1.0f );
         }
     }
 
@@ -297,7 +297,7 @@ void Cylinder::GenerateCaps(bool flip, float height){
     const size_t index = Positions.size();
 	const Vector3 n = flip ? -m_direction : m_direction;
 	Normals.resize( index + m_capSubdivisions * m_segments * 2, n );
-	Colors.resize( index + m_capSubdivisions * m_segments * 2, Vector3( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f ) );
+	Colors.resize( index + m_capSubdivisions * m_segments * 2, Vector4( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f, 1.0f ) );
 
 	const Quaternion axis = Rotation( Vector3( 0, 1, 0 ), m_direction );
 
@@ -310,7 +310,7 @@ void Cylinder::GenerateCaps(bool flip, float height){
 
 			// inner point
 			float x = ( m_radius * cosPhi * float( r ) ) / m_capSubdivisions;
-			float y = m_height;
+			float y = height;
 			float z = ( m_radius * sinPhi * float( r ) ) / m_capSubdivisions;
 
 			Positions.emplace_back( Vector3(0.f, 0.f, 0.f) + axis * Vector3( x, y, z ) );
@@ -318,7 +318,7 @@ void Cylinder::GenerateCaps(bool flip, float height){
 
 			// outer point
 			x = ( m_radius * cosPhi * float( r + 1 ) ) / m_capSubdivisions;
-			y = m_height;
+			y = height;
 			z = ( m_radius * sinPhi * float( r + 1 ) ) / m_capSubdivisions;
 
 			Positions.emplace_back( Vector3(0.f, 0.f, 0.f) + axis * Vector3( x, y, z ) );
@@ -382,7 +382,7 @@ void Cylinder::LoadVerts()
             Positions.emplace_back( Vector3(0.f, 0.f, 0.f) + axis * Vector3( x, y, z ) );
             TexCoords.emplace_back( Vector2(i * segmentIncr, 1.0f - j * ringIncr) );
             Normals.emplace_back( axis * n );
-            Colors.emplace_back( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f );
+            Colors.emplace_back( n.x * 0.5f + 0.5f, n.y * 0.5f + 0.5f, n.z * 0.5f + 0.5f, 1.0f );
         }
     }
 

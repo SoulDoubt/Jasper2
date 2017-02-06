@@ -60,6 +60,20 @@ public:
         printf("Renderer: %s\n", glGetString(GL_RENDERER));
         printf("Version: %s\n", glGetString(GL_VERSION));
         printf("GLSL: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+        
+        int max_ubo_bindings = 0;
+        glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &max_ubo_bindings);
+        int max_ublock_size  = 0;
+        glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max_ublock_size);
+        int max_vertex_uni_blocks = 0;
+        glGetIntegerv(GL_MAX_VERTEX_UNIFORM_BLOCKS, &max_vertex_uni_blocks);
+        int max_frag_uni_blocks = 0;
+        glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &max_frag_uni_blocks);  
+
+        printf("Max uniform buffer bindings: %d\n", max_ubo_bindings);
+        printf("Max uniform block size: %d\n", max_ublock_size);
+        printf("Max vertex uniform blocks: %d\n", max_vertex_uni_blocks);
+        printf("Max fragment uniform blocks: %d\n", max_frag_uni_blocks);
     }
 
     std::unique_ptr<Scene> m_scene;

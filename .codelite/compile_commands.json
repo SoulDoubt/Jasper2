@@ -1,17 +1,9 @@
 [{
-  "directory": "/home/al/Documents/testapp/testapp",
-  "command": "/usr/bin/clang++ -c /home/al/Documents/testapp/testapp/BasicShader.cpp -g -O0 -std=c++14 -Wall -o ./Debug/BasicShader.cpp.o -I. -I. -I./include/ -I/usr/local/include/ -I./include/jasper/",
-  "file": "/home/al/Documents/testapp/testapp/BasicShader.cpp"
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -Wmain -g -pg -O0 -std=c++14 -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -MG -MP -MT./Debug/Renderer.cpp.o -MF./Debug/Renderer.cpp.o.d -MM Renderer.cpp",
+  "file": "/home/al/code/testapp/testapp/Renderer.cpp"
  }, {
-  "directory": "/home/al/Documents/testapp/testapp",
-  "command": "/usr/bin/clang++ -c /home/al/Documents/testapp/testapp/BoxCollider.cpp -g -O0 -std=c++14 -Wall -o ./Debug/BoxCollider.cpp.o -I. -I. -I./include/ -I/usr/local/include/ -I./include/jasper/",
-  "file": "/home/al/Documents/testapp/testapp/BoxCollider.cpp"
- }, {
-  "directory": "/home/al/Documents/testapp/testapp",
-  "command": "/usr/bin/clang++ -c /home/al/Documents/testapp/testapp/Camera.cpp -g -O0 -std=c++14 -Wall -o ./Debug/Camera.cpp.o -I. -I. -I./include/ -I/usr/local/include/ -I./include/jasper/",
-  "file": "/home/al/Documents/testapp/testapp/Camera.cpp"
- }, {
-  "directory": "/home/al/Documents/testapp/testapp",
-  "command": "/usr/bin/clang++ -c /home/al/Documents/testapp/testapp/CharacterController.cpp -g -O0 -std=c++14 -Wall -o ./Debug/CharacterController.cpp.o -I. -I. -I./include/ -I/usr/local/include/ -I./include/jasper/",
-  "file": "/home/al/Documents/testapp/testapp/CharacterController.cpp"
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Renderer.cpp -Wmain -g -pg -O0 -std=c++14 -Wall -o ./Debug/Renderer.cpp.o -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/",
+  "file": "/home/al/code/testapp/testapp/Renderer.cpp"
  }]
