@@ -39,8 +39,10 @@ void Renderer::Initialize()
 
 
     CreateShadowMapObjects();
+    
 
 
+    m_animatedShader = m_scene->GetShaderCache().GetResourceByName("animated_lit_shader");
     m_lightingPassShader = (DirectionalLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
     m_pointLightPassShader = (PointLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("pointlightpass_shader"s));
     m_pointLightPassShader->SetScreenSize(Vector2(m_windowWidth, m_windowHeight));
@@ -70,7 +72,7 @@ void Renderer::Initialize()
     ProcessGameObject(root);
     SortByMaterial();
     SortByTransparancy();
-   
+
     //int xx = 0;
     // create a framebuffer for shadow mapping...
     //CreateShadowMapObjects();
@@ -218,39 +220,56 @@ void Renderer::RenderScene()
     //const auto projMatrix = m_scene->GetCamera().GetProjectionMatrix();
     //const auto viewMatrix = m_scene->GetCamera().GetViewMatrix();
     CullGameObjects();
+    
     previousMaterial = nullptr;
-    m_forwardLitShader->Bind();
+    //m_forwardLitShader->Bind();
     for (auto& mr : m_renderersToRender) {
-
+    
         if (!mr->IsEnabled()) continue;
         if (!mr->IsVisible()) continue;
 
         auto material = mr->GetMaterial();
+        auto mesh = mr->GetMesh();
+        Shader* shader = mesh->HasBones() ? m_animatedShader : m_forwardLitShader;
+        shader->Bind();
 
         if (material != previousMaterial) {
             previousMaterial = material;
             //material->SetShader(m_forwardLitShader);
-            material->Bind(m_forwardLitShader);
-            SetFrameInvariants(material, m_forwardLitShader);
-            SetMaterialUniforms(material, m_forwardLitShader);
+            material->Bind(shader);
+            SetFrameInvariants(material, shader);
+            SetMaterialUniforms(material, shader);
+        }
+        
+        if (shader == m_animatedShader){
+            const auto & bones = mesh->GetSkeleton()->Bones;
+            
+            for (size_t i = 0; i < bones.size(); ++i){
+                const auto& b = bones[i];
+                Matrix4 bt = b.InverseBindTransform * b.BoneMatrix;                
+                shader->SetBoneTransform(i, bt);                
+            }
         }
         //m_forwardLitShader->SetDirectionalLightUniforms(m_scene->GetDirectionalLight());
-        
+
         const auto transform = mr->GetGameObject()->GetWorldTransform();
         const auto modelMatrix = transform.TransformMatrix();
         const auto normMatrix = modelMatrix.NormalMatrix();
-        m_forwardLitShader->SetMatrixUniforms(modelMatrix, m_viewMatrix, m_projectionMatrix, normMatrix);
+        shader->SetMatrixUniforms(modelMatrix, m_viewMatrix, m_projectionMatrix, normMatrix);
         const auto pl = m_scene->GetPointLights()[1];
         //for (const auto pl : m_scene->GetPointLights()){
-            m_forwardLitShader->SetPointLightUniforms(pl);
-            mr->Render();
-        
+        shader->SetPointLightUniforms(pl);
+        //glDisable(GL_CULL_FACE);
+        mr->Render();
+
+        shader->Release();
         //}
         if (material != previousMaterial) {
             material->Release();
         }
+        
     }
-    m_forwardLitShader->Release();
+    
 }
 
 void Renderer::NewFrame()
@@ -267,7 +286,7 @@ void Renderer::RenderDeferred()
     NewFrame();
     RenderGeometryPass();
     //BeginLightingPasses();
-    
+
     glEnable(GL_STENCIL_TEST);
 
     for (const auto pl : m_scene->GetPointLights()) {
@@ -619,8 +638,13 @@ void Renderer::ProcessGameObject(const GameObject* root)
                 auto mesh = mr->GetMesh();
                 if (0) {
                     mesh->InitializeForRendering(m_geometryPassShader);
-                } else{
-                    mesh->InitializeForRendering(m_forwardLitShader);
+                } else {
+                    if (mesh->HasBones()) {
+                        mesh->InitializeForRendering(m_animatedShader);
+                    } else {
+                        mesh->InitializeForRendering(m_forwardLitShader);
+
+                    }
                 }
                 RegisterGameObject(child.get());
             }

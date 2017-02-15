@@ -116,14 +116,14 @@ bool Texture::LoadSRGBA(std::string filename)
     
     int w, h, comp;
     
-    int formatCount;    
-    glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, & formatCount);
-    int* formatArray = new int[formatCount];
-    glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formatArray);
-    for (int i = 0; i < formatCount; ++i){
-        int format = formatArray[i];
-        printf("Supported Compressed Texture Format: %#04X\n", format);
-    }
+//    int formatCount;    
+//    glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, & formatCount);
+//    int* formatArray = new int[formatCount];
+//    glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, formatArray);
+//    for (int i = 0; i < formatCount; ++i){
+//        int format = formatArray[i];
+//        printf("Supported Compressed Texture Format: %#04X\n", format);
+//    }
     
 
     GLenum force_linear = GL_SRGB_ALPHA;

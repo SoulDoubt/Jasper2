@@ -176,6 +176,10 @@ public:
     DirectionalLight* GetDirectionalLight() const {
         return m_directionalLight;
     }
+    
+    void TogglePhysicsDebugDraw(){
+        debug_draw_physics = !debug_draw_physics;
+    }
 
 private:
 
@@ -195,7 +199,7 @@ private:
     ResourceManager<Mesh> m_meshManager;
     ResourceManager<Material> m_materialManager;
     ResourceManager<Texture> m_textureManager;
-    ResourceManager<ModelData> m_modelManager;
+    ResourceManager<ModelData> m_modelManager;    
     
     std::vector<PointLight*> m_pointLights;
     
@@ -210,7 +214,7 @@ private:
     std::vector<ScriptComponent> m_scripts;
     std::unique_ptr<GameObject> m_skybox;
 
-    bool debug_draw_physics = true;
+    bool debug_draw_physics = false;
     
     GameObject* m_selected_game_object = nullptr;
 

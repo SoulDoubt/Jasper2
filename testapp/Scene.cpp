@@ -339,6 +339,7 @@ void Scene::InitializeManual()
     m_shaderManager.CreateInstance<PointLightPassShader>();
     m_shaderManager.CreateInstance<DeferredStencilPassShader>();
     m_shaderManager.CreateInstance<LitShader>();
+    m_shaderManager.CreateInstance<AnimatedLitShader>();
     
     Material* icosMat = m_materialManager.CreateInstance<Material>("icosmat");
     icosMat->SetTextureDiffuse("../textures/icos.png");
@@ -422,11 +423,7 @@ void Scene::InitializeManual()
     sc->Restitution = 0.86f;
     
     ModelLoader ml(this);
-    ml.LoadModel("../models/nanosuit/nanosuit.obj"s, "teapot");
-    
-   
-    
-    
+    //ml.LoadModel("../models/nanosuit/nanosuit.obj"s, "teapot");    
     
     //auto& ninja = m_rootNode->AttachChild(ml->CreateModelInstance("teapot_model", "pot1", true, false));
     //ninja.GetLocalTransform().Position = {1.f, 1.f, 0.f};
@@ -448,20 +445,22 @@ void Scene::InitializeManual()
     float cx = 0;
     float cz = 10;
     float radius = 5;
-    for (int i = 0; i < 12; ++i) {
-        float a = DEG_TO_RAD(i * 30);
-        float ax = cx + radius * sinf(a);
-        float az = cz + radius * cosf(a);
-        auto& model = m_rootNode->AttachChild(ml.CreateModelInstance("teapot"s + to_string(i), "teapot", true, false));
-        model.GetLocalTransform().Position = { ax, 1.2f, az };
-        model.GetLocalTransform().UniformScale(0.4f);
-        //model.GetLocalTransform().Scale = {0.1, 0.1, 0.1};
-    }
+//    for (int i = 0; i < 12; ++i) {
+//        float a = DEG_TO_RAD(i * 30);
+//        float ax = cx + radius * sinf(a);
+//        float az = cz + radius * cosf(a);
+//        auto& model = m_rootNode->AttachChild(ml.CreateModelInstance("teapot"s + to_string(i), "teapot", true, false));
+//        model.GetLocalTransform().Position = { ax, 1.2f, az };
+//        model.GetLocalTransform().UniformScale(0.4f);
+//        //model.GetLocalTransform().Scale = {0.1, 0.1, 0.1};
+//    }
     
-     ml.LoadModel("../models/ArmyPilot/ArmyPilot.dae"s, "lara");
+     ml.LoadModel("../models/C3P0/C3P0.dae"s, "lara");
+     //ml.LoadModel("../models/testman/test_Collada_DAE.DAE"s, "lara");
      auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("lara", "lara", true, false));
-     lara.GetLocalTransform().Position = { 15.f, 2.f, 4.f};
+     lara.GetLocalTransform().Position = { 15.f, 1.2f, 4.f};
      lara.GetLocalTransform().Rotate({1.4, 0.f, 0.f}, -90.f);
+     //lara.GetLocalTransform().UniformScale(0.1f);
     
 //    auto debris = m_rootNode->AttachNewChild<GameObject>("debris"s);
 //    auto debrismodel = debris->AttachNewComponent<Model>("debris"s, "../models/rocks/01/rock_01.obj"s, defaultShader, true, m_physicsWorld.get());
@@ -638,11 +637,10 @@ void Scene::Update(float dt)
     const auto renderTime = duration_cast<nanoseconds>(renderEnd - renderStart);
     long long rt = renderTime.count();
     this->RendererFrameTime = (double)rt / 1000000.0;
-
-//    debug_draw_physics = true;
-//    if (debug_draw_physics) {
-//        DebugDrawPhysicsWorld();
-//    }
+    
+    if (debug_draw_physics) {
+        DebugDrawPhysicsWorld();
+    }
 
 }
 

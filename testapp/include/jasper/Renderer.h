@@ -79,6 +79,7 @@ private:
     Shader* m_debugShader = nullptr;
     Shader* m_skyboxShader = nullptr;
     Shader* m_stencilPassShader = nullptr;
+    Shader* m_animatedShader = nullptr;
     DirectionalLightPassShader* m_lightingPassShader;
     PointLightPassShader* m_pointLightPassShader;
     MeshRenderer* m_skyboxRenderer;

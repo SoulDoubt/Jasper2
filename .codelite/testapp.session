@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Session Name="/home/al/code/testapp/testapp.workspace">
-  <int Value="3" Name="m_selectedTab"/>
+  <int Value="7" Name="m_selectedTab"/>
   <wxString Value="/home/al/code/testapp/testapp.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
@@ -12,8 +12,8 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/Renderer.cpp" Name="FileName"/>
-      <int Value="45" Name="FirstVisibleLine"/>
-      <int Value="71" Name="CurrentLine"/>
+      <int Value="273" Name="FirstVisibleLine"/>
+      <int Value="287" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -26,43 +26,43 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/Shader.cpp" Name="FileName"/>
-      <int Value="547" Name="FirstVisibleLine"/>
-      <int Value="559" Name="CurrentLine"/>
+      <int Value="234" Name="FirstVisibleLine"/>
+      <int Value="244" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Shader.h" Name="FileName"/>
-      <int Value="157" Name="FirstVisibleLine"/>
-      <int Value="173" Name="CurrentLine"/>
+      <int Value="152" Name="FirstVisibleLine"/>
+      <int Value="175" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Renderer.h" Name="FileName"/>
-      <int Value="79" Name="FirstVisibleLine"/>
-      <int Value="58" Name="CurrentLine"/>
+      <int Value="70" Name="FirstVisibleLine"/>
+      <int Value="81" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/Scene.cpp" Name="FileName"/>
-      <int Value="317" Name="FirstVisibleLine"/>
-      <int Value="340" Name="CurrentLine"/>
+      <int Value="460" Name="FirstVisibleLine"/>
+      <int Value="461" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/GLWindow.cpp" Name="FileName"/>
-      <int Value="198" Name="FirstVisibleLine"/>
-      <int Value="212" Name="CurrentLine"/>
+      <int Value="192" Name="FirstVisibleLine"/>
+      <int Value="196" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/Mesh.cpp" Name="FileName"/>
-      <int Value="69" Name="FirstVisibleLine"/>
-      <int Value="80" Name="CurrentLine"/>
+      <int Value="176" Name="FirstVisibleLine"/>
+      <int Value="192" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -75,8 +75,8 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Material.h" Name="FileName"/>
-      <int Value="153" Name="FirstVisibleLine"/>
-      <int Value="161" Name="CurrentLine"/>
+      <int Value="155" Name="FirstVisibleLine"/>
+      <int Value="163" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -89,8 +89,8 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/Texture.cpp" Name="FileName"/>
-      <int Value="87" Name="FirstVisibleLine"/>
-      <int Value="65" Name="CurrentLine"/>
+      <int Value="138" Name="FirstVisibleLine"/>
+      <int Value="150" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -103,36 +103,36 @@
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Model.h" Name="FileName"/>
-      <int Value="66" Name="FirstVisibleLine"/>
-      <int Value="81" Name="CurrentLine"/>
+      <int Value="33" Name="FirstVisibleLine"/>
+      <int Value="15" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/Model.cpp" Name="FileName"/>
-      <int Value="506" Name="FirstVisibleLine"/>
-      <int Value="526" Name="CurrentLine"/>
+      <int Value="235" Name="FirstVisibleLine"/>
+      <int Value="299" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Scene.h" Name="FileName"/>
-      <int Value="188" Name="FirstVisibleLine"/>
-      <int Value="164" Name="CurrentLine"/>
+      <int Value="177" Name="FirstVisibleLine"/>
+      <int Value="197" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/vector.h" Name="FileName"/>
-      <int Value="254" Name="FirstVisibleLine"/>
-      <int Value="260" Name="CurrentLine"/>
+      <int Value="214" Name="FirstVisibleLine"/>
+      <int Value="244" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Mesh.h" Name="FileName"/>
-      <int Value="288" Name="FirstVisibleLine"/>
-      <int Value="302" Name="CurrentLine"/>
+      <int Value="377" Name="FirstVisibleLine"/>
+      <int Value="391" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -165,20 +165,6 @@
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/usr/include/c++/5/bits/unique_ptr.h" Name="FileName"/>
-      <int Value="291" Name="FirstVisibleLine"/>
-      <int Value="299" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/stb_dxt.h" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="18" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
       <wxString Value="/home/al/code/testapp/testapp/include/jasper/Common.h" Name="FileName"/>
       <int Value="0" Name="FirstVisibleLine"/>
       <int Value="25" Name="CurrentLine"/>
@@ -186,9 +172,51 @@
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/usr/include/c++/5/tuple" Name="FileName"/>
-      <int Value="143" Name="FirstVisibleLine"/>
-      <int Value="144" Name="CurrentLine"/>
+      <wxString Value="/home/al/code/testapp/testapp/MeshRenderer.cpp" Name="FileName"/>
+      <int Value="146" Name="FirstVisibleLine"/>
+      <int Value="197" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/al/code/testapp/testapp/Transform.cpp" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="0" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Transform.h" Name="FileName"/>
+      <int Value="60" Name="FirstVisibleLine"/>
+      <int Value="0" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/al/code/testapp/testapp/include/jasper/GameObject.h" Name="FileName"/>
+      <int Value="342" Name="FirstVisibleLine"/>
+      <int Value="0" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/home/al/code/testapp/testapp/GameObject.cpp" Name="FileName"/>
+      <int Value="153" Name="FirstVisibleLine"/>
+      <int Value="167" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/usr/include/c++/5/bits/unordered_map.h" Name="FileName"/>
+      <int Value="613" Name="FirstVisibleLine"/>
+      <int Value="614" Name="CurrentLine"/>
+      <wxArrayString Name="Bookmarks"/>
+      <IntVector Name="CollapsedFolds"/>
+    </TabInfo>
+    <TabInfo>
+      <wxString Value="/usr/include/c++/5/bits/stl_vector.h" Name="FileName"/>
+      <int Value="647" Name="FirstVisibleLine"/>
+      <int Value="654" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
@@ -197,7 +225,7 @@
     <long Value="1" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
       <wxString Value="/home/al/code/testapp/testapp/Shader.cpp" Name="file"/>
-      <int Value="560" Name="lineno"/>
+      <int Value="90" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

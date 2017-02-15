@@ -9,20 +9,15 @@
 
 #include <vector>
 #include <memory>
-#include "Mesh.h"
+#include <unordered_map>
+
+class aiNode;
 
 namespace Jasper
 {
 
 class Material;
 class Shader;
-
-struct UV{
-    //GLubyte u;
-    //GLubyte v;
-    
-    
-};
 
 struct Vertex {
     Vector3 Position;
@@ -148,9 +143,6 @@ struct Vertex_PNUTB {
     Vector2 TexCoords;
     Vector4 Tangent;
     Vector3 Bitangent;
-    
-    std::vector<std::string> BonesAffecting;
-    
 
     Vertex_PNUTB(float x, float y, float z, float u, float v) {
         Position = { x, y, z };
@@ -186,6 +178,68 @@ struct Vertex_PNUTB {
     }
 
     Vertex_PNUTB() {
+        Position = Vector3();
+        Normal = Vector3();
+        TexCoords = Vector2();
+        Tangent = Vector4();
+        Bitangent = Vector3();
+    }
+
+};
+
+struct Vertex_PNUTB_ANIM {
+    Vector3 Position;
+    Vector3 Normal;
+    Vector2 TexCoords;
+    Vector4 Tangent;
+    Vector3 Bitangent;
+
+    int Bones[4] = {-1,-1,-1,-1};
+    float Weights[4] = {0.f, 0.f, 0.f, 0.f};
+
+    int GetNextAvailableBoneIndex() {
+        for (int i = 0; i < 4; ++i) {
+            if (Bones[i] == -1) {
+                return i;
+            }
+        }
+        return 4;
+    }
+
+    Vertex_PNUTB_ANIM(float x, float y, float z, float u, float v) {
+        Position = { x, y, z };
+        TexCoords = { u, v };
+        Normal = { 0.0f, 0.0f, 0.0f };
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB_ANIM(const Vector3& position, const Vector3& normal, float u, float v) {
+        Position = position;
+        Normal = normal;
+        TexCoords.x = u;
+        TexCoords.y = v;
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB_ANIM(const Vector3& position) {
+        Position = position;
+        TexCoords = { 0.0f, 1.0f };
+        Normal = { 0.0f, 0.0f, 0.0f };
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB_ANIM(const Vector3& position, const Vector3& normal, const Vector2& texCoords) {
+        Position = position;
+        Normal = normal;
+        TexCoords = texCoords;
+        Tangent = {0.f, 0.f, 0.f, 1.f};
+        Bitangent = {0.f, 0.f, 0.f};
+    }
+
+    Vertex_PNUTB_ANIM() {
         Position = Vector3();
         Normal = Vector3();
         TexCoords = Vector2();
@@ -233,6 +287,56 @@ struct Vertex_PNU {
 
 };
 
+struct Vertex_PNU_ANIM {
+    Vector3 Position;
+    Vector3 Normal;
+    Vector2 TexCoords;
+
+    int Bones[4] = {-1,-1,-1,-1};
+    float Weights[4] = {0.f, 0.f, 0.f, 0.f};
+
+    int GetNextAvailableBoneIndex() {
+        for (int i = 0; i < 4; ++i) {
+            if (Bones[i] == -1) {
+                return i;
+            }
+        }
+        return 4;
+    }
+
+    Vertex_PNU_ANIM(float x, float y, float z, float u, float v) {
+        Position = { x, y, z };
+        TexCoords = { u, v };
+        Normal = { 0.0f, 0.0f, 0.0f };
+    }
+
+    Vertex_PNU_ANIM(const Vector3& position, const Vector3& normal, float u, float v) {
+        Position = position;
+        Normal = normal;
+        TexCoords.x = u;
+        TexCoords.y = v;
+    }
+
+    Vertex_PNU_ANIM(const Vector3& position) {
+        Position = position;
+        TexCoords = { 0.0f, 1.0f };
+        Normal = { 0.0f, 0.0f, 0.0f };
+    }
+
+    Vertex_PNU_ANIM(const Vector3& position, const Vector3& normal, const Vector2& texCoords) {
+        Position = position;
+        Normal = normal;
+        TexCoords = texCoords;
+    }
+
+    Vertex_PNU_ANIM() {
+        Position = Vector3();
+        Normal = Vector3();
+        TexCoords = Vector2();
+    }
+
+};
+
 struct Vertex_PCN {
 
     Vector3 Position;
@@ -250,9 +354,9 @@ struct Vertex_PCN {
 struct Vertex_PN {
     Vector3 Position;
     Vector3 Normal;
-    
-    Vertex_PN() : Position(0.f), Normal(0.f){}
-    Vertex_PN(const Vector3& p, const Vector3& n) : Position(p), Normal(n) {}    
+
+    Vertex_PN() : Position(0.f), Normal(0.f) {}
+    Vertex_PN(const Vector3& p, const Vector3& n) : Position(p), Normal(n) {}
 };
 
 struct Tri {
@@ -270,6 +374,9 @@ enum class MeshType
     Triangle
 };
 
+class Skeleton;
+class BoneData;
+class VertexBoneWeight;
 
 class Mesh : public Component
 {
@@ -282,7 +389,9 @@ public:
         Vertex_PNU,
         Vertex_PCN,
         Vertex_PN,
-        Vertex_P
+        Vertex_P,
+        Vertex_PNUTB_ANIM,
+        Vertex_PNU_ANIM
     };
     // TODO: get rif of this
     friend class Model;
@@ -320,50 +429,20 @@ public:
     GLBuffer& VertexBuffer() {
         return m_vertexBuffer;
     }
-    
+
     bool HasBones() const {
         return Bones.size() > 0;
     }
-
-//    GLBuffer& TexCoordBuffer() {
-//        return m_texCoordBuffer;
-//    }
-//
-//    GLBuffer& NormalBuffer() {
-//        return m_normalBuffer;
-//    }
-//
-//    GLBuffer& TangentBuffer() {
-//        return m_tangentBuffer;
-//    }
-//
-//    GLBuffer& BitangentBuffer() {
-//        return m_bitangentBuffer;
-//    }
 
     GLBuffer& IndexBuffer() {
         return m_indexBuffer;
     }
 
-//    GLBuffer& ColorBuffer() {
-//        return m_colorBuffer;
-//    }
+
+    std::vector<BoneData*> Bones;
 
 
-    struct VertexBoneWeight {
-        uint Index;
-        float Weight;
-    };
-
-    struct BoneData {
-
-        std::string Name;
-        std::vector<VertexBoneWeight> Weights;
-        BoneData* Parent;
-        Transform BoneTransform;
-    };
-
-    std::vector<BoneData> Bones;
+    int m_numBones = 0;
 
     explicit Mesh(const std::string& name);
     virtual ~Mesh();
@@ -470,13 +549,17 @@ public:
 
     void InitializeForRendering(Shader* shader);
 
+    void SetSkeleton(Skeleton* sk) {
+        m_skeleton = sk;
+    }
+
+    Skeleton* GetSkeleton() const {
+        return m_skeleton;
+    }
 
 protected:
 
     int renderer_count = 0;
-
-
-
 
     bool m_reverseWinding = false;
 
@@ -487,6 +570,50 @@ protected:
 
     Material* m_material = nullptr;
 
+    Skeleton* m_skeleton;
+
+};
+
+struct VertexBoneWeight {
+    uint Index;
+    float Weight;
+    Mesh* mesh;
+};
+
+inline bool operator<(const VertexBoneWeight& a, const VertexBoneWeight& b){
+    return (size_t)a.mesh + a.Index < (size_t)b.mesh + b.Index;
+}
+
+inline bool operator==(const VertexBoneWeight& a, const VertexBoneWeight& b){
+    return (a.mesh == b.mesh) && (a.Index == b.Index);
+}
+
+
+
+
+struct BoneData {
+    aiNode* ainode;
+    std::string Name;
+    std::string ParentName;
+    std::vector<VertexBoneWeight> Weights;
+    std::vector<BoneData*> Children;
+    BoneData* Parent;
+    Transform BoneTransform;
+    Matrix4 BoneMatrix;
+    Matrix4 InverseBindTransform;
+    int Index;
+    int Depth;
+
+   
+
+};
+
+
+struct Skeleton {
+    std::string RootBoneName;
+    Matrix4 GlobalInverseTransform;
+    std::vector<BoneData> Bones;
+    std::unordered_map<std::string, int> m_boneMap;
 };
 
 inline void Mesh::AddVertex(const Vertex& vertex)

@@ -60,7 +60,7 @@ void Mesh::OptimizeIndices()
 
 void Mesh::InitializeForRendering(Shader* shader)
 {
-    
+
     glGenVertexArrays(1, &m_vaoID);
     glBindVertexArray(m_vaoID);
     //GLERRORCHECK;
@@ -72,28 +72,48 @@ void Mesh::InitializeForRendering(Shader* shader)
     const int tangentLocation = shader->TangentAttributeLocation();
     const int bitangentLocation = shader->BitangentAttributeLocation();
     const int colorLocation = shader->ColorsAttributeLocation();
+    const int boneidLocation = shader->GetBoneIndexAttributeLocation();
+    const int boneWeightLocation = shader->GetBoneWeightAttributeLocation();
+
+    if (Bones.size() > 0) {
+        int xx = 0;
+    }
 
     if (m_vertexFormat == VERTEX_FORMAT::None) {
         if (m_material->Flags & Material::MATERIAL_FLAGS::HAS_NORMAL_MAP) {
             // normal mapped materials imply that we will need UVs and Tangent Space
-            SetVertexFormat(VERTEX_FORMAT::Vertex_PNUTB);
+            if (HasBones()) {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PNUTB_ANIM);
+            } else {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PNUTB);
+            }
         } else if (m_material->Flags & Material::MATERIAL_FLAGS::HAS_COLOR_MAP) {
             // we still need UVs
-            SetVertexFormat(VERTEX_FORMAT::Vertex_PNU);
+            if (HasBones()) {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PNU_ANIM);
+            } else {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PNU);
+            }
         } else if (m_material->Flags & Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR) {
-            // dont' need UVs or vertex color
-            SetVertexFormat(VERTEX_FORMAT::Vertex_PN);
+            if (HasBones()) {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PNUTB_ANIM);
+            } else {
+                // dont' need UVs or vertex color
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PN);
+            }
         } else if (m_material->Flags & Material::MATERIAL_FLAGS::USE_VERTEX_COLORS) {
-            SetVertexFormat(VERTEX_FORMAT::Vertex_PCN);
+            if (HasBones()) {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PNUTB_ANIM);
+            } else {
+                SetVertexFormat(VERTEX_FORMAT::Vertex_PCN);
+            }
         }
     }
-    
-    
 
     m_vertexBuffer.Create();
     m_indexBuffer.Create();
-    
-    
+
+
     m_indexBuffer.Bind();
     m_indexBuffer.Allocate(Indices.data(), Indices.size() * sizeof(uint));
 
@@ -147,6 +167,46 @@ void Mesh::InitializeForRendering(Shader* shader)
         delete[] verts;
     }
     break;
+    case VERTEX_FORMAT::Vertex_PNU_ANIM: {
+        assert(Positions.size() == Normals.size() && Positions.size() == TexCoords.size());
+        Vertex_PNU_ANIM* verts = new Vertex_PNU_ANIM[Positions.size()];
+        for (uint i = 0; i < Positions.size(); i++) {
+            Vertex_PNU_ANIM v;
+            v.Position = Positions[i];
+            v.Normal = Normals[i];
+            v.TexCoords = TexCoords[i];
+            verts[i] = v;
+        }
+        for (const BoneData& b : m_skeleton->Bones) {
+            for (const VertexBoneWeight& w : b.Weights) {
+                Vertex_PNU_ANIM& v = verts[w.Index];
+                int idx = v.GetNextAvailableBoneIndex();
+                if (idx < 4) {
+                    v.Bones[idx] = b.Index;
+                    v.Weights[idx] = w.Weight;
+                }
+                
+            }            
+        }
+        for (int i = 0; i < Positions.size(); ++i){
+            Vertex_PNU_ANIM& v = verts[i];
+            for (int j = 0; j < 4; j++){
+                if (v.Bones[j] == -1){
+                    v.Bones[j] = 0;
+                }
+            }
+        }
+
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PNU_ANIM));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU_ANIM, Position), 3, sizeof(Vertex_PNU_ANIM));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU_ANIM, Normal), 3, sizeof(Vertex_PNU_ANIM));
+        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU_ANIM, TexCoords), 2, sizeof(Vertex_PNU_ANIM));
+        shader->SetAttributeArray(boneidLocation, GL_INT, (void*)offsetof(Vertex_PNU_ANIM, Bones), 4, sizeof(Vertex_PNU_ANIM));
+        shader->SetAttributeArray(boneWeightLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU_ANIM, Weights), 4, sizeof(Vertex_PNU_ANIM));
+        delete[] verts;
+    }
+    break;
     case VERTEX_FORMAT::Vertex_PCN: {
         assert(Positions.size() == Colors.size() && Positions.size() == Normals.size());
         Vertex_PCN* verts = new Vertex_PCN[Positions.size()];
@@ -177,33 +237,8 @@ void Mesh::InitializeForRendering(Shader* shader)
             v.Bitangent = Bitangents[i];
             verts[i] = v;
         }
-        
-        if (HasBones()){
-            for (const BoneData& b : Bones){
-                for (const VertexBoneWeight& w : b.Weights){
-                    Vertex_PNUTB& v = verts[w.Index];
-                    v.BonesAffecting.push_back(b.Name);
-                }
-            }
-            printf("Bone Data for mesh %s : \n", this->GetName().data());
-            int max_bones = 0;
-            int vertex_id = 0;
-            for (uint i = 0; i < Positions.size(); ++i){
-                auto& vv = verts[i];
-                if (vv.BonesAffecting.size() > max_bones){
-                    max_bones = vv.BonesAffecting.size();
-                    vertex_id = i;
-                }
-            }
-            printf("Maximum bones affecting a vertex is: %d\n", max_bones);
-            auto& maxvert = verts[vertex_id];
-            for(const string& bonename : maxvert.BonesAffecting){
-                printf("%s\n", bonename.data());
-            }
-        }
 
-        
-        
+
         m_vertexBuffer.Bind();
         m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PNUTB));
         shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Position), 3, sizeof(Vertex_PNUTB));
@@ -212,6 +247,43 @@ void Mesh::InitializeForRendering(Shader* shader)
         shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Tangent), 4, sizeof(Vertex_PNUTB));
         shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB, Bitangent), 3, sizeof(Vertex_PNUTB));
         delete[] verts;
+    }
+    break;
+
+    case VERTEX_FORMAT::Vertex_PNUTB_ANIM: {
+        Vertex_PNUTB_ANIM* verts = new Vertex_PNUTB_ANIM[Positions.size()];
+        for (uint i = 0; i < Positions.size(); ++i) {
+            Vertex_PNUTB_ANIM v;
+            v.Position = Positions[i];
+            v.Normal = Normals[i];
+            v.TexCoords = TexCoords[i];
+            v.Tangent = Tangents[i];
+            v.Bitangent = Bitangents[i];
+            verts[i] = v;
+        }
+
+        for (const BoneData& b : m_skeleton->Bones) {
+            for (const VertexBoneWeight& w : b.Weights) {
+                Vertex_PNUTB_ANIM& v = verts[w.Index];
+                int idx = v.GetNextAvailableBoneIndex();
+                if (idx < 4) {
+                    v.Bones[idx] = b.Index;
+                    v.Weights[idx] = w.Weight;
+                }
+                //int x = 0;
+            }
+        }
+        m_vertexBuffer.Bind();
+        m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB_ANIM, Position), 3, sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB_ANIM, Normal), 3, sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB_ANIM, TexCoords), 2, sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB_ANIM, Tangent), 4, sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB_ANIM, Bitangent), 3, sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(boneidLocation, GL_INT, (void*)offsetof(Vertex_PNUTB_ANIM, Bones), 4, sizeof(Vertex_PNUTB_ANIM));
+        shader->SetAttributeArray(boneWeightLocation, GL_FLOAT, (void*)offsetof(Vertex_PNUTB_ANIM, Weights), 4, sizeof(Vertex_PNUTB_ANIM));
+        delete[] verts;
+
     }
     break;
     case VERTEX_FORMAT::Vertex_PCNUTB: {

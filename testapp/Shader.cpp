@@ -90,7 +90,11 @@ void Shader::SetAttributeArray(const char* name, GLenum type, const void* values
     const int location = GetAttributeLocation(name);
     if (location > -1) {
         glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, tupleSize, type, GL_TRUE, stride, values);
+        if (type == GL_INT) {
+            glVertexAttribIPointer(location, tupleSize, type, stride, values);
+        } else {
+            glVertexAttribPointer(location, tupleSize, type, GL_TRUE, stride, values);
+        }
     }
 }
 
@@ -98,7 +102,11 @@ void Shader::SetAttributeArray(int location, GLenum num_type, void * offset, int
 {
     if (location > -1) {
         glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, num_components, num_type, GL_FALSE, stride, offset);
+        if (num_type == GL_INT) {
+            glVertexAttribIPointer(location, num_components, num_type, stride, offset);
+        } else {
+            glVertexAttribPointer(location, num_components, num_type, GL_FALSE, stride, offset);
+        }
     }
 }
 
@@ -106,8 +114,33 @@ void Shader::SetAttributeArray(int location, GLenum num_type, void* offset, int 
 {
     if (location > -1) {
         glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, num_components, num_type, normalize, stride, offset);
+        if (num_type == GL_INT) {
+            glVertexAttribIPointer(location, num_components, num_type, stride, offset);
+        } else {
+            glVertexAttribPointer(location, num_components, num_type, normalize, stride, offset);
+        }
     }
+}
+
+int Shader::GetBoneWeightAttributeLocation()
+{
+    return glGetAttribLocation(m_programID, "boneWeights");
+}
+
+void Shader::GetBoneTransformUniformLocations()
+{
+    for (int i = 0; i < MAX_BONES; ++i) {
+        string name = "boneTransforms[" + std::to_string(i) + "]";
+        int l = glGetUniformLocation(m_programID, name.data());
+        boneTransformUniformLocations.push_back(l);
+    }
+}
+
+void Shader::SetBoneTransform(int index, const Matrix4& transform)
+{
+    //string name = "boneTrsnaforms[" + std::to_string(index) + "]";
+    int location = boneTransformUniformLocations[index];
+    glUniformMatrix4fv(location, 1, true, transform.AsFloatPtr());
 }
 
 void Shader::AddShader(std::string filename, ShaderType t)
@@ -263,6 +296,8 @@ int Shader::TangentAttributeLocation()
     }
 }
 
+
+
 int Shader::BitangentAttributeLocation()
 {
     if (m_bitangentAttribute > -1) {
@@ -275,10 +310,10 @@ int Shader::BitangentAttributeLocation()
 
 
 inline void Shader::SetModelViewMatrix(const Matrix4 & mvm)
-{    
+{
     const int loc = glGetUniformLocation(m_programID, "mvMatrix");
     if (loc > -1)
-        glUniformMatrix4fv(loc, 1, m_transpose, mvm.AsFloatPtr()); 
+        glUniformMatrix4fv(loc, 1, m_transpose, mvm.AsFloatPtr());
 }
 
 inline void Shader::SetModelViewProjectionMatrix(const Matrix4 & mvp)
@@ -335,7 +370,7 @@ void Shader::GetPointLightUniformLocations()
     m_plus.Attenuation = glGetUniformLocation(m_programID, "plight0.Attenuation");
     m_plus.Color = glGetUniformLocation(m_programID, "plight0.Color");
     m_plus.Position = glGetUniformLocation(m_programID, "plight0.Position");
-    m_plus.Radius = glGetUniformLocation(m_programID, "plight0.Radius");    
+    m_plus.Radius = glGetUniformLocation(m_programID, "plight0.Radius");
 
 }
 
@@ -346,7 +381,7 @@ void Shader::SetPointLightUniforms(const PointLight* pl)
     glUniform3fv(m_plus.Position, 1, pl->Position().AsFloatPtr());
     glUniform1f(m_plus.DiffuseIntensity, pl->DiffuseIntensity);
     glUniform1f(m_plus.AmbientIntensity, pl->AmbientIntensity);
-    
+
 }
 
 void Shader::GetMaterialUniformLocations()
@@ -651,6 +686,128 @@ void LitShader::GetPointLightUniformLocations()
 }
 
 void LitShader::SetPointLightUniforms(const PointLight* pl)
+{
+    if (!m_plus.isPopulated) {
+        GetPointLightUniformLocations();
+    }
+    glUniform3fv(m_plus.Color, 1, pl->Color.AsFloatPtr());
+    glUniform3fv(m_plus.Position, 1, pl->GetWorldTransform().Position.AsFloatPtr());
+    glUniform1fv(m_plus.Attenuation, 1, &pl->Attenuation);
+    glUniform1fv(m_plus.AmbientIntensity, 1, &pl->AmbientIntensity);
+    glUniform1fv(m_plus.DiffuseIntensity, 1, &pl->DiffuseIntensity);
+    glUniform1fv(m_plus.Radius, 1, &pl->Radius);
+}
+
+// ---------- Lit Shader ----------------------//
+
+AnimatedLitShader::AnimatedLitShader() : Shader("animated_lit_shader")
+{
+    Initialize();
+    CacheUniformLocations();
+    GetBoneTransformUniformLocations();
+}
+
+
+AnimatedLitShader::~AnimatedLitShader()
+{
+}
+
+void AnimatedLitShader::Initialize()
+{
+    const string vsFile = "../Shaders/animated_vert.glsl";
+    const string fsFile = "../Shaders/animated_frag.glsl";
+
+    AddShader(vsFile, ShaderType::VERTEX);
+    AddShader(fsFile, ShaderType::FRAGMENT);
+
+    LinkShaderProgram();
+}
+
+void AnimatedLitShader::GetDirectionalLightUniformLocations()
+{
+    if (m_dlus.isPopulated) {
+        return;
+    } else {
+        GLuint id = ProgramID();
+        m_dlus.Color = glGetUniformLocation(id, "dlight0.Color");
+        m_dlus.Direction = glGetUniformLocation(id, "dlight0.Direction");
+        m_dlus.AmbientIntensity = glGetUniformLocation(id, "dlight0.AmbientIntensity");
+        m_dlus.DiffuseIntensity = glGetUniformLocation(id, "dlight0.DiffuseIntensity");
+        m_dlus.isPopulated = true;
+    }
+}
+
+void AnimatedLitShader::SetDirectionalLightUniforms(const DirectionalLight* dl)
+{
+    if (!m_dlus.isPopulated) {
+        GetDirectionalLightUniformLocations();
+    }
+    glUniform3fv(m_dlus.Color, 1, dl->Color.AsFloatPtr());
+    glUniform3fv(m_dlus.Direction, 1, dl->Direction.AsFloatPtr());
+    glUniform1fv(m_dlus.DiffuseIntensity, 1, &dl->Diffuseintensity);
+    glUniform1fv(m_dlus.AmbientIntensity, 1, &dl->AmbientIntensity);
+}
+
+void AnimatedLitShader::GetMaterialUniformLocations()
+{
+    if (m_mus.isPopulated) {
+        return;
+    } else {
+        GLuint id = ProgramID();
+        m_mus.Ka = glGetUniformLocation(id, "material0.ka");
+        m_mus.Kd = glGetUniformLocation(id, "material0.kd");
+        m_mus.Ks = glGetUniformLocation(id, "material0.ks");
+        m_mus.Ns = glGetUniformLocation(id, "material0.ns");
+        m_mus.isPopulated = true;
+    }
+}
+
+void AnimatedLitShader::SetMaterialUniforms(const Material* m)
+{
+    if (!m_mus.isPopulated) {
+        GetMaterialUniformLocations();
+    }
+    glUniform3fv(m_mus.Ka, 1, m->Ambient.AsFloatPtr());
+    glUniform3fv(m_mus.Kd, 1, m->Diffuse.AsFloatPtr());
+    glUniform3fv(m_mus.Ks, 1, m->Specular.AsFloatPtr());
+    glUniform1fv(m_mus.Ns, 1, &(m->Shine));
+}
+
+void AnimatedLitShader::SetTransformUniforms(const Transform & trans)
+{
+    uint id = ProgramID();
+    Quaternion q = trans.Orientation;
+    uint positionLoc = glGetUniformLocation(id, "transform.position");
+    uint orientationLoc = glGetUniformLocation(id, "transform.orientation");
+    uint scaleLoc = glGetUniformLocation(id, "transform.scale");
+
+    auto pos = trans.Position;
+    auto rot = trans.Orientation;
+    auto scale = trans.Scale;
+
+    glUniform3f(positionLoc, pos.x, pos.y, pos.z);
+    glUniform4f(orientationLoc, rot.x, rot.y, rot.z, rot.w);
+    glUniform3f(scaleLoc, scale.x, scale.y, scale.z);
+
+}
+
+void AnimatedLitShader::GetPointLightUniformLocations()
+{
+    if (m_plus.isPopulated) {
+        return;
+    } else {
+        uint id = ProgramID();
+        m_plus.Color = glGetUniformLocation(id, "plight0.Color");
+        m_plus.Position = glGetUniformLocation(id, "plight0.Position");
+        m_plus.Attenuation = glGetUniformLocation(id, "plight0.ConstAtten");
+        m_plus.AmbientIntensity = glGetUniformLocation(id, "plight0.AmbientIntensity");
+        m_plus.DiffuseIntensity = glGetUniformLocation(id, "plight0.DiffuseIntensity");
+        m_plus.Radius = glGetUniformLocation(id, "plight0.Radius");
+        m_plus.isPopulated = true;
+    }
+}
+
+void AnimatedLitShader::SetPointLightUniforms(const PointLight* pl)
 {
     if (!m_plus.isPopulated) {
         GetPointLightUniformLocations();

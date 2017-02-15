@@ -31,11 +31,7 @@ bool GLBuffer::Create()
 }
 
 void GLBuffer::Destroy()
-{
-    printf("Destroying buffer with id: %d\n", m_bufferID);
-    if (m_bufferID < 1){
-        int x = 0;
-    }
+{    
     assert(m_bufferID > 0);
     if (m_bufferID > 0) {
         glDeleteBuffers(1, &m_bufferID);

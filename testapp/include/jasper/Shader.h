@@ -175,6 +175,20 @@ public:
     TextureUnitLocations GetTextureUniformLocations() {
         return m_textureLocations;
     }
+    
+    int GetBoneIndexAttributeLocation() {
+        return glGetAttribLocation(m_programID, "boneIds");
+    }
+    
+    int GetBoneWeightAttributeLocation();
+    
+    const static int MAX_BONES = 64;
+    std::vector<int> boneTransformUniformLocations;
+    
+    void GetBoneTransformUniformLocations();
+      
+    
+    void SetBoneTransform(int index, const Matrix4& transform);
 
     virtual void SetTransformUniforms(const Transform & trans);
 
@@ -482,6 +496,50 @@ public:
     ShaderClassType GetShaderClassType() const override {
         return ShaderClassType::LitShader;
     }
+
+    void GetDirectionalLightUniformLocations() override;
+    void SetDirectionalLightUniforms(const DirectionalLight* dl) override;
+
+    void GetMaterialUniformLocations()override;
+    void SetMaterialUniforms(const Material* m) override;
+
+    void GetPointLightUniformLocations() override;
+    void SetPointLightUniforms(const PointLight* dl) override;
+
+    void SetTransformUniforms(const Transform& trans) override;
+
+    void CacheTextureUniformLocations() override {
+        m_textureLocations.Maps.has_color_map = glGetUniformLocation(m_programID, "has_diffuse_map");
+        m_textureLocations.Maps.has_normal_map = glGetUniformLocation(m_programID, "has_normal_map");
+        m_textureLocations.Maps.has_specular_mao = glGetUniformLocation(m_programID, "has_specular_map");
+
+        m_textureLocations.Maps.colormap = glGetUniformLocation(m_programID, "colorMap");
+        m_textureLocations.Maps.normalmap = glGetUniformLocation(m_programID, "normalMap");
+        m_textureLocations.Maps.specularmap = glGetUniformLocation(m_programID, "specularMap");
+    }
+
+    void CacheUniformLocations() override {
+        GetMatrixUniformLocations();
+        GetMaterialUniformLocations();
+        
+        CacheTextureUniformLocations();
+    }
+};
+
+class AnimatedLitShader final :
+    public Shader
+{
+public:
+    AnimatedLitShader();
+    ~AnimatedLitShader();
+
+    void Initialize() override;
+
+    ShaderClassType GetShaderClassType() const override {
+        return ShaderClassType::LitShader;
+    }
+    
+    
 
     void GetDirectionalLightUniformLocations() override;
     void SetDirectionalLightUniforms(const DirectionalLight* dl) override;

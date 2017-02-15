@@ -775,6 +775,9 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
         if (evt.key.keysym.scancode == SDL_SCANCODE_GRAVE) {
             SHOW_GUI = !SHOW_GUI;
         }
+        if (evt.key.keysym.scancode == SDL_SCANCODE_P){
+            scene->TogglePhysicsDebugDraw();
+        }
         break;
     case SDL_KEYUP:
         if (evt.key.keysym.scancode == SDL_SCANCODE_W) {

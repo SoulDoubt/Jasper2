@@ -19,8 +19,15 @@ PhysicsCollider::PhysicsCollider(std::string name, const Mesh* mesh, PhysicsWorl
 PhysicsCollider::PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world)
     : Component(std::move(name)), m_world(world), m_halfExtents(halfExtents)
 {
-    m_colliderType = PHYSICS_COLLIDER_TYPE::None;	
-	m_debugColor = Vector4(1.f, 0.f, 0.f, 0.9f);        
+    m_colliderType = PHYSICS_COLLIDER_TYPE::None;
+    m_debugColor = Vector4(1.f, 0.f, 0.f, 0.9f);
+}
+
+PhysicsCollider::PhysicsCollider(std::string name, std::unique_ptr<btCollisionShape> shape, PhysicsWorld* world)
+    : Component(std::move(name)), m_world(world)//, m_halfExtents(halfExtents)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::ConvexHull;
+    m_collisionShape = std::move(shape);
 }
 
 
@@ -31,7 +38,7 @@ PhysicsCollider::~PhysicsCollider()
 
 void PhysicsCollider::Initialize()
 {
-    
+
 
 }
 
@@ -46,7 +53,19 @@ void PhysicsCollider::Destroy()
 
 void PhysicsCollider::Awake()
 {
-    
+    // if constructed from an existing btCollision Shape...
+    if (m_collisionShape.get() != nullptr) {
+        const auto& trans = GetGameObject()->GetLocalTransform();
+        auto btTrans = trans.AsBtTransform();
+        btVector3 inertia;
+        m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
+        m_collisionShape->calculateLocalInertia(Mass, inertia);
+        m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
+        btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+        m_rigidBody = make_unique<btRigidBody>(rbci);
+        m_rigidBody->setUserPointer(GetGameObject());
+        m_world->AddCollider(this);
+    }
 }
 
 void PhysicsCollider::Start()
@@ -83,7 +102,7 @@ Transform PhysicsCollider::GetCurrentWorldTransform()
 }
 
 void PhysicsCollider::ToggleEnabled(bool e)
-{    
+{
     if (e) {
         auto tr = GetGameObject()->GetLocalTransform().AsBtTransform();
         m_rigidBody->setWorldTransform(tr);
@@ -95,47 +114,47 @@ void PhysicsCollider::ToggleEnabled(bool e)
         m_rigidBody->setFriction(Friction);
         m_world->AddRigidBody(m_rigidBody.get());
         m_rigidBody->activate();
-	}
-	else {
-		m_world->RemoveRigidBody(m_rigidBody.get());
-	}
+    } else {
+        m_world->RemoveRigidBody(m_rigidBody.get());
+    }
     Component::ToggleEnabled(e);
 }
 
 void PhysicsCollider::SetScale(const Vector3 & scale)
 {
-	m_collisionShape->setLocalScaling(scale.AsBtVector3());
-	m_world->GetBtWorld()->updateSingleAabb(m_rigidBody.get());
+    m_collisionShape->setLocalScaling(scale.AsBtVector3());
+    m_world->GetBtWorld()->updateSingleAabb(m_rigidBody.get());
 }
 
 bool PhysicsCollider::ShowGui()
 {
     Component::ShowGui();
-    
+
     if (ImGui::InputFloat("Mass", &Mass)) {
         this->m_rigidBody->setMassProps(Mass, btVector3(0,0,0));
     }
     if (ImGui::InputFloat("Restitution", &Restitution)) {
         this->m_rigidBody->setRestitution(Restitution);
     }
-    if (ImGui::InputFloat("Friction", &Friction)){
+    if (ImGui::InputFloat("Friction", &Friction)) {
         this->m_rigidBody->setFriction(Friction);
     }
-    
+
     return false;
 }
 
-void PhysicsCollider::Serialize(std::ofstream& ofs) const{
+void PhysicsCollider::Serialize(std::ofstream& ofs) const
+{
     // CompontntType    -> int
     // collider type    -> enum
     // Mass             -> float
     // Restitution      -> float
     // Friction         -> float
     // HalfExtents      -> Vector3
-    
+
     using namespace AssetSerializer;
-    
-	Component::Serialize(ofs);
+
+    Component::Serialize(ofs);
     PHYSICS_COLLIDER_TYPE colliderType = GetColliderType();
     ofs.write(ConstCharPtr(&colliderType), sizeof(colliderType));
     ofs.write(ConstCharPtr(&Mass), sizeof(Mass));
@@ -146,34 +165,39 @@ void PhysicsCollider::Serialize(std::ofstream& ofs) const{
 
 // ----------------- Compound Collider -----------------------//
 
-CompoundCollider::CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld * world)
-	: PhysicsCollider(name, { 0.f, 0.f, 0.f }, world), m_hulls()
+CompoundCollider::CompoundCollider(std::string name, std::vector<std::unique_ptr<btCollisionShape>>& hulls, PhysicsWorld * world)
+    : PhysicsCollider(name, { 0.f, 0.f, 0.f }, world), m_hulls()
 {
     m_colliderType = PHYSICS_COLLIDER_TYPE::Compound;
-	for (auto& hull : hulls) {
-		m_hulls.emplace_back(move(hull));
-	}
+    for (auto& hull : hulls) {
+        m_hulls.emplace_back(move(hull));
+    }
 }
 
 void CompoundCollider::Awake()
 {
-	unique_ptr<btCompoundShape> compound = make_unique<btCompoundShape>(true, m_hulls.size());
-	const auto& trans = GetGameObject()->GetLocalTransform();
-	auto btTrans = trans.AsBtTransform();
-	
-	for (const auto& hull : m_hulls) {		
-		compound->addChildShape(btTrans, hull.get());
-	}
-
-	m_collisionShape = move(compound);
-	btVector3 inertia;
-	m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
-	m_collisionShape->calculateLocalInertia(Mass, inertia);
-	m_defaultMotionState = make_unique<btDefaultMotionState>(btTrans);
-	btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
-	m_rigidBody = make_unique<btRigidBody>(rbci);
+    unique_ptr<btCompoundShape> compound = make_unique<btCompoundShape>(true, m_hulls.size());
+    const auto& trans = GetGameObject()->GetLocalTransform();    
+    btTransform btTrans = btTransform::getIdentity();
+    int i = 0;
+    for (const auto& hull : m_hulls) {
+        if (i == 0) {
+            compound->addChildShape(btTrans, hull.get());
+        } else {
+            btTrans = btTransform::getIdentity();
+            compound->addChildShape(btTrans, hull.get());
+        }
+    }
+    btTransform goTrans = GetGameObject()->GetLocalTransform().AsBtTransform();
+    m_collisionShape = move(compound);
+    btVector3 inertia;
+    m_collisionShape->setLocalScaling(trans.Scale.AsBtVector3());
+    m_collisionShape->calculateLocalInertia(Mass, inertia);
+    m_defaultMotionState = make_unique<btDefaultMotionState>(goTrans);
+    btRigidBody::btRigidBodyConstructionInfo rbci(Mass, m_defaultMotionState.get(), m_collisionShape.get(), inertia);
+    m_rigidBody = make_unique<btRigidBody>(rbci);
     m_rigidBody->setUserPointer(GetGameObject());
-	m_world->AddCollider(this);
+    m_world->AddCollider(this);
 
 }
 
@@ -201,7 +225,7 @@ void BoxCollider::Awake()
 {
     auto go = GetGameObject();
     auto& trans = go->GetLocalTransform();
-    auto btTrans = trans.AsBtTransform();    
+    auto btTrans = trans.AsBtTransform();
 
     float halfX, halfY, halfZ;
     if (m_mesh) {
@@ -358,7 +382,7 @@ void ConvexHullCollider::Awake()
     auto& trans = go->GetLocalTransform();
     auto btTrans = trans.AsBtTransform();
 
-   
+
     m_btm = std::make_unique<btTriangleMesh>(true, false);
 
     for (const auto mesh : m_meshes) {
@@ -414,9 +438,9 @@ void ConvexHullCollider::InitFromMeshes(const std::vector<Mesh*>& meshes)
 
 
 PlaneCollider::PlaneCollider(std::string name, Vector3 normal, float constant, PhysicsWorld * world) :
-	PhysicsCollider(name, Vector3(), world), Normal(normal), Constant(constant)
-{	
-	m_colliderType = PHYSICS_COLLIDER_TYPE::Plane;	
+    PhysicsCollider(name, Vector3(), world), Normal(normal), Constant(constant)
+{
+    m_colliderType = PHYSICS_COLLIDER_TYPE::Plane;
 }
 
 PlaneCollider::~PlaneCollider()
@@ -424,11 +448,11 @@ PlaneCollider::~PlaneCollider()
 }
 
 void PlaneCollider::Serialize(std::ofstream & ofs) const
-{	
-	using namespace AssetSerializer;
-	PhysicsCollider::Serialize(ofs);
-	ofs.write(ConstCharPtr(Normal.AsFloatPtr()), sizeof(Normal));
-	ofs.write(ConstCharPtr(&Constant), sizeof(Constant));
+{
+    using namespace AssetSerializer;
+    PhysicsCollider::Serialize(ofs);
+    ofs.write(ConstCharPtr(Normal.AsFloatPtr()), sizeof(Normal));
+    ofs.write(ConstCharPtr(&Constant), sizeof(Constant));
 }
 
 void PlaneCollider::Awake()
@@ -516,7 +540,7 @@ void StaticTriangleMeshCollider::Awake()
     auto& trans = go->GetLocalTransform();
     auto btTrans = trans.AsBtTransform();
 
-   
+
     m_btm = std::make_unique<btTriangleMesh>(true, false);
 
     for (const auto mesh : m_meshes) {

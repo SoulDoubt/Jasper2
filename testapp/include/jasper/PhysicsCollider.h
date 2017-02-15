@@ -37,6 +37,7 @@ public:
 
     explicit PhysicsCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
+    explicit PhysicsCollider(std::string name, std::unique_ptr<btCollisionShape> shape, PhysicsWorld* world);
     virtual ~PhysicsCollider();
 
     ComponentType GetComponentType() const override final {
@@ -116,7 +117,7 @@ class CompoundCollider : public PhysicsCollider
 {
 
 public:
-    CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld* world);
+    CompoundCollider(std::string name, std::vector<std::unique_ptr<btCollisionShape>>& hulls, PhysicsWorld* world);
     void Awake() override;
 
     PHYSICS_COLLIDER_TYPE GetColliderType() const override {
@@ -125,7 +126,7 @@ public:
 
 
 private:
-    std::vector<std::unique_ptr<btConvexHullShape>> m_hulls;
+    std::vector<std::unique_ptr<btCollisionShape>> m_hulls;
 };
 
 class BoxCollider :

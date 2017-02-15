@@ -21,6 +21,71 @@ namespace Jasper
 
 using namespace std;
 
+
+
+static Matrix4 aiMatrix4x4ToMatrix4(const aiMatrix4x4& mm)
+{
+    return Matrix4(Vector4(mm.a1, mm.a2, mm.a3, mm.a4), Vector4(mm.b1, mm.b2, mm.b3, mm.b4), Vector4(mm.c1, mm.c2, mm.c3, mm.c4), Vector4(mm.d1, mm.d2, mm.d3, mm.d4));
+}
+
+aiNode* FindAiNode(aiNode* root, const string& name)
+{
+    if (string(root->mName.data) == name) {
+        return root;
+    }
+    for (int i = 0; i < root->mNumChildren; ++i) {
+        aiNode* child = root->mChildren[i];
+        auto t = FindAiNode(child, name);
+        if (t) {
+            return t;
+        }
+    }
+    return nullptr;
+}
+
+aiNode* FindAiNode(aiNode* root, aiNode* treeRoot, string name, BoneData* bd)
+{
+    if (string(root->mName.data) == name) {
+        if (root == treeRoot) {
+            bd->ParentName = "treeroot"s;
+            bd->Depth = 0;
+            bd->ainode = root;
+
+        } else {
+            int dep = 0;
+            aiNode* pn = root->mParent;
+            bd->ParentName = string(pn->mName.data);
+            while (pn != nullptr) {
+                dep++;
+                pn = pn->mParent;
+            }
+            bd->Depth = dep;
+        }
+        bd->ainode = root;
+        return root;
+    }
+    for (uint i = 0; i < root->mNumChildren; ++i) {
+        auto t = FindAiNode(root->mChildren[i], treeRoot, name, bd);
+        if (t) {
+            if (t == treeRoot) {
+                bd->Depth = 0;
+            } else {
+                int dep = 0;
+                aiNode* pn = t->mParent;
+                while (pn != nullptr) {
+                    dep++;
+                    pn = pn->mParent;
+                }
+                bd->Depth = dep;
+            }
+            bd->ainode = t;
+            return t;
+        }
+    }
+    return nullptr;
+
+}
+
 ModelLoader::ModelLoader(Scene* scene)
     : m_scene(scene)
 {
@@ -98,40 +163,148 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
     if (modeldata) {
         for (const auto mesh : modeldata->GetMeshes()) {
             auto mat = mesh->GetMaterial();
-            if (!mat){
+            if (!mat) {
                 printf("%s had no material bound.\n", mesh->GetName().c_str());
             }
             go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
         }
-        if (generateCollider) {
+        if (generateCollider && modeldata->GetSkeleton()->Bones.size() == 0) {
             unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
             go->AttachComponent(move(collider));
+        } else if (generateCollider &&modeldata->GetSkeleton()->Bones.size() >0) {
+            modeldata->CreateRagdollCollider(m_scene, go.get());
         }
     }
     return move(go);
 }
 
+void CalculateInverseBindTransform(BoneData* parent, BoneData* child)
+{
+    if (child == nullptr) {
+        for(size_t i = 0; i < parent->Children.size(); ++i) {
+            BoneData* ch = parent->Children[i];
+            CalculateInverseBindTransform(parent, ch);
+        }
+    } else {
+        Matrix4 bt = parent->InverseBindTransform * child->BoneMatrix;
+        child->InverseBindTransform = bt.Inverted();
+        for(size_t i = 0; i < child->Children.size(); ++i) {
+            BoneData* ch = child->Children[i];
+            CalculateInverseBindTransform(child, ch);
+        }
+    }
+
+}
+
+void ModelLoader::BuildSkeleton(aiNode* ai_bone, BoneData* bone, bool isRoot)
+{
+}
+
+void TraverseSkeleton(const aiNode* node, Skeleton* skeleton)
+{
+    int bdidx = skeleton->m_boneMap[node->mName.data];
+    BoneData& parent = skeleton->Bones[bdidx];
+    for (size_t i = 0; i < node->mNumChildren; ++i) {
+        aiNode* child = node->mChildren[i];
+        int childbdidx = skeleton->m_boneMap[child->mName.data];
+        BoneData& childbd = skeleton->Bones[childbdidx];
+        childbd.InverseBindTransform = parent.InverseBindTransform * aiMatrix4x4ToMatrix4(child->mTransformation);
+        parent.Children.push_back(&childbd);
+        TraverseSkeleton(child, skeleton);
+    }
+}
+
+void CreateChildHulls(BoneData& rootBone, vector<unique_ptr<btCollisionShape>>& hulls)
+{
+    for (size_t j = 0; j < rootBone.Children.size(); j++) {
+        unique_ptr<btCollisionShape> hull = make_unique<btConvexHullShape>(nullptr, 0);
+        auto h = static_cast<btConvexHullShape*>(hull.get());
+        BoneData& bone = *(rootBone.Children[j]);
+        std::sort(rootBone.Weights.begin(), rootBone.Weights.end());
+        std::sort(bone.Weights.begin(), bone.Weights.end());
+        vector<VertexBoneWeight> uniqueChildWeights;
+
+        std::set_difference(bone.Weights.begin(), bone.Weights.end(), rootBone.Weights.begin(), rootBone.Weights.end(), std::inserter(uniqueChildWeights, uniqueChildWeights.begin()));
+        for (size_t i = 0; i < uniqueChildWeights.size(); ++i) {
+            VertexBoneWeight& vb = uniqueChildWeights[i];
+            if (vb.Weight >= 0.5f) {
+                Vector3 position = vb.mesh->Positions[vb.Index];
+                h->addPoint(position.AsBtVector3());
+            }
+        }
+        hulls.emplace_back(move(hull));
+        CreateChildHulls(bone, hulls);
+    }
+}
+
+void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
+{
+
+    //CompoundCollider(std::string name, std::vector<std::unique_ptr<btConvexHullShape>>& hulls, PhysicsWorld * world)
+    vector<unique_ptr<btCollisionShape>> hulls;
+    BoneData& rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]];
+    size_t vertCount = rootBone.Weights.size();
+    vector<Vector3> boneVerts(vertCount);
+    //Mesh* boneMesh = scene->GetMeshCache().CreateInstance<Mesh>(rootBone.Name + "_mesh");
+    unique_ptr<btCollisionShape> hullShape = make_unique<btConvexHullShape>(nullptr, 0);
+    auto hs = static_cast<btConvexHullShape*>(hullShape.get());
+    for (size_t i = 0; i < vertCount; ++i) {
+        VertexBoneWeight& vb = rootBone.Weights[i];
+        if (vb.Weight > 0.75f) {
+
+            Vector3 position = vb.mesh->Positions[vb.Index];
+            hs->addPoint(position.AsBtVector3());
+        }
+    }
+    hulls.emplace_back(move(hullShape));
+    CreateChildHulls(rootBone, hulls);
+
+    unique_ptr<CompoundCollider> collider = make_unique<CompoundCollider>(rootBone.Name + "_collider"s, hulls, scene->GetPhysicsWorld());
+    collider->Mass = 50.f;
+    go->AttachComponent(std::move(collider));
+
+
+}
+
+bool FileExists(const std::string& name)
+{
+    if (FILE *file = fopen(name.c_str(), "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void ModelLoader::LoadModel(const std::string& filename, const std::string& name)
 {
-    m_model_meshes.clear();
-    m_model_materials.clear();
     m_processedMeshCount = 0;
     m_name = name;
     Assimp::Importer importer;
     printf("Loading model: %s\n", filename.c_str());
+    if (!FileExists(filename)) {
+        printf("File: %s does not exist.", filename.c_str());
+    }
     const aiScene* scene = importer.ReadFile(filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_FlipUVs);
+
+    if (!scene) {
+        scene = importer.ReadFile(filename, 0);
+    }
 
     if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         printf("aiScene was corrupt in model load.\n");
         return;
     }
+
+    ModelData* model_data = m_scene->GetModelCache().CreateInstance<ModelData>(m_name);
+    model_data->CreateSkeleton();
     string directory = filename.substr(0, filename.find_last_of("/"));
 
 
-    ProcessAiSceneNode(scene, scene->mRootNode, directory);
+    ProcessAiSceneNode(scene, scene->mRootNode, directory, model_data);
 
     //auto meshes = this->GetComponentsByType<Mesh>();
-    auto& meshes = m_model_meshes;
+    auto& meshes = model_data->GetMeshes();
     size_t sz = meshes.size();
     printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());
 
@@ -139,11 +312,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
     MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
 
     for (auto m : meshes) {
-        //m->Normals.clear();
-        //m->Tangents.clear();
-        //m->Bitangents.clear();
-        //m->CalculateFaceNormals();
-        //m->CalculateTangentSpace();
+
         this->TriCount += m->Indices.size() / 3;
         this->VertCount += m->Positions.size();
         if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
@@ -163,72 +332,111 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
                 v -= localOrigin;
             }
             m->CalculateExtents();
-
         }
     }
 //    if (m_enablePhysics) {
-//
+    if (model_data->GetSkeleton()->Bones.size() > 0) {
+        Skeleton* skeleton = model_data->GetSkeleton();
+        printf("There are %d Bones in the skeleton:\n", skeleton->Bones.size());
 
+
+        aiNode* root = scene->mRootNode;
+        skeleton->GlobalInverseTransform = aiMatrix4x4ToMatrix4(root->mTransformation).Inverted();
+        //printf("aiScene Root node is named: %s\n", root->mName.data);
+        for (uint i = 0; i < skeleton->Bones.size(); ++i) {
+            auto& b = skeleton->Bones[i];
+            FindAiNode(root, root, b.Name, &b);
+        }
+        int minDepth = 1000000;
+        const BoneData* minBone = nullptr;
+        for (size_t j = 0; j < skeleton->Bones.size(); ++j) {
+            const auto& bone = skeleton->Bones[j];
+            if (bone.Depth < minDepth) {
+                minDepth = bone.Depth;
+                minBone = &bone;
+            }
+        }
+
+        // set the minimum depth bone as the root bone by making it's parent -1
+        auto rootBoneIter = skeleton->m_boneMap.find(minBone->Name);
+        if (rootBoneIter == skeleton->m_boneMap.end()) {
+            printf("ROOT BONE NOT FOUND IN MAP!!! %s\n", minBone->Name.data());
+        } else {
+            int rootBoneID = rootBoneIter->second;
+            auto& rootBone = skeleton->Bones[rootBoneID];
+
+
+            printf("The Root Bone is: %s \n", minBone->Name.data());
+            skeleton->RootBoneName = rootBone.Name;
+
+            aiNode* rootBoneNode = FindAiNode(scene->mRootNode, minBone->Name);
+
+            rootBone.InverseBindTransform = aiMatrix4x4ToMatrix4(rootBoneNode->mTransformation);
+
+            if (rootBoneNode != scene->mRootNode) {
+                aiNode* rootBoneParent = rootBoneNode->mParent;
+                Matrix4 tempTransform = aiMatrix4x4ToMatrix4(rootBoneNode->mTransformation);
+                while (rootBoneParent != NULL) {
+                    printf("Root Bone Parent Node: %s\n", rootBoneParent->mName.data);
+                    tempTransform = aiMatrix4x4ToMatrix4(rootBoneParent->mTransformation)* tempTransform ;
+                    //rootBone.BoneMatrix = aiMatrix4x4ToMatrix4(rootBoneParent->mTransformation).Inverted() * rootBone.BoneMatrix;
+                    rootBoneParent = rootBoneParent->mParent;
+                }
+                //rootBone.BoneMatrix = rootBone.BoneMatrix.Inverted();
+                //Matrix4 mmm;
+                //mmm.SetToIdentity();
+                rootBone.InverseBindTransform = skeleton->GlobalInverseTransform * tempTransform;
+            }
+            //rootBone.InverseBindTransform = rootTransform;
+
+            TraverseSkeleton(rootBoneNode, skeleton);
+
+
+            for (size_t i = 0; i < skeleton->Bones.size(); ++i) {
+                BoneData& bd = skeleton->Bones[i];
+                printf("Bone ID: %d, Name: %s Has: %d children.\n", bd.Index, bd.Name.data(), bd.Children.size());
+            }
+
+
+            //CalculateInverseBindTransform(&rootBone, nullptr);
+
+
+        }
+
+    }
 
     int i = 0;
-    auto md = m_scene->GetModelCache().CreateInstance<ModelData>(m_name);
-    for (auto& mesh : m_model_meshes) {
-        md->AddMesh(mesh);
-        
-        md->AddMaterial(mesh->GetMaterial());
-        //modelData.push_back(mesh);
-        //modelData.push_back(mesh->GetMaterial());
-        //mesh->Initialize();
-        //Vector3 meshOrigin = { (mesh->GetMinExtents().x + mesh->GetMaxExtents().x) / 2.f, (mesh->GetMinExtents().y + mesh->GetMaxExtents().y) / 2.f , (mesh->GetMinExtents().z + mesh->GetMaxExtents().z) / 2.f };
-        //auto child = make_unique<GameObject>("child_" + std::to_string(i));
-        //child->GetLocalTransform().Position = meshOrigin;
-        //GetGameObject()->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer" + to_string(i), mesh, mesh->m_material);
-        //this->AttachChild(move(child));
+
+    for (auto& mesh : model_data->GetMeshes()) {
+
+        mesh->SetSkeleton(model_data->GetSkeleton());
+
         i++;
     }
-    //SaveToAssetFile("modelSave.bin");
-    //OutputMeshData();
-    //printf("\nModel Contains %d Vertices and %d Triangles and %d Materials.", VertCount, TriCount, m_materialManager.GetCache().size());
+
 
 }
-//
-//void ModelLoader::Initialize()
-//{
-//
-//
-//}
 
-void ModelLoader::ProcessAiSceneNode(const aiScene* scene, aiNode* node, const string& directory)
+void ModelLoader::ProcessAiSceneNode(const aiScene* scene, aiNode* node, const string& directory, ModelData* model_data)
 {
     for (uint i = 0; i < node->mNumMeshes; i++) {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        ProcessAiMesh(mesh, scene, directory);
+        ProcessAiMesh(mesh, scene, directory, model_data);
     }
 
     for (uint i = 0; i < node->mNumChildren; i++) {
-        ProcessAiSceneNode(scene, node->mChildren[i], directory);
+        ProcessAiSceneNode(scene, node->mChildren[i], directory, model_data);
     }
+
+
 
 
 
 }
 
-aiNode* FindAiNode(aiNode* root, string name)
-{
-    if (string(root->mName.data) == name) {
-        return root;
-    }
-    for (uint i = 0; i < root->mNumChildren; ++i) {
-        auto t = FindAiNode(root->mChildren[i], name);
-        if (t) {
-            return t;
-        }
-    }
-    return nullptr;
 
-}
 
-void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, const string& directory)
+void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, const string& directory, ModelData* model_data)
 {
     Mesh* m;
     static int num = 0;
@@ -247,12 +455,12 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
     num++;
     Mesh* cachedMesh = m_scene->GetMeshCache().GetResourceByName(meshName);
     if (cachedMesh) {
-        m_model_meshes.push_back(cachedMesh);
+        model_data->GetMeshes().push_back(cachedMesh);
         m = cachedMesh;
     } else {
 
         m = m_scene->GetMeshCache().CreateInstance<Mesh>(meshName);
-        m->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_PNUTB);
+        //m->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_PNUTB);
         //auto m = this->AttachNewComponent<Mesh>();
         m->Positions.reserve(aiMesh->mNumVertices);
         m->Normals.reserve(aiMesh->mNumVertices);
@@ -282,8 +490,8 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
                 //v.Tangent.w = (Dot(Cross(v.Normal, v.Tangent.AsVector3()), v.Bitangent) > 0.0f) ? -1.0f : 1.0f;
 
             }
-            if (aiMesh->HasVertexColors(0)){
-                int x = 0;
+            if (aiMesh->HasVertexColors(0)) {
+                //int x = 0;
                 printf("Has colors\n");
             }
             m->AddVertex(v);
@@ -299,15 +507,14 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
         }
 
         if (aiMesh->HasBones()) {
+            Skeleton* skeleton = model_data->GetSkeleton();
             for (uint i = 0; i < aiMesh->mNumBones; ++i) {
-                auto bone = aiMesh->mBones[i];
+                aiBone* bone = aiMesh->mBones[i];
                 string bname = bone->mName.data;
-                Mesh::BoneData bd;
+
+                BoneData bd;
                 bd.Name = bname;
-                auto mm = bone->mOffsetMatrix;
-                auto rootMatrix = scene->mRootNode->mTransformation;
-                rootMatrix.Inverse();
-                mm = mm * rootMatrix;
+                aiMatrix4x4 mm = bone->mOffsetMatrix;
                 aiQuaternion brot;
                 aiVector3D bpos;
                 aiVector3D bscale;
@@ -315,35 +522,33 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
                 bd.BoneTransform.Position = Vector3(bpos.x, bpos.y, bpos.z);
                 bd.BoneTransform.Orientation = Quaternion(brot.x, brot.y, brot.z, brot.w);
                 bd.BoneTransform.Scale = Vector3(bscale.x, bscale.y, bscale.z);
+                Matrix4 bm = aiMatrix4x4ToMatrix4(mm);
+                bd.BoneMatrix = bm;
+
                 for (uint j = 0; j < bone->mNumWeights; ++j) {
                     auto bw = bone->mWeights[j];
-                    bd.Weights.emplace_back(Mesh::VertexBoneWeight { bw.mVertexId, bw.mWeight });
+                    bd.Weights.emplace_back(VertexBoneWeight { bw.mVertexId, bw.mWeight, m });
                 }
-                m->Bones.emplace_back(bd);
-            }
-            aiNode* root = scene->mRootNode;
-            for (uint i = 0; i < m->Bones.size(); ++i) {
-                auto& b = m->Bones[i];
-                aiNode* boneNode = FindAiNode(root, b.Name);
-                aiNode* pNode = boneNode->mParent;
-                auto parentBone = find_if(begin(m->Bones), end(m->Bones), [&](const auto& mb) {
-                    return mb.Name == string(pNode->mName.data);
-                });
-                if (parentBone != end(m->Bones)) {
-                    b.Parent = &(*parentBone);
+                if (skeleton->m_boneMap.find(bname) == skeleton->m_boneMap.end()) {
+                    bd.Index = skeleton->Bones.size();
+                    skeleton->Bones.push_back(bd);
+                    skeleton->m_boneMap[bname] = bd.Index;
+                    m->Bones.push_back(&bd);
+                } else {
+                    int idx = skeleton->m_boneMap[bname];
+                    BoneData& bdata = skeleton->Bones[idx];
+                    m->Bones.push_back(&bdata);
+                    printf("Bone already in boneMap: %s\n", bd.Name.data());
                 }
             }
+
         }
-        
-//        if (aiMesh->HasAnimations()){
-//            int x = 0;
-//        }
-        //m->CalculateFaceNormals();
+
         m->CalculateExtents();
         if (!aiMesh->HasNormals()) {
             m->CalculateFaceNormals();
         }
-        m_model_meshes.push_back(m);
+        model_data->GetMeshes().push_back(m);
 
     }
 
@@ -355,11 +560,12 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
         printf("Found Material...%s\n", matName.C_Str());
         Material* cachedMaterial = m_scene->GetMaterialCache().GetResourceByName(string(matName.data));
         if (cachedMaterial) {
-            m_model_materials.push_back(cachedMaterial);
+            model_data->GetMaterials().push_back(cachedMaterial);
             myMaterial = cachedMaterial;
             m->SetMaterial(myMaterial);
         } else {
             myMaterial = m_scene->GetMaterialCache().CreateInstance<Material>(matName.C_Str());
+            model_data->GetMaterials().push_back(myMaterial);
             aiString texString;
             mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &texString);
             string textureFileName = string(texString.C_Str());
@@ -407,20 +613,6 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
     } else {
         int xx = 0;
     }
-    //GetGameObject()->AttachNewComponent<MeshRenderer>(m, m->m_material);
-
-
-//    Material* renderMaterial;
-//    if (myMaterial) {
-//        renderMaterial = myMaterial;
-//    } else {
-//        renderMaterial = jScene->GetMaterialCache().CreateInstance<Material>(m_shader, "jasper_default_material");
-//        renderMaterial->SetTextureDiffuse("./textures/default.png");
-//    }
-//    m->m_material = renderMaterial;
-////auto mr =
-//
-//    printf("Loaded Model Mesh\n");
     m_processedMeshCount++;
 }
 
