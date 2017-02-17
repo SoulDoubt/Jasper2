@@ -1,9 +1,169 @@
 [{
+  "file": "/home/al/code/testapp/testapp/Camera.cpp",
   "directory": "/home/al/code/testapp/testapp",
-  "command": "/usr/bin/g++ -Wmain -g -pg -O0 -std=c++14 -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -MG -MP -MT./Debug/Renderer.cpp.o -MF./Debug/Renderer.cpp.o.d -MM Renderer.cpp",
-  "file": "/home/al/code/testapp/testapp/Renderer.cpp"
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Camera.cpp -o /home/al/code/testapp/testapp/Camera.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
  }, {
+  "file": "/home/al/code/testapp/testapp/CharacterController.cpp",
   "directory": "/home/al/code/testapp/testapp",
-  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Renderer.cpp -Wmain -g -pg -O0 -std=c++14 -Wall -o ./Debug/Renderer.cpp.o -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/",
-  "file": "/home/al/code/testapp/testapp/Renderer.cpp"
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/CharacterController.cpp -o /home/al/code/testapp/testapp/CharacterController.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Component.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Component.cpp -o /home/al/code/testapp/testapp/Component.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/ConvexHullCollider.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/ConvexHullCollider.cpp -o /home/al/code/testapp/testapp/ConvexHullCollider.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Cube.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Cube.cpp -o /home/al/code/testapp/testapp/Cube.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/FontRenderer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/FontRenderer.cpp -o /home/al/code/testapp/testapp/FontRenderer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/GBuffer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/GBuffer.cpp -o /home/al/code/testapp/testapp/GBuffer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/GLBuffer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/GLBuffer.cpp -o /home/al/code/testapp/testapp/GLBuffer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/GLWindow.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/GLWindow.cpp -o /home/al/code/testapp/testapp/GLWindow.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Lights.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Lights.cpp -o /home/al/code/testapp/testapp/Lights.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/main.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/main.cpp -o /home/al/code/testapp/testapp/main.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Material.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Material.cpp -o /home/al/code/testapp/testapp/Material.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/matrix.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/matrix.cpp -o /home/al/code/testapp/testapp/matrix.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Memory.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Memory.cpp -o /home/al/code/testapp/testapp/Memory.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/MeshRenderer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/MeshRenderer.cpp -o /home/al/code/testapp/testapp/MeshRenderer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Model.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Model.cpp -o /home/al/code/testapp/testapp/Model.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/PhysicsCollider.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/PhysicsCollider.cpp -o /home/al/code/testapp/testapp/PhysicsCollider.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/PhysicsDebugDraw.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/PhysicsDebugDraw.cpp -o /home/al/code/testapp/testapp/PhysicsDebugDraw.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/PhysicsWorld.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/PhysicsWorld.cpp -o /home/al/code/testapp/testapp/PhysicsWorld.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Quad.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Quad.cpp -o /home/al/code/testapp/testapp/Quad.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/quaternion.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/quaternion.cpp -o /home/al/code/testapp/testapp/quaternion.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Renderer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Renderer.cpp -o /home/al/code/testapp/testapp/Renderer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Scene.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Scene.cpp -o /home/al/code/testapp/testapp/Scene.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Shader.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Shader.cpp -o /home/al/code/testapp/testapp/Shader.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/SkyboxRenderer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/SkyboxRenderer.cpp -o /home/al/code/testapp/testapp/SkyboxRenderer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Sphere.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Sphere.cpp -o /home/al/code/testapp/testapp/Sphere.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Texture.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Texture.cpp -o /home/al/code/testapp/testapp/Texture.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Transform.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Transform.cpp -o /home/al/code/testapp/testapp/Transform.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Triangle.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Triangle.cpp -o /home/al/code/testapp/testapp/Triangle.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/DefaultScript.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/DefaultScript.cpp -o /home/al/code/testapp/testapp/DefaultScript.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/GameObject.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/GameObject.cpp -o /home/al/code/testapp/testapp/GameObject.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/LauncherScript.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/LauncherScript.cpp -o /home/al/code/testapp/testapp/LauncherScript.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/RotateInPlaceScript.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/RotateInPlaceScript.cpp -o /home/al/code/testapp/testapp/RotateInPlaceScript.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Mesh.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Mesh.cpp -o /home/al/code/testapp/testapp/Mesh.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/RotateAboutPointScript.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/RotateAboutPointScript.cpp -o /home/al/code/testapp/testapp/RotateAboutPointScript.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/include/jasper/AssetSerializer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/include/jasper/AssetSerializer.cpp -o /home/al/code/testapp/testapp/include/jasper/AssetSerializer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/imgui.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/imgui.cpp -o /home/al/code/testapp/testapp/imgui.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/imgui_draw.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/imgui_draw.cpp -o /home/al/code/testapp/testapp/imgui_draw.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/Scriptable.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/Scriptable.cpp -o /home/al/code/testapp/testapp/Scriptable.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/ParticleSystem.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/ParticleSystem.cpp -o /home/al/code/testapp/testapp/ParticleSystem.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/ForsythIndexOptimizer.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/ForsythIndexOptimizer.cpp -o /home/al/code/testapp/testapp/ForsythIndexOptimizer.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
+ }, {
+  "file": "/home/al/code/testapp/testapp/include/jasper/AnimationSystem.cpp",
+  "directory": "/home/al/code/testapp/testapp",
+  "command": "/usr/bin/g++ -c /home/al/code/testapp/testapp/include/jasper/AnimationSystem.cpp -o /home/al/code/testapp/testapp/include/jasper/AnimationSystem.cpp.o  -Wmain  -g  -pg  -O0  -std=c++14  -Wall -I. -I. -I./include/ -I./include/jasper/ -I/usr/include/bullet/ -I/usr/local/include/assimp/"
  }]

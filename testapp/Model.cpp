@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include "AssetSerializer.h"
+#include "AnimationSystem.h"
 #include "VHACD.h"
 
 namespace Jasper
@@ -21,12 +22,6 @@ namespace Jasper
 
 using namespace std;
 
-
-
-static Matrix4 aiMatrix4x4ToMatrix4(const aiMatrix4x4& mm)
-{
-    return Matrix4(Vector4(mm.a1, mm.a2, mm.a3, mm.a4), Vector4(mm.b1, mm.b2, mm.b3, mm.b4), Vector4(mm.c1, mm.c2, mm.c3, mm.c4), Vector4(mm.d1, mm.d2, mm.d3, mm.d4));
-}
 
 aiNode* FindAiNode(aiNode* root, const string& name)
 {
@@ -171,48 +166,36 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
         if (generateCollider && modeldata->GetSkeleton()->Bones.size() == 0) {
             unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
             go->AttachComponent(move(collider));
-        } else if (generateCollider &&modeldata->GetSkeleton()->Bones.size() >0) {
+        } else if (generateCollider && modeldata->GetSkeleton()->Bones.size() >0) {
             modeldata->CreateRagdollCollider(m_scene, go.get());
         }
     }
     return move(go);
 }
 
-void CalculateInverseBindTransform(BoneData* parent, BoneData* child)
-{
-    if (child == nullptr) {
-        for(size_t i = 0; i < parent->Children.size(); ++i) {
-            BoneData* ch = parent->Children[i];
-            CalculateInverseBindTransform(parent, ch);
-        }
-    } else {
-        Matrix4 bt = parent->InverseBindTransform * child->BoneMatrix;
-        child->InverseBindTransform = bt.Inverted();
-        for(size_t i = 0; i < child->Children.size(); ++i) {
-            BoneData* ch = child->Children[i];
-            CalculateInverseBindTransform(child, ch);
-        }
-    }
-
-}
-
-void ModelLoader::BuildSkeleton(aiNode* ai_bone, BoneData* bone, bool isRoot)
-{
-}
-
-void TraverseSkeleton(const aiNode* node, Skeleton* skeleton)
-{
-    int bdidx = skeleton->m_boneMap[node->mName.data];
-    BoneData& parent = skeleton->Bones[bdidx];
-    for (size_t i = 0; i < node->mNumChildren; ++i) {
-        aiNode* child = node->mChildren[i];
-        int childbdidx = skeleton->m_boneMap[child->mName.data];
-        BoneData& childbd = skeleton->Bones[childbdidx];
-        childbd.InverseBindTransform = parent.InverseBindTransform * aiMatrix4x4ToMatrix4(child->mTransformation);
-        parent.Children.push_back(&childbd);
-        TraverseSkeleton(child, skeleton);
-    }
-}
+//
+//void TraverseSkeleton(const aiNode* node, Skeleton* skeleton)
+//{
+//    int bdidx = skeleton->m_boneMap[node->mName.data];
+//    BoneData& parent = skeleton->Bones[bdidx];
+//    int childCount = node->mNumChildren;
+//    printf("Traversing children of: %s \n", parent.Name.data());
+//    for (size_t i = 0; i < childCount; ++i) {
+//        aiNode* child = node->mChildren[i];
+//        int childbdidx = skeleton->m_boneMap[child->mName.data];
+//        BoneData& childbd = skeleton->Bones[childbdidx];
+//        childbd.BoneTransform = aiMatrix4x4ToTransform(child->mTransformation);
+//        childbd.Parent = &parent;
+//        Transform nodeTransform = parent.BoneTransform * aiMatrix4x4ToTransform(child->mTransformation);
+//        
+//        childbd.InverseBindTransform = parent.InverseBindTransform * nodeTransform;
+//        //childbd.InverseBindMatrix = parent.InverseBindMatrix * aiMatrix4x4ToMatrix4(child->mTransformation);
+//        parent.Children.push_back(&childbd);
+//        if (node != child) {
+//            TraverseSkeleton(child, skeleton);
+//        }
+//    }
+//}
 
 void CreateChildHulls(BoneData& rootBone, vector<unique_ptr<btCollisionShape>>& hulls)
 {
@@ -251,7 +234,6 @@ void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
     for (size_t i = 0; i < vertCount; ++i) {
         VertexBoneWeight& vb = rootBone.Weights[i];
         if (vb.Weight > 0.75f) {
-
             Vector3 position = vb.mesh->Positions[vb.Index];
             hs->addPoint(position.AsBtVector3());
         }
@@ -262,6 +244,7 @@ void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
     unique_ptr<CompoundCollider> collider = make_unique<CompoundCollider>(rootBone.Name + "_collider"s, hulls, scene->GetPhysicsWorld());
     collider->Mass = 50.f;
     go->AttachComponent(std::move(collider));
+    printf("Created Ragdoll.\n");
 
 
 }
@@ -297,7 +280,6 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
     }
 
     ModelData* model_data = m_scene->GetModelCache().CreateInstance<ModelData>(m_name);
-    model_data->CreateSkeleton();
     string directory = filename.substr(0, filename.find_last_of("/"));
 
 
@@ -341,7 +323,8 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 
 
         aiNode* root = scene->mRootNode;
-        skeleton->GlobalInverseTransform = aiMatrix4x4ToMatrix4(root->mTransformation).Inverted();
+        skeleton->GlobalInverseTransform = aiMatrix4x4ToTransform(root->mTransformation).Inverted();
+        //skeleton->GlobalInverseMatrix = aiMatrix4x4ToMatrix4(root->mTransformation).Inverted();
         //printf("aiScene Root node is named: %s\n", root->mName.data);
         for (uint i = 0; i < skeleton->Bones.size(); ++i) {
             auto& b = skeleton->Bones[i];
@@ -370,26 +353,43 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
             skeleton->RootBoneName = rootBone.Name;
 
             aiNode* rootBoneNode = FindAiNode(scene->mRootNode, minBone->Name);
-
-            rootBone.InverseBindTransform = aiMatrix4x4ToMatrix4(rootBoneNode->mTransformation);
-
+            
+//            Transform testtransform = aiMatrix4x4ToTransform(rootBoneNode->mTransformation);
+//            Matrix4 testtransformmat = testtransform.TransformMatrix();
+//            printf("Root Bone Position is: %s\n", testtransform.Position.ToString().data());
+//            Matrix4 testmatrixmat = aiMatrix4x4ToMatrix4(rootBoneNode->mTransformation);
+//            
+//            printf("Transform Matrix of root bone: \n%s\n", testtransformmat.ToString().data());
+//            printf("Matrix of root bone: \n%s\n", testmatrixmat.ToString().data());
+            
+            
+            rootBone.InverseBindTransform = aiMatrix4x4ToTransform(rootBoneNode->mTransformation).Inverted();
+            rootBone.BoneTransform = aiMatrix4x4ToTransform(rootBoneNode->mTransformation);
+            //Matrix4 testm = rootBone.InverseBindTransform.TransformMatrix();
+            //printf("Inverse Bind Transform Matrix of root bone: \n%s\n", testm.ToString().data());
+            //rootBone.InverseBindMatrix = aiMatrix4x4ToMatrix4(rootBoneNode->mTransformation).Inverted();
+            //printf("Inverse Bind Matrix of root bone: \n%s\n", rootBone.InverseBindMatrix.ToString().data());
             if (rootBoneNode != scene->mRootNode) {
                 aiNode* rootBoneParent = rootBoneNode->mParent;
-                Matrix4 tempTransform = aiMatrix4x4ToMatrix4(rootBoneNode->mTransformation);
+                Transform tempTransform = aiMatrix4x4ToTransform(rootBoneNode->mTransformation);
+                auto tempMatrix = rootBoneNode->mTransformation;
                 while (rootBoneParent != NULL) {
                     printf("Root Bone Parent Node: %s\n", rootBoneParent->mName.data);
-                    tempTransform = aiMatrix4x4ToMatrix4(rootBoneParent->mTransformation)* tempTransform ;
+                    tempTransform = aiMatrix4x4ToTransform(rootBoneParent->mTransformation) * tempTransform ;
+                    tempMatrix = rootBoneParent->mTransformation * tempMatrix;
                     //rootBone.BoneMatrix = aiMatrix4x4ToMatrix4(rootBoneParent->mTransformation).Inverted() * rootBone.BoneMatrix;
                     rootBoneParent = rootBoneParent->mParent;
                 }
                 //rootBone.BoneMatrix = rootBone.BoneMatrix.Inverted();
                 //Matrix4 mmm;
                 //mmm.SetToIdentity();
+                //rootBone.InverseBindMatrix = skeleton->GlobalInverseMatrix * tempMatrix;
                 rootBone.InverseBindTransform = skeleton->GlobalInverseTransform * tempTransform;
+                rootBone.BoneTransform = tempTransform;
             }
             //rootBone.InverseBindTransform = rootTransform;
 
-            TraverseSkeleton(rootBoneNode, skeleton);
+            skeleton->TraverseSkeleton(rootBoneNode);
 
 
             for (size_t i = 0; i < skeleton->Bones.size(); ++i) {
@@ -397,21 +397,24 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
                 printf("Bone ID: %d, Name: %s Has: %d children.\n", bd.Index, bd.Name.data(), bd.Children.size());
             }
 
-
-            //CalculateInverseBindTransform(&rootBone, nullptr);
-
-
+            if (1) {
+                int boneIdToMove = skeleton->m_boneMap["Bip01 L Thigh"];
+                BoneData& boneToMove = skeleton->Bones[boneIdToMove];
+                //boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
+                Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(45));    
+                Transform t = boneToMove.InverseBindTransform.Inverted();
+                t.Orientation *= q;
+                boneToMove.InverseBindTransform = t.Inverted();
+                //boneToMove.BoneOffsetMatrix = bom;
+                //skeleton->EvaluateBoneSubtree(boneToMove);
+            }
         }
 
     }
 
-    int i = 0;
-
     for (auto& mesh : model_data->GetMeshes()) {
 
         mesh->SetSkeleton(model_data->GetSkeleton());
-
-        i++;
     }
 
 
@@ -515,15 +518,9 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
                 BoneData bd;
                 bd.Name = bname;
                 aiMatrix4x4 mm = bone->mOffsetMatrix;
-                aiQuaternion brot;
-                aiVector3D bpos;
-                aiVector3D bscale;
-                mm.Decompose(bscale, brot, bpos);
-                bd.BoneTransform.Position = Vector3(bpos.x, bpos.y, bpos.z);
-                bd.BoneTransform.Orientation = Quaternion(brot.x, brot.y, brot.z, brot.w);
-                bd.BoneTransform.Scale = Vector3(bscale.x, bscale.y, bscale.z);
-                Matrix4 bm = aiMatrix4x4ToMatrix4(mm);
-                bd.BoneMatrix = bm;
+                bd.BoneOffsetTransform = aiMatrix4x4ToTransform(mm);
+                //Matrix4 bm = aiMatrix4x4ToMatrix4(mm);
+                //bd.BoneOffsetMatrix = bm;
 
                 for (uint j = 0; j < bone->mNumWeights; ++j) {
                     auto bw = bone->mWeights[j];
@@ -543,6 +540,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
             }
 
         }
+        
 
         m->CalculateExtents();
         if (!aiMesh->HasNormals()) {

@@ -14,6 +14,11 @@ namespace Jasper
 class Scene;
 class Shader;
 
+struct DebugVertex {
+    Vector3 Position;
+    Vector4 Color;
+};
+
 class PhysicsDebugDrawer : public btIDebugDraw
 {
 private:
@@ -21,13 +26,12 @@ private:
     int m_debugMode;
     Scene* scene;
     GLBuffer vbo;
-    GLBuffer cbo;
+    //GLBuffer cbo;
     GLBuffer ibo;
     uint vao;
     Matrix4 mvpMatrix;
     Shader* debugShader;
-    std::vector<Vector3> m_verts;
-    std::vector<Vector4> m_colors;
+    std::vector<DebugVertex> m_verts;
     std::vector<uint> m_indices;
 
 public:
@@ -60,17 +64,15 @@ public:
     void Destroy();
 
     void Draw();
-    
-    void Reset(){
+
+    void Reset() {
         m_verts.erase(std::begin(m_verts), std::end(m_verts));
-        m_colors.erase(std::begin(m_colors), std::end(m_colors));
         m_indices.erase(std::begin(m_indices), std::end(m_indices));
     }
 
     PhysicsDebugDrawer(Scene* scene)
         : scene(scene),
           vbo(GLBuffer::BufferType::VERTEX),
-          cbo(GLBuffer::VERTEX),
           ibo(GLBuffer::BufferType::INDEX) {
 
     }

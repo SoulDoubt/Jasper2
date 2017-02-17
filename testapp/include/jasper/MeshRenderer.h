@@ -18,14 +18,6 @@ class Shader;
 class MeshRenderer : public Component
 {
 private:
-//
-//    GLBuffer m_vertexBuffer;
-//    GLBuffer m_texCoordBuffer;
-//    GLBuffer m_normalBuffer;
-//    GLBuffer m_tangentBuffer;
-//    GLBuffer m_bitangentBuffer;
-//    GLBuffer m_indexBuffer;
-//    GLBuffer m_colorBuffer;
 
 protected:
 
@@ -41,6 +33,7 @@ protected:
     uint m_polymode1 = 0x1B02;
     bool m_wireframe = false;
     bool m_castsShadows = false;
+    
 public:
 
     bool IsVisible() const {

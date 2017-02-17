@@ -33,18 +33,18 @@ out mat3 v_tbnMatrix;
 void main()
 {
 	mat4 boneTransform;
-	if (boneIds.x > -1){
+	//if (boneIds.x > -1){
 		boneTransform = boneTransforms[boneIds.x] * boneWeights.x;
-	}
-	if (boneIds.y > -1){
+	//}
+	//if (boneIds.y > -1){
 		boneTransform += boneTransforms[boneIds.y] * boneWeights.y;
-	}
-	if (boneIds.z > -1){
+	//}
+	//if (boneIds.z > -1){
 		boneTransform     += boneTransforms[boneIds.z] * boneWeights.z;
-	}
-	if (boneIds.w > -1){
+	//}
+	//if (boneIds.w > -1){
 		boneTransform     += boneTransforms[boneIds.w] * boneWeights.w;
-	}
+	//}
 
 	vec4 posb = boneTransform * vec4( position, 1.0 );
 	vec4 normalb = boneTransform * vec4( normal, 1.0 );

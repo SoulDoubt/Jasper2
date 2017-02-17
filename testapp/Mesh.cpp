@@ -5,6 +5,7 @@
 #include "GLError.h"
 #include "Material.h"
 #include <AssetSerializer.h>
+#include "AnimationSystem.h"
 
 #include "ForsythIndexOptimizer.h"
 

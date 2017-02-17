@@ -73,6 +73,7 @@
     <File Name="Scriptable.cpp"/>
     <File Name="ParticleSystem.cpp"/>
     <File Name="ForsythIndexOptimizer.cpp"/>
+    <File Name="include/jasper/AnimationSystem.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <VirtualDirectory Name="jasper">
@@ -125,6 +126,7 @@
       <File Name="include/jasper/ParticleSystem.h"/>
       <File Name="include/jasper/ForsythIndexOptimizer.h"/>
       <File Name="include/jasper/stb_dxt.h"/>
+      <File Name="include/jasper/AnimationSystem.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
@@ -143,6 +145,7 @@
         <IncludePath Value="./include/"/>
         <IncludePath Value="./include/jasper/"/>
         <IncludePath Value="/usr/include/bullet/"/>
+        <IncludePath Value="/usr/local/include/assimp/"/>
       </Compiler>
       <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;-lvhacd;-pthread;-lgomp; -pg" Required="yes">
         <LibraryPath Value="/usr/local/lib/"/>

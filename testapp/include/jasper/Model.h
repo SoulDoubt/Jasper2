@@ -5,6 +5,7 @@
 #include "PhysicsCollider.h"
 #include "ResourceManager.h"
 #include "Mesh.h"
+#include "AnimationSystem.h"
 //#include "Scene.h"
 
 
@@ -26,7 +27,7 @@ public:
 
     ModelData(std::string name) {
         m_name = std::move(name);
-
+        m_skeleton = std::make_unique<Skeleton>();
     }
 
     std::vector<Mesh*>& GetMeshes()  {
@@ -52,18 +53,16 @@ public:
         return m_skeleton.get();
     }
 
-    void CreateSkeleton() {
-        m_skeleton = std::make_unique<Skeleton>();
-    }
-
     void CreateRagdollCollider(Scene* scene, GameObject* go);
 
-    std::unique_ptr<Skeleton> m_skeleton;
+
 
 private:
+
     std::string            m_name;
     std::vector<Mesh*>     m_meshes;
-    std::vector<Material*> m_materials;    
+    std::vector<Material*> m_materials;
+    std::unique_ptr<Skeleton> m_skeleton;
 
 };
 
@@ -78,18 +77,13 @@ public:
     ModelLoader(Scene* scene);
     ~ModelLoader();
 
-
-
     float Mass = 0.0f;
     float Restitution = 1.0f;
     float Friction = 1.0f;
 
     PHYSICS_COLLIDER_TYPE ColliderType = PHYSICS_COLLIDER_TYPE::Box;
 
-
     void Destroy();
-//    virtual void Awake() override;
-//    virtual void Update(float dt) override;
 
     Vector3 HalfExtents;
     Vector3 MinExtents;
@@ -121,7 +115,7 @@ private:
     void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, const std::string& directory, ModelData* model_data);
     void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
 
-    void BuildSkeleton(aiNode* ai_bone, BoneData* bone, bool isRoot = false);
+    //void BuildSkeleton(aiNode* ai_bone, BoneData* bone, bool isRoot = false);
 
     NON_COPYABLE(ModelLoader);
 

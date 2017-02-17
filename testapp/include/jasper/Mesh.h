@@ -574,47 +574,7 @@ protected:
 
 };
 
-struct VertexBoneWeight {
-    uint Index;
-    float Weight;
-    Mesh* mesh;
-};
 
-inline bool operator<(const VertexBoneWeight& a, const VertexBoneWeight& b){
-    return (size_t)a.mesh + a.Index < (size_t)b.mesh + b.Index;
-}
-
-inline bool operator==(const VertexBoneWeight& a, const VertexBoneWeight& b){
-    return (a.mesh == b.mesh) && (a.Index == b.Index);
-}
-
-
-
-
-struct BoneData {
-    aiNode* ainode;
-    std::string Name;
-    std::string ParentName;
-    std::vector<VertexBoneWeight> Weights;
-    std::vector<BoneData*> Children;
-    BoneData* Parent;
-    Transform BoneTransform;
-    Matrix4 BoneMatrix;
-    Matrix4 InverseBindTransform;
-    int Index;
-    int Depth;
-
-   
-
-};
-
-
-struct Skeleton {
-    std::string RootBoneName;
-    Matrix4 GlobalInverseTransform;
-    std::vector<BoneData> Bones;
-    std::unordered_map<std::string, int> m_boneMap;
-};
 
 inline void Mesh::AddVertex(const Vertex& vertex)
 {

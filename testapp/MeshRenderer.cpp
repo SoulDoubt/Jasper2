@@ -30,13 +30,8 @@ void MeshRenderer::ToggleWireframe(bool wf)
     }
 }
 
-MeshRenderer::MeshRenderer(std::string name, Mesh* mesh, Material* material) : Component(name)//,
-//    m_vertexBuffer(GLBuffer::BufferType::VERTEX),
-//    m_texCoordBuffer(GLBuffer::BufferType::VERTEX),
-//    m_normalBuffer(GLBuffer::BufferType::VERTEX),
-//    m_tangentBuffer(GLBuffer::BufferType::VERTEX),
-//    m_bitangentBuffer(GLBuffer::BufferType::VERTEX),
-//    m_indexBuffer(GLBuffer::BufferType::INDEX)
+MeshRenderer::MeshRenderer(std::string name, Mesh* mesh, Material* material)
+    : Component(name)
 {
     m_mesh = mesh;
     m_mesh->IncrementRendererCount();
@@ -195,7 +190,7 @@ void MeshRenderer::Render()
     glPolygonMode(GL_FRONT, poly_mode[0]);
     GLERRORCHECK;
     glBindVertexArray(0);
-      
+
 }
 
 } // namespace Jasper

@@ -442,9 +442,9 @@ void Scene::InitializeManual()
     cylrend->ToggleWireframe(true);
     cylcol->Mass = 20.f;
     
-    float cx = 0;
-    float cz = 10;
-    float radius = 5;
+//    float cx = 0;
+//    float cz = 10;
+//    float radius = 5;
 //    for (int i = 0; i < 12; ++i) {
 //        float a = DEG_TO_RAD(i * 30);
 //        float ax = cx + radius * sinf(a);
@@ -455,7 +455,7 @@ void Scene::InitializeManual()
 //        //model.GetLocalTransform().Scale = {0.1, 0.1, 0.1};
 //    }
     
-     ml.LoadModel("../models/C3P0/C3P0.dae"s, "lara");
+     ml.LoadModel("../models/testman/test_B3D.b3d"s, "lara");
      //ml.LoadModel("../models/testman/test_Collada_DAE.DAE"s, "lara");
      auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("lara", "lara", true, false));
      lara.GetLocalTransform().Position = { 15.f, 1.2f, 4.f};

@@ -24,6 +24,12 @@ public:
         Orientation = orientation;
         Scale = { 1.0f, 1.0f, 1.0f };
     }
+    
+    Transform(const Vector3& position, const Quaternion& orientation, const Vector3& scale){
+        Position = position;
+        Orientation = orientation;
+        Scale = scale;
+    }
 
     Transform(const Transform& o) {
         Position = o.Position;
@@ -50,7 +56,7 @@ public:
         btVector3 pos = { Position.x, Position.y, Position.z };
         btQuaternion q = btQuaternion(Orientation.x, Orientation.y, Orientation.z, Orientation.w);
         btt.setOrigin(pos);
-        btt.setRotation(q);
+        btt.setRotation(q);        
         return btt;
     }
 
@@ -70,14 +76,24 @@ public:
     Transform& RotateAround(const Vector3& point, const Vector3& axis, const float degrees);
 
     Transform& PositionLerp(const Vector3& start, const Vector3& end, float pct);
-
-
-    friend Transform operator*(const Transform& ps, const Transform& ls);
-    friend Transform& operator*=(Transform& ps, const Transform& ls);
-    friend Vector3 operator*(const Transform& t, Vector3& vec);
+    
+    Transform Inverted();
 
     void SetIdentity();
 };
+
+inline Transform Transform::Inverted(){
+    const Quaternion invOrientation = Inverse(this->Orientation);
+
+	Transform invTransform;
+
+	invTransform.Position    = (invOrientation * -this->Position) / this->Scale;
+	invTransform.Orientation = invOrientation;
+	invTransform.Scale       = invOrientation * (Vector3{1, 1, 1} / this->Scale);
+
+	return invTransform;
+}
+
 
 inline Transform operator*(const Transform& ps, const Transform& ls)
 {
@@ -93,6 +109,37 @@ inline Transform& operator*=(Transform& ps, const Transform& ls)
     ps = ps * ls;
     return ps;
 }
+
+inline Transform operator/(const Transform& ws, const Transform& ps){
+    Transform ls;
+    
+    const Quaternion psConjugate = Conjugate(ps.Orientation);
+
+	ls.Position    = (psConjugate * (ws.Position - ps.Position)) / ps.Scale;
+	ls.Orientation = psConjugate * ws.Orientation;
+	ls.Scale       = psConjugate * (ws.Scale / ps.Scale);
+
+	return ls;
+}
+
+inline Transform& operator/=(Transform& ws, const Transform& ps){
+    ws = ws / ps;
+    return ws;
+}
+
+inline Transform Inverse(const Transform& t)
+{
+	const Quaternion invOrientation = Inverse(t.Orientation);
+
+	Transform invTransform;
+
+	invTransform.Position    = (invOrientation * -t.Position) / t.Scale;
+	invTransform.Orientation = invOrientation;
+	invTransform.Scale       = invOrientation * (Vector3{1, 1, 1} / t.Scale);
+
+	return invTransform;
+}
+
 
 inline Vector3 operator*(const Transform& t, Vector3& vec){
     return (Conjugate(t.Orientation) * (t.Position - vec)) / t.Scale;

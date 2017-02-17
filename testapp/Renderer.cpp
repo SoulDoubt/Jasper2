@@ -246,8 +246,8 @@ void Renderer::RenderScene()
             
             for (size_t i = 0; i < bones.size(); ++i){
                 const auto& b = bones[i];
-                Matrix4 bt = b.InverseBindTransform * b.BoneMatrix;                
-                shader->SetBoneTransform(i, bt);                
+                Transform bt = b.InverseBindTransform * b.BoneOffsetTransform;
+                shader->SetBoneTransform(i, bt.TransformMatrix());                
             }
         }
         //m_forwardLitShader->SetDirectionalLightUniforms(m_scene->GetDirectionalLight());
@@ -257,9 +257,9 @@ void Renderer::RenderScene()
         const auto normMatrix = modelMatrix.NormalMatrix();
         shader->SetMatrixUniforms(modelMatrix, m_viewMatrix, m_projectionMatrix, normMatrix);
         const auto pl = m_scene->GetPointLights()[1];
-        //for (const auto pl : m_scene->GetPointLights()){
+        
         shader->SetPointLightUniforms(pl);
-        //glDisable(GL_CULL_FACE);
+
         mr->Render();
 
         shader->Release();

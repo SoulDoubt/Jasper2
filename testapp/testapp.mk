@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=Al
-Date                   :=15/02/17
+Date                   :=16/02/17
 CodeLitePath           :=/home/al/.codelite
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
@@ -36,7 +36,7 @@ ObjectsFileList        :="testapp.txt"
 PCHCompileFlags        :=
 MakeDirCommand         :=mkdir -p
 LinkOptions            :=  -lGLEW -lSDL2 -lGL -lBulletDynamics -lBulletCollision -lLinearMath -lassimp -lvhacd -pthread -lgomp  -pg
-IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch). $(IncludeSwitch)./include/ $(IncludeSwitch)./include/jasper/ $(IncludeSwitch)/usr/include/bullet/ 
+IncludePath            :=  $(IncludeSwitch). $(IncludeSwitch). $(IncludeSwitch)./include/ $(IncludeSwitch)./include/jasper/ $(IncludeSwitch)/usr/include/bullet/ $(IncludeSwitch)/usr/local/include/assimp/ 
 IncludePCH             := 
 RcIncludePath          := 
 Libs                   := 
@@ -64,7 +64,7 @@ Objects0=$(IntermediateDirectory)/Camera.cpp$(ObjectSuffix) $(IntermediateDirect
 	$(IntermediateDirectory)/main.cpp$(ObjectSuffix) $(IntermediateDirectory)/Material.cpp$(ObjectSuffix) $(IntermediateDirectory)/matrix.cpp$(ObjectSuffix) $(IntermediateDirectory)/Memory.cpp$(ObjectSuffix) $(IntermediateDirectory)/MeshRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Model.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsCollider.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsDebugDraw.cpp$(ObjectSuffix) $(IntermediateDirectory)/PhysicsWorld.cpp$(ObjectSuffix) $(IntermediateDirectory)/Quad.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/quaternion.cpp$(ObjectSuffix) $(IntermediateDirectory)/Renderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scene.cpp$(ObjectSuffix) $(IntermediateDirectory)/Shader.cpp$(ObjectSuffix) $(IntermediateDirectory)/SkyboxRenderer.cpp$(ObjectSuffix) $(IntermediateDirectory)/Sphere.cpp$(ObjectSuffix) $(IntermediateDirectory)/Texture.cpp$(ObjectSuffix) $(IntermediateDirectory)/Transform.cpp$(ObjectSuffix) $(IntermediateDirectory)/Triangle.cpp$(ObjectSuffix) $(IntermediateDirectory)/DefaultScript.cpp$(ObjectSuffix) \
 	$(IntermediateDirectory)/GameObject.cpp$(ObjectSuffix) $(IntermediateDirectory)/LauncherScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateInPlaceScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/Mesh.cpp$(ObjectSuffix) $(IntermediateDirectory)/RotateAboutPointScript.cpp$(ObjectSuffix) $(IntermediateDirectory)/include_jasper_AssetSerializer.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui.cpp$(ObjectSuffix) $(IntermediateDirectory)/imgui_draw.cpp$(ObjectSuffix) $(IntermediateDirectory)/Scriptable.cpp$(ObjectSuffix) $(IntermediateDirectory)/ParticleSystem.cpp$(ObjectSuffix) \
-	$(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(ObjectSuffix) 
+	$(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(ObjectSuffix) $(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(ObjectSuffix) 
 
 
 
@@ -422,6 +422,14 @@ $(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(DependSuffix): ForsythIndexO
 
 $(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(PreprocessSuffix): ForsythIndexOptimizer.cpp
 	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/ForsythIndexOptimizer.cpp$(PreprocessSuffix) ForsythIndexOptimizer.cpp
+
+$(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(ObjectSuffix): include/jasper/AnimationSystem.cpp $(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(DependSuffix)
+	$(CXX) $(IncludePCH) $(SourceSwitch) "/home/al/code/testapp/testapp/include/jasper/AnimationSystem.cpp" $(CXXFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(DependSuffix): include/jasper/AnimationSystem.cpp
+	@$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(ObjectSuffix) -MF$(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(DependSuffix) -MM include/jasper/AnimationSystem.cpp
+
+$(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(PreprocessSuffix): include/jasper/AnimationSystem.cpp
+	$(CXX) $(CXXFLAGS) $(IncludePCH) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/include_jasper_AnimationSystem.cpp$(PreprocessSuffix) include/jasper/AnimationSystem.cpp
 
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
