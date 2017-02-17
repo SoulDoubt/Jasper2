@@ -398,15 +398,17 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
             }
 
             if (1) {
-                int boneIdToMove = skeleton->m_boneMap["Bip01 L Thigh"];
+                int boneIdToMove = skeleton->m_boneMap["lUpperLeg_0_"];
                 BoneData& boneToMove = skeleton->Bones[boneIdToMove];
                 //boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
-                Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(45));    
-                Transform t = boneToMove.InverseBindTransform.Inverted();
+                Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 0.f, 1.f), DEG_TO_RAD(45));    
+                Transform t = boneToMove.BoneTransform;
                 t.Orientation *= q;
-                boneToMove.InverseBindTransform = t.Inverted();
+                boneToMove.BoneTransform = t;
+                //skeleton->TransformBone(boneToMove);
+                
                 //boneToMove.BoneOffsetMatrix = bom;
-                //skeleton->EvaluateBoneSubtree(boneToMove);
+                skeleton->EvaluateBoneSubtree(boneToMove);
             }
         }
 

@@ -60,6 +60,7 @@ public:
     
     void EvaluateBoneSubtree(const BoneData& parent);
     void TraverseSkeleton(const aiNode* node);
+    void TransformBone(BoneData& bone);
 };
 
 class AnimationSystem

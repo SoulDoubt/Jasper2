@@ -246,7 +246,7 @@ void Renderer::RenderScene()
             
             for (size_t i = 0; i < bones.size(); ++i){
                 const auto& b = bones[i];
-                Transform bt = b.InverseBindTransform * b.BoneOffsetTransform;
+                Transform bt =  b.BoneTransform * b.BoneOffsetTransform;
                 shader->SetBoneTransform(i, bt.TransformMatrix());                
             }
         }

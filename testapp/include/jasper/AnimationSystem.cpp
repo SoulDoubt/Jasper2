@@ -39,10 +39,8 @@ void Skeleton::TraverseSkeleton(const aiNode* node)
         aiNode* child = node->mChildren[i];
         int childbdidx = this->m_boneMap[child->mName.data];
         BoneData& childbd = this->Bones[childbdidx];
-        childbd.BoneTransform = aiMatrix4x4ToTransform(child->mTransformation);
-        childbd.Parent = &parent;
-        Transform nodeTransform = parent.BoneTransform * aiMatrix4x4ToTransform(child->mTransformation);
-
+        childbd.BoneTransform = parent.BoneTransform * aiMatrix4x4ToTransform(child->mTransformation);
+        childbd.Parent = &parent;        
         childbd.InverseBindTransform = parent.InverseBindTransform * aiMatrix4x4ToTransform(child->mTransformation);        
         parent.Children.push_back(&childbd);
         if (node != child) {
@@ -56,12 +54,21 @@ void Skeleton::EvaluateBoneSubtree(const BoneData& parentBone)
     for (size_t i = 0; i < parentBone.Children.size(); ++i) {
         BoneData& childBone = *(parentBone.Children[i]);
         
-        Transform parentTransform = parentBone.BoneOffsetTransform;
-        Transform childTransform = childBone.BoneOffsetTransform;
+        Transform parentTransform = parentBone.BoneTransform;
+        Transform childTransform = childBone.BoneTransform;
         
-        childBone.BoneOffsetTransform *= parentTransform;// * childTransform;
+        childBone.BoneTransform = childTransform * parentTransform;// * childTransform;
         
         EvaluateBoneSubtree(childBone);
+    }
+}
+
+void Skeleton::TransformBone(BoneData& bone){
+    if (bone.Parent != nullptr){
+        bone.BoneTransform = bone.Parent->BoneTransform * bone.BoneTransform;
+        TransformBone(*(bone.Parent));
+    } else {
+        return;
     }
 }
 
