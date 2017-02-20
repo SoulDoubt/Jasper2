@@ -460,7 +460,7 @@ void Scene::InitializeManual()
      //ml.LoadModel("../models/testman/test_Collada_DAE.DAE"s, "lara");
      auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("lara", "lara", true, false));
      lara.GetLocalTransform().Position = { 15.f, 1.2f, 4.f};
-     lara.GetLocalTransform().Rotate({1.4, 0.f, 0.f}, -90.f);
+     lara.GetLocalTransform().Rotate({1.f, 0.f, 0.f}, -90.f);
      //lara.GetLocalTransform().UniformScale(0.1f);
     
 //    auto debris = m_rootNode->AttachNewChild<GameObject>("debris"s);

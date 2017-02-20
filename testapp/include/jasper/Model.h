@@ -20,6 +20,19 @@ class Shader;
 class Material;
 class Scene;
 
+struct ImporterSceneNode {
+	std::string Name;
+	Transform NodeTransform;
+	ImporterSceneNode* Parent;
+	std::vector<ImporterSceneNode> Children;
+
+	Transform ConcatParentTransforms();
+};
+
+
+
+	
+
 class ModelData
 {
 public:
@@ -74,6 +87,40 @@ class ModelInstance : public Component
 class ModelLoader //: public Component
 {
 public:
+
+	
+	
+public:
+
+	void CreateImporterSceneGraph(aiNode* node);
+
+	ImporterSceneNode* GetRootBoneNode(Skeleton* skeleton);
+
+	ImporterSceneNode* FindImporterSceneNode(const std::string& name) {
+		if (ImporterSceneRoot.Name == name) {
+			return &ImporterSceneRoot;
+		}
+		else {
+			return FindImporterSceneNodeRecursive(&ImporterSceneRoot, name);
+		}
+	}
+
+	ImporterSceneNode* FindImporterSceneNodeRecursive(ImporterSceneNode* parent, const std::string& name) {
+		if (parent->Name == name) {
+			return parent;
+		}
+		else {
+			for (size_t i = 0; i < parent->Children.size(); ++i) {
+				auto f = FindImporterSceneNodeRecursive(&(parent->Children[i]), name);
+				if (f) return f;
+			}
+		}
+		return nullptr;
+	}
+
+	//std::vector<ImporterSceneNode> ImporterSceneRoot;
+	ImporterSceneNode ImporterSceneRoot;
+
     ModelLoader(Scene* scene);
     ~ModelLoader();
 

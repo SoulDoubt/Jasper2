@@ -10,19 +10,23 @@ namespace Jasper
 
 void PhysicsDebugDrawer::Initialize()
 {
-    m_verts.reserve(1000);
-    m_indices.reserve(1000 * 2);
-    //m_colors.reserve(1000);
+    m_verts.reserve(20000);
+    m_indices.reserve(20000);
+
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-    vbo.Create();
-    //cbo.Create();
+
+    vbo.Create();    
     ibo.Create();
+
     vbo.SetUsage(GLBuffer::Usage::StreamDraw);    
     ibo.SetUsage(GLBuffer::Usage::StreamDraw);
+
     vbo.Bind();
+
     uint ploc = debugShader->PositionAttributeLocation();
     uint cloc = debugShader->ColorsAttributeLocation();
+
     debugShader->SetAttributeArray(ploc, GL_FLOAT, (void*)offsetof(DebugVertex, Position), 3, sizeof(DebugVertex));    
     debugShader->SetAttributeArray(cloc, GL_UNSIGNED_INT, (void*)offsetof(DebugVertex, Color), 4, sizeof(DebugVertex));
     glBindVertexArray(0);
@@ -31,8 +35,7 @@ void PhysicsDebugDrawer::Initialize()
 void PhysicsDebugDrawer::Destroy()
 {
     if (vbo.IsCreated()) {
-        vbo.Destroy();
-        //cbo.Destroy();
+        vbo.Destroy();        
         ibo.Destroy();
     }
 }
@@ -55,8 +58,7 @@ void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, co
 void PhysicsDebugDrawer::Draw()
 {
     int count = m_indices.size();
-    int vc = m_verts.size();
-    //int cc = m_colors.size();
+    int vc = m_verts.size();    
 
     glBindVertexArray(vao);
     debugShader->Bind();

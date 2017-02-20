@@ -393,20 +393,15 @@ public:
         Vertex_PNUTB_ANIM,
         Vertex_PNU_ANIM
     };
-    // TODO: get rif of this
-    friend class Model;
+    // TODO: get rif of this, model should not need to be a friend
+    //friend class Model;
 private:
     uint m_vaoID;
     uint m_elementCount;
     VERTEX_FORMAT m_vertexFormat = VERTEX_FORMAT::None;
 
     GLBuffer m_vertexBuffer;
-    //GLBuffer m_texCoordBuffer;
-    //GLBuffer m_normalBuffer;
-    //GLBuffer m_tangentBuffer;
-    //GLBuffer m_bitangentBuffer;
-    GLBuffer m_indexBuffer;
-    //GLBuffer m_colorBuffer;
+    GLBuffer m_indexBuffer;    
 
 public:
 
@@ -438,9 +433,7 @@ public:
         return m_indexBuffer;
     }
 
-
-    std::vector<BoneData*> Bones;
-
+    std::vector<int> Bones;
 
     int m_numBones = 0;
 

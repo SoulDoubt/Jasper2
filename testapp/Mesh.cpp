@@ -178,14 +178,20 @@ void Mesh::InitializeForRendering(Shader* shader)
             v.TexCoords = TexCoords[i];
             verts[i] = v;
         }
-        for (const BoneData& b : m_skeleton->Bones) {
+        for (int bIndex : this->Bones) {
+			const auto b = this->GetSkeleton()->Bones[bIndex];
             for (const VertexBoneWeight& w : b.Weights) {
-                Vertex_PNU_ANIM& v = verts[w.Index];
-                int idx = v.GetNextAvailableBoneIndex();
-                if (idx < 4) {
-                    v.Bones[idx] = b.Index;
-                    v.Weights[idx] = w.Weight;
-                }
+				if (w.Index < Positions.size()) {
+					Vertex_PNU_ANIM& v = verts[w.Index];
+					int idx = v.GetNextAvailableBoneIndex();
+					if (idx < 4) {
+						v.Bones[idx] = b.Id;
+						v.Weights[idx] = w.Weight;
+					}
+				}
+				else {
+					printf("Bone weight index our of range. %s\n", this->GetName().data());
+				}
                 
             }            
         }
@@ -268,7 +274,7 @@ void Mesh::InitializeForRendering(Shader* shader)
                 Vertex_PNUTB_ANIM& v = verts[w.Index];
                 int idx = v.GetNextAvailableBoneIndex();
                 if (idx < 4) {
-                    v.Bones[idx] = b.Index;
+                    v.Bones[idx] = b.Id;
                     v.Weights[idx] = w.Weight;
                 }
                 //int x = 0;

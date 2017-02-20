@@ -5,11 +5,13 @@
 #include "GLError.h"
 
 #include <fstream>
+#include <algorithm>
 
 #define STB_DXT_IMPLEMENTATION
 #include "stb_dxt.h"
 
 #define STBGL_COMPRESSED_RGBA_S3TC_DXT5   0x83F3
+
 
 namespace Jasper
 {

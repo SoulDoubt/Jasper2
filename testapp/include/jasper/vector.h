@@ -1,11 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES
 #include <cmath>
-
-#endif
 #include <string>
 
 #include <btBulletDynamicsCommon.h>

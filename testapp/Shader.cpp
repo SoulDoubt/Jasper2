@@ -443,6 +443,7 @@ int Shader::PushAttribute(const std::string& name)
     if (l > -1) {
         m_attribs[l] = name;
     }
+	return 0;
 }
 
 // ---------------------- GeometryPassShader ---------------------//

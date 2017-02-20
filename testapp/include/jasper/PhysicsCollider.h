@@ -32,7 +32,7 @@ class PhysicsCollider :	public Component
 {
 public:
 
-    const static u_int32_t DRAW_COLLISION_SHAPE = 0x01;
+    const static unsigned DRAW_COLLISION_SHAPE = 0x01;
 
 
     explicit PhysicsCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
@@ -98,7 +98,7 @@ public:
         return m_colliderType;
     }
 
-    u_int32_t ColliderFlags = 0;
+    uint32_t ColliderFlags = 0;
 
 protected:
     PhysicsWorld* m_world;
