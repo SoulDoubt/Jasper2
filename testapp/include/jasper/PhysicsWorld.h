@@ -1,5 +1,4 @@
-#ifndef _JASPER_PHYSICS_WORLD_H_
-#define _JASPER_PHYSICS_WORLD_H_
+#pragma once
 
 #include "Common.h"
 #include <btBulletDynamicsCommon.h>
@@ -80,4 +79,3 @@ inline void PhysicsWorld::ContactTest(btCollisionObject* shape, btCollisionWorld
 
 }
 
-#endif // _JASPER_PHYSICS_WORLD_H_

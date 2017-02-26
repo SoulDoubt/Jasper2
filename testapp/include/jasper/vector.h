@@ -3,6 +3,7 @@
 #include "Common.h"
 #include <cmath>
 #include <string>
+#include <algorithm>
 
 #include <btBulletDynamicsCommon.h>
 
@@ -15,6 +16,12 @@
 
 namespace Jasper
 {
+
+inline float Clamp(float f, float lo, float hi) {
+	if (f < lo) return lo;
+	else if (f > hi) return hi;
+	return f;
+}
 
 
 struct Vector2 {
@@ -315,9 +322,26 @@ inline float Dot(const Vector3& a, const Vector3& b)
 
 inline Vector3 Lerp(const Vector3& a, const Vector3& b, const float pct)
 {
-    return (a + pct * (b - a));
+    return a + pct * (b - a);
 }
 
+inline Vector3 Slerp(Vector3 start, Vector3 end, float percent)
+{
+	// Dot product - the cosine of the angle between 2 vectors.
+	float dot = Dot(start, end);
+	// Clamp it to be in the range of Acos()
+	// This may be unnecessary, but floating point
+	// precision can be a fickle mistress.
+	Clamp(dot, -1.0f, 1.0f);
+	// Acos(dot) returns the angle between start and end,
+	// And multiplying that by percent returns the angle between
+	// start and the final result.
+	float theta = std::acos(dot)*percent;
+	Vector3 RelativeVec = end - start*dot;
+	RelativeVec.Normalize();     // Orthonormal basis
+								 // The final result.
+	return ((start*std::cos(theta)) + (RelativeVec*std::sin(theta)));
+}
 inline Vector3 SmoothStep(const Vector3& a, const Vector3& b, const float pct)
 {
     float t = pct * pct * (3.0f - 2.0f * pct);

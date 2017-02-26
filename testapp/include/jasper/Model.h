@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Common.h"
 #include "Component.h"
 #include "PhysicsWorld.h"
@@ -6,7 +7,6 @@
 #include "ResourceManager.h"
 #include "Mesh.h"
 #include "AnimationSystem.h"
-//#include "Scene.h"
 
 
 class aiScene;
@@ -19,18 +19,6 @@ namespace Jasper
 class Shader;
 class Material;
 class Scene;
-
-struct ImporterSceneNode {
-	std::string Name;
-	Transform NodeTransform;
-	ImporterSceneNode* Parent;
-	std::vector<ImporterSceneNode> Children;
-
-	Transform ConcatParentTransforms();
-};
-
-
-
 	
 
 class ModelData
@@ -68,40 +56,14 @@ public:
 
     void CreateRagdollCollider(Scene* scene, GameObject* go);
 
-
-
-private:
-
-    std::string            m_name;
-    std::vector<Mesh*>     m_meshes;
-    std::vector<Material*> m_materials;
-    std::unique_ptr<Skeleton> m_skeleton;
-
-};
-
-class ModelInstance : public Component
-{
-
-};
-
-class ModelLoader //: public Component
-{
-public:
-
-	
-	
-public:
-
-	void CreateImporterSceneGraph(aiNode* node);
-
-	ImporterSceneNode* GetRootBoneNode(Skeleton* skeleton);
+	ImporterSceneNode* ImporterSceneRoot() { return m_importerSceneRoot.get(); }
 
 	ImporterSceneNode* FindImporterSceneNode(const std::string& name) {
-		if (ImporterSceneRoot.Name == name) {
-			return &ImporterSceneRoot;
+		if (m_importerSceneRoot->Name == name) {
+			return m_importerSceneRoot.get();
 		}
 		else {
-			return FindImporterSceneNodeRecursive(&ImporterSceneRoot, name);
+			return FindImporterSceneNodeRecursive(m_importerSceneRoot.get(), name);
 		}
 	}
 
@@ -118,8 +80,38 @@ public:
 		return nullptr;
 	}
 
-	//std::vector<ImporterSceneNode> ImporterSceneRoot;
-	ImporterSceneNode ImporterSceneRoot;
+	void CreateImporterSceneGraph(aiNode* node);
+
+	void BuildSceneRecursive(ImporterSceneNode* node, ImporterSceneNode* parent) {
+		node->Parent = parent;
+		for (int i = 0; i < (int)node->Children.size(); ++i) {
+			BuildSceneRecursive(&(node->Children[i]), node);
+		}
+	}
+	
+	ImporterSceneNode* GetRootBoneNode(Skeleton* skeleton);
+
+	std::unique_ptr<AnimationComponent> Animator;
+
+
+private:
+
+    std::string						   m_name;
+    std::vector<Mesh*>				   m_meshes;
+    std::vector<Material*>			   m_materials;
+    std::unique_ptr<Skeleton>		   m_skeleton;
+	std::unique_ptr<ImporterSceneNode> m_importerSceneRoot;
+
+};
+
+class ModelInstance : public Component
+{
+
+};
+
+class ModelLoader //: public Component
+{
+public:
 
     ModelLoader(Scene* scene);
     ~ModelLoader();
@@ -140,7 +132,8 @@ public:
     uint VertCount = 0;
 
     void SaveToAssetFile(const std::string& filename);
-    void LoadModel(const std::string& filename, const std::string& name);
+	void CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes);
+	void LoadModel(const std::string& filename, const std::string& name);
     void OutputMeshData(const std::string& filename);
 
     std::unique_ptr<GameObject> CreateModelInstance(const std::string& name, const std::string& modelName, bool generateCollider, bool splitColliders);
@@ -161,7 +154,8 @@ private:
     void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode, const std::string& directory, ModelData* model_data);
     void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, const std::string& directory, ModelData* model_data);
     void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
-
+	void BuildSkeleton(Skeleton* skel);
+	void BuildSkeletonRecursive(ImporterSceneNode* node, Skeleton* skel);
     //void BuildSkeleton(aiNode* ai_bone, BoneData* bone, bool isRoot = false);
 
     NON_COPYABLE(ModelLoader);

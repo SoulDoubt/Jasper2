@@ -3,19 +3,36 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <chrono>
 
 #include <Transform.h>
 #include <assimp/scene.h>
+#include <memory>
+
+#include <Component.h>
 
 namespace Jasper
 {
     
 Matrix4 aiMatrix4x4ToMatrix4(const aiMatrix4x4& mm);
 Transform aiMatrix4x4ToTransform(const aiMatrix4x4& mm);
+Quaternion aiQuaternionToQuatenrion(const aiQuaternion& q);
+Vector3 aiVector3ToVector3(const aiVector3D& v);
 
 typedef unsigned uint;    
 class Mesh;
 class ImporterSceneNode;
+
+struct ImporterSceneNode {
+	std::string Name;
+	Transform NodeTransform;
+	ImporterSceneNode* Parent;
+	std::vector<ImporterSceneNode> Children;
+	bool isUsedBone = false;
+	Transform ConcatParentTransforms();
+	ImporterSceneNode(aiNode* ainode);
+	ImporterSceneNode() {}
+};
 
 struct VertexBoneWeight {
     uint Index;
@@ -41,44 +58,131 @@ struct BoneData {
 	std::vector<int> Children;
 	Mesh* mesh;
 	Skeleton* skeleton;
+	ImporterSceneNode* INode;
 	std::string Name;
 	std::string ParentName;
 	std::vector<VertexBoneWeight> Weights;
-	Transform ParentTransform; // concatenation of all parent transforms up until this bone
+
+	Transform NodeTransform;
 	Transform BoneTransform;
+	Transform ParentTransform;
 	Transform BoneOffsetTransform;
 	Transform InverseBindTransform;
+	Transform SkinningTransform;
+	
+	Transform BuildParentTransform();
 
-	Transform BuildParentTransforms();
+	void EvaluateSubtree();
+	
 
 };
 
 class Skeleton
 {
 public:
+
+
 	std::string RootBoneName;
 	Transform GlobalInverseTransform;
-	std::vector<BoneData> Bones;
+	std::vector<std::unique_ptr<BoneData>> Bones;
 	std::unordered_map<std::string, int> m_boneMap;
 
 
 	void EvaluateBoneSubtree(const BoneData& parent);
 	void TraverseSkeleton(const ImporterSceneNode* node);
-	void TransformBone(BoneData& bone);
+	void TransformBone(BoneData* bone);
+};
+
+struct RotationKeyframe {
+	float Time;
+	Quaternion Value;
+};
+
+struct PositionKeyframe {
+	float Time;
+	Vector3 Value;
+};
+
+struct ScaleKeyframe {
+	float Time;
+	Vector3 Value;
+};
+
+struct BoneAnimation {
+
+	std::string Name;
+	
+	int BoneIndex;
+	std::vector<RotationKeyframe> RotationKeyframes;
+	std::vector<PositionKeyframe> PositionKeyframes;
+	std::vector<ScaleKeyframe>    ScaleKeyframes;
+
+	int FindRotationKeyframe(float time, int startIndex);
+	int FindPositionKeyframe(float time, int startIndex);
+	int FindScaleKeyframe(float time, int startIndex);
+
+
+};
+
+class Animation {
+
+public:
+
+	std::string Name;
+	float Ticks;
+	float TicksPerSecond;
+	float Duration;
+	int Index;
+	std::vector<BoneAnimation> BoneAnimations;
+
+
+
 };
 
 
-
-
-
-
-
-class AnimationSystem
+class AnimationComponent : public Component
 {
 public:
-    AnimationSystem();
-    ~AnimationSystem();
+
+	AnimationComponent(const std::string& name);
+	AnimationComponent(const std::string& name, Skeleton* sk);
+	~AnimationComponent();
+
+	std::vector<Animation>& GetAnimations();
+	void AddAnimation(const Animation&& anim);
+
+	void Update(float dt) override;
+	void Awake() override;
+	void UpdateSkeleton(BoneData* rootBone, float animTime, const Transform& parentTransform);
+
+	void SetSkeleton(Skeleton* s) {
+		m_skeleton = s;
+	}
+
+	Skeleton* GetSkeleton() {
+		return m_skeleton;
+	}
+
+	std::chrono::high_resolution_clock::time_point PlaybackStartTime;
+
+	void PlayAnimation(int index);
+
+private:
+
+	int m_currentAnimationIndex = -1;
+	std::vector<Animation> m_animations;
+	Skeleton* m_skeleton;
+	bool m_loop = true;
+	bool m_isPlaying = false;
+	int m_lastPlayedRotation;
+	int m_lastPlayedPosition;
+	int m_lastPlayedScale;
+
+
+    
 
 };
+
+
 
 }

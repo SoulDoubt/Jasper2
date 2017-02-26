@@ -242,11 +242,13 @@ void Renderer::RenderScene()
         }
         
         if (shader == m_animatedShader){
-            const auto & bones = mesh->GetSkeleton()->Bones;
+			const auto skeleton = mesh->GetSkeleton();
+            const auto& bones = skeleton->Bones;
+			const auto& globalInverse = skeleton->GlobalInverseTransform;
             
             for (size_t i = 0; i < bones.size(); ++i){
-                const auto& b = bones[i];
-                Transform bt =  b.BoneTransform * b.BoneOffsetTransform;
+                const auto b = bones[i].get();
+				Transform bt = b->SkinningTransform;//globalInverse * b->BoneTransform * b->BoneOffsetTransform;
                 shader->SetBoneTransform(i, bt.TransformMatrix());                
             }
         }

@@ -109,6 +109,10 @@ void Mesh::InitializeForRendering(Shader* shader)
                 SetVertexFormat(VERTEX_FORMAT::Vertex_PCN);
             }
         }
+
+		if (!(m_material->Flags & Material::MATERIAL_FLAGS::HAS_COLOR_MAP)) {
+			SetVertexFormat(VERTEX_FORMAT::Vertex_PN);
+		}
     }
 
     m_vertexBuffer.Create();
@@ -179,13 +183,13 @@ void Mesh::InitializeForRendering(Shader* shader)
             verts[i] = v;
         }
         for (int bIndex : this->Bones) {
-			const auto b = this->GetSkeleton()->Bones[bIndex];
-            for (const VertexBoneWeight& w : b.Weights) {
+			const auto b = this->GetSkeleton()->Bones[bIndex].get();
+            for (const VertexBoneWeight& w : b->Weights) {
 				if (w.Index < Positions.size()) {
 					Vertex_PNU_ANIM& v = verts[w.Index];
 					int idx = v.GetNextAvailableBoneIndex();
 					if (idx < 4) {
-						v.Bones[idx] = b.Id;
+						v.Bones[idx] = b->Id;
 						v.Weights[idx] = w.Weight;
 					}
 				}
@@ -269,12 +273,12 @@ void Mesh::InitializeForRendering(Shader* shader)
             verts[i] = v;
         }
 
-        for (const BoneData& b : m_skeleton->Bones) {
-            for (const VertexBoneWeight& w : b.Weights) {
+        for (const auto& b : m_skeleton->Bones) {
+            for (const VertexBoneWeight& w : b->Weights) {
                 Vertex_PNUTB_ANIM& v = verts[w.Index];
                 int idx = v.GetNextAvailableBoneIndex();
                 if (idx < 4) {
-                    v.Bones[idx] = b.Id;
+                    v.Bones[idx] = b->Id;
                     v.Weights[idx] = w.Weight;
                 }
                 //int x = 0;

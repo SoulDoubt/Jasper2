@@ -77,12 +77,12 @@ public:
 
     Transform& PositionLerp(const Vector3& start, const Vector3& end, float pct);
     
-    Transform Inverted();
+    Transform Inverted() const;
 
     void SetIdentity();
 };
 
-inline Transform Transform::Inverted(){
+inline Transform Transform::Inverted() const{
     const Quaternion invOrientation = Inverse(this->Orientation);
 
 	Transform invTransform;

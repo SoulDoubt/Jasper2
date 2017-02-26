@@ -232,42 +232,24 @@ void Camera::Rotate(float pitch, float roll, float yaw)
         m_accumPitch = -90.f;
     }
 
-    //btQuaternion xrot, yrot;
-    //Quaternion xr, yr;
+  
     Quaternion xrot, yrot;
-    if (pitch != 0.f) {
-        //xrot = btQuaternion(WORLD_X_AXIS.AsBtVector3(), DEG_TO_RAD(pitch));
+    if (pitch != 0.f) {        
         xrot = Quaternion::FromAxisAndAngle(WORLD_X_AXIS, DEG_TO_RAD(pitch));
-        orientation = orientation * xrot;
-        //qo = qo * xr;
+        orientation = orientation * xrot;        
     }
 
-    if (yaw != 0.f) {
-        //yrot = btQuaternion(WORLD_Y_AXIS.AsBtVector3(), DEG_TO_RAD(yaw));
+    if (yaw != 0.f) {        
         yrot = Quaternion::FromAxisAndAngle(WORLD_Y_AXIS, DEG_TO_RAD(yaw));
-        orientation = yrot * orientation;
-        //qo = yr * qo;
-    }
-    //btt.setRotation(orientation);
+        orientation = yrot * orientation;        
+    }    
     m_transform.Orientation = orientation;
-    if (m_collider) {
-        btTransform btt;
-        btt.setRotation(m_transform.Orientation.AsBtQuaternion());
-        btt.setOrigin(m_transform.Position.AsBtVector3());
-        m_collider->SetWorldTransform(btt);
-    }
-
-    /* TEST */
-    /*Transform tr;
-    btVector3 abpos = btt.getOrigin();
-    btQuaternion abq = btt.getRotation();
-    tr.Position = Vector3(btt.getOrigin().x(), btt.getOrigin().y(), btt.getOrigin().z());
-    tr.Orientation = qo;
-
-    Matrix4 myMatrix = Matrix4::FromTransform(tr);
-    Matrix4 btMatrix = FromBtTransform(btt);
-    printf("ff");*/
-
+	if (m_collider) {
+		btTransform btt;
+		btt.setRotation(m_transform.Orientation.AsBtQuaternion());
+		btt.setOrigin(m_transform.Position.AsBtVector3());
+		m_collider->SetWorldTransform(btt);
+	}
 }
 
 void Camera::Translate(float x, float y, float z)
@@ -286,11 +268,9 @@ void Camera::Translate(const Vector3& vec)
     } else {
         forwards = m_viewVector;
     }
-    auto& current = m_transform.Position;
-    //auto& current = btt.getOrigin();
+    auto& current = m_transform.Position;    
 
-    if (m_collider) {
-        //btVector3 after = current;
+    if (m_collider) {        
         Vector3 after = current;
         after += m_localXAxis.AsBtVector3() * vec.x;
         after += WORLD_Y_AXIS.AsBtVector3() * vec.y;
