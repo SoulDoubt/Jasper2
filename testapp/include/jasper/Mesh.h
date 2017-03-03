@@ -471,15 +471,15 @@ public:
     void AddVertex_PNU(const Vertex_PNU& vertex);
     void AddVertex_PCN(const Vertex_PCN& vertex);
 
-    Vector3 GetHalfExtents() const {
+    Vector3 HalfExtents() const {
         return m_Extents;
     }
 
-    Vector3 GetMaxExtents() const {
+    Vector3 MaxExtents() const {
         return m_maxExtents;
     }
 
-    Vector3 GetMinExtents() const {
+    Vector3 MinExtents() const {
         return m_minExtents;
     }
 

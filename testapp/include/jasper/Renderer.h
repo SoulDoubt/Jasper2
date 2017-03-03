@@ -37,6 +37,7 @@ public:
     void RenderFinalPass();
     void RenderSkybox();
     void BlitDepthBufferToScreen();
+	void RenderSkeleton(Skeleton* skel);
 
     void RegisterGameObject(GameObject* obj);
     void UnregisterGameObject(GameObject* obj);

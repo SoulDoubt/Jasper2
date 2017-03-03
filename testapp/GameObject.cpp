@@ -138,7 +138,6 @@ unique_ptr<GameObject> GameObject::DetachChild(const GameObject* child)
     [&child](const unique_ptr<GameObject>& ch) {
         return ch.get() == child;
     });
-
     if (found != end(m_children)) {
         auto result = move(*found);
         result->SetParent(nullptr);
@@ -169,7 +168,6 @@ Transform GameObject::GetWorldTransform() const
         result = p->m_transform * result;
         p = p->m_parent;
     }
-    //result.SetScale(m_transform.Scale());
     return result;
 }
 

@@ -28,6 +28,7 @@ public:
 	Quaternion(const btQuaternion& q) : x(q.x()), y(q.y()), z(q.z()), w(q.w()) {}
 	Quaternion(const Quaternion& o) = default;
 	Quaternion(float pitch, float roll, float yaw);
+	Quaternion(const Matrix3& m);
 	btQuaternion AsBtQuaternion() {
 		return btQuaternion(x, y, z, w);
 	}
@@ -53,12 +54,6 @@ public:
 	float Scalar()const {
 		return w;
 	}
-	//    Vector3 xyz() const {
-	//        return Vector3(x, y, z);
-	//    }
-	//    void Setxyz(const Vector3& v) {
-	//        x = v.x, y = v.y, z = v.z;
-	//    }
 	float Pitch() const;
 	float Roll() const;
 	float Yaw() const;
@@ -105,6 +100,7 @@ inline Quaternion::Quaternion(float pitch, float roll, float yaw)
 	y = s1*c2*c3 + c1*s2*s3;
 	z = c1*s2*c3 - s1*c2*s3;
 }
+
 
 inline float Quaternion::operator[](int index) const
 {

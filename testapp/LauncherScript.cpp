@@ -105,7 +105,7 @@ void LauncherScript::LaunchSphere()
     sphere->AttachNewComponent<MeshRenderer>("launched_sphere_renderer", mesh, mat);
     sphere->SetLocalTransform(transform);
 
-    auto collider = sphere->AttachNewComponent<SphereCollider>("Sphere_collider", mesh->GetHalfExtents(), pw);
+    auto collider = sphere->AttachNewComponent<SphereCollider>("Sphere_collider", mesh->HalfExtents(), pw);
     collider->Mass = 1.0f;
     collider->Restitution = 0.56f;
     sphere->AttachNewComponent<DestroyScript>("Destroy_Script");
@@ -143,7 +143,7 @@ void LauncherScript::LaunchCube()
     sphere->AttachNewComponent<MeshRenderer>("launched_cube_renderer", mesh, mat);
     sphere->SetLocalTransform(transform);
 
-    auto collider = sphere->AttachNewComponent<BoxCollider>("cube_collider", mesh->GetHalfExtents(), pw);
+    auto collider = sphere->AttachNewComponent<BoxCollider>("cube_collider", mesh->HalfExtents(), pw);
     collider->Mass = 10.0f;
     collider->Restitution = 0.96f;
     sphere->AttachNewComponent<DestroyScript>("Destroy_Script");

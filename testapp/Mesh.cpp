@@ -139,7 +139,7 @@ void Mesh::InitializeForRendering(Shader* shader)
     break;
 
     case VERTEX_FORMAT::Vertex_PN: {
-        assert(Positions.size() == Normals.size());
+        //assert(Positions.size() == Normals.size());
         Vertex_PN* verts = new Vertex_PN[Positions.size()];
         for (uint i = 0; i < Positions.size(); ++i) {
             Vertex_PN v;

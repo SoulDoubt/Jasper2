@@ -229,7 +229,7 @@ void BoxCollider::Awake()
 
     float halfX, halfY, halfZ;
     if (m_mesh) {
-        Vector3 halfExtents = m_mesh->GetHalfExtents();
+        Vector3 halfExtents = m_mesh->HalfExtents();
         halfX = halfExtents.x;
         halfY = halfExtents.y;
         halfZ = halfExtents.z;
@@ -281,8 +281,8 @@ void CapsuleCollider::Awake()
     float halfX, halfY, halfZ;
     if (m_mesh != nullptr) {
         //Vector3 halfExtents = m_mesh->GetHalfExtents();
-        Vector3 minExtents = m_mesh->GetMinExtents();
-        Vector3 maxExtents = m_mesh->GetMaxExtents();
+        Vector3 minExtents = m_mesh->MinExtents();
+        Vector3 maxExtents = m_mesh->MaxExtents();
         halfX = (maxExtents.x - minExtents.x) / 2.0f;
         halfY = (maxExtents.y - minExtents.y) / 2.0f;
         halfZ = (maxExtents.z - minExtents.z) / 2.0f;
@@ -338,8 +338,8 @@ void CylinderCollider::Awake()
 
     if (m_mesh != nullptr) {
         //Vector3 halfExtents = m_mesh->GetHalfExtents();
-        Vector3 minExtents = m_mesh->GetMinExtents();
-        Vector3 maxExtents = m_mesh->GetMaxExtents();
+        Vector3 minExtents = m_mesh->MinExtents();
+        Vector3 maxExtents = m_mesh->MaxExtents();
         halfX = (maxExtents.x - minExtents.x) / 2.0f;
         halfY = (maxExtents.y - minExtents.y) / 2.0f;
         halfZ = (maxExtents.z - minExtents.z) / 2.0f;
@@ -496,7 +496,7 @@ void SphereCollider::Awake()
     auto btTrans = trans.AsBtTransform();
     float radius = 0.f;
     if (m_mesh) {
-        m_halfExtents = m_mesh->GetHalfExtents();
+        m_halfExtents = m_mesh->HalfExtents();
     }
 
     m_halfExtents.x = m_halfExtents.x * trans.Scale.x;

@@ -4,6 +4,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <iterator>
+#include <sstream>
 
 #include "Common.h"
 #include "Mesh.h"
@@ -16,6 +17,8 @@
 #include <fstream>
 #include "AssetSerializer.h"
 #include "AnimationSystem.h"
+
+
 //#include "VHACD.h"
 
 namespace Jasper
@@ -101,13 +104,13 @@ std::unique_ptr<PhysicsCollider> GenerateSinglePhysicsCollider(ModelData* md, Sc
 	for (auto m : md->GetMeshes()) {
 		//int TriCount += m->Indices.size() / 3;
 		//this->VertCount += m->Positions.size();
-		if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
-		if (m->GetMaxExtents().y > MaxExtents.y) MaxExtents.y = m->GetMaxExtents().y;
-		if (m->GetMaxExtents().z > MaxExtents.z) MaxExtents.z = m->GetMaxExtents().z;
+		if (m->MaxExtents().x > MaxExtents.x) MaxExtents.x = m->MaxExtents().x;
+		if (m->MaxExtents().y > MaxExtents.y) MaxExtents.y = m->MaxExtents().y;
+		if (m->MaxExtents().z > MaxExtents.z) MaxExtents.z = m->MaxExtents().z;
 
-		if (m->GetMinExtents().x < MinExtents.x) MinExtents.x = m->GetMinExtents().x;
-		if (m->GetMinExtents().y < MinExtents.y) MinExtents.y = m->GetMinExtents().y;
-		if (m->GetMinExtents().z < MinExtents.z) MinExtents.z = m->GetMinExtents().z;
+		if (m->MinExtents().x < MinExtents.x) MinExtents.x = m->MinExtents().x;
+		if (m->MinExtents().y < MinExtents.y) MinExtents.y = m->MinExtents().y;
+		if (m->MinExtents().z < MinExtents.z) MinExtents.z = m->MinExtents().z;
 	}
 	Vector3 hes = { (MaxExtents.x - MinExtents.x) / 2, (MaxExtents.y - MinExtents.y) / 2, (MaxExtents.z - MinExtents.z) / 2 };
 	unique_ptr<PhysicsCollider> collider = nullptr;
@@ -238,17 +241,48 @@ bool FileExists(const std::string& name)
 	}
 }
 
+void BuildBoneTreeRecursive(BoneData* parent, Skeleton* skeleton) {
+	for (int i : parent->Children) {
+		BoneData* child = skeleton->Bones[i].get();
+		child->InverseBindTransform = parent->InverseBindTransform * child->NodeTransform;
+		BuildBoneTreeRecursive(child, skeleton);
+	}
+}
+
+void BuildBoneTree(ImporterSceneNode* rootBoneNode, Skeleton* skeleton) {
+	int boneIndex = skeleton->m_boneMap.at(rootBoneNode->Name);
+	auto& bone = skeleton->Bones[boneIndex];
+	if (bone->ParentID == -1) {
+		// is this is the root bone, we will need to concat any other parent transfoms here
+		auto parent = rootBoneNode->Parent;
+		while (parent != nullptr) {
+			bone->NodeTransform = parent->NodeTransform * bone->NodeTransform;
+			parent = parent->Parent;
+		}
+		bone->InverseBindTransform = bone->NodeTransform.Inverted();
+		for (int i = 0; i < bone->Children.size(); ++i) {
+			int childIndex = bone->Children.at(i);
+			BoneData* childBone = skeleton->Bones.at(childIndex).get();
+
+		}
+	}
+
+}
+
+
+
 void BuildBoneHierarchy(ImporterSceneNode* rootNode, Skeleton* skeleton) {
 
 	int boneIndex = skeleton->m_boneMap.at(rootNode->Name);
 	auto& bone = skeleton->Bones[boneIndex];
-	if (bone->ParentID == -1) {
-		auto parent = rootNode->Parent;
-		while (parent != nullptr) {
-			bone->BoneTransform = parent->NodeTransform * bone->BoneTransform;
-			parent = parent->Parent;
-		}
-	}
+	//if (bone->ParentID == -1) {
+	//	auto parent = rootNode->Parent;
+	//	while (parent != nullptr) {
+	//		bone->NodeTransform = parent->NodeTransform * bone->NodeTransform;
+	//		parent = parent->Parent;
+	//	}
+	//	//bone->InverseBindTransform = bone->BoneTransform.Inverted();
+	//}
 	for (auto& childNode : rootNode->Children) {
 		auto childBoneIter = skeleton->m_boneMap.find(childNode.Name);
 		if (childBoneIter == skeleton->m_boneMap.end()) {
@@ -268,13 +302,8 @@ void BuildBoneHierarchy(ImporterSceneNode* rootNode, Skeleton* skeleton) {
 			bone->Children.push_back(childId);
 			auto& childBone = skeleton->Bones.at(childId);
 			childBone->ParentID = bone->Id;
-			auto parent = childNode.Parent;
-			while (parent != nullptr) {
-				childBone->BoneTransform = parent->NodeTransform * childBone->BoneTransform;
-				parent = parent->Parent;
-			}
-			childBone->SkinningTransform = childBone->BoneTransform * childBone->BoneOffsetTransform;
-			BuildBoneHierarchy(&childNode, skeleton);
+			childBone->InverseBindTransform = bone->InverseBindTransform * childBone->NodeTransform;
+			BuildBoneHierarchy(childBone->INode, skeleton);
 		}
 	}
 }
@@ -284,27 +313,6 @@ void ModelData::CreateImporterSceneGraph(aiNode* rootNode) {
 	BuildSceneRecursive(m_importerSceneRoot.get(), nullptr);
 }
 
-ImporterSceneNode* ModelData::GetRootBoneNode(Skeleton* skeleton) {
-	const auto bd = skeleton->Bones[0].get();
-	auto boneNode = FindImporterSceneNode(bd->Name);
-	assert(boneNode != nullptr);
-	ImporterSceneNode* rootBoneNode = nullptr;
-	while (boneNode->Parent != nullptr) {
-		auto parentNode = boneNode->Parent;
-
-		auto parentBoneIterator = skeleton->m_boneMap.find(parentNode->Name);
-		if (parentBoneIterator != skeleton->m_boneMap.end()) {
-			// this is not the root bone								
-			boneNode = boneNode->Parent;
-		}
-		else {
-			// boneNode is the root bone				
-			rootBoneNode = boneNode;
-			return rootBoneNode;
-		}
-	}
-	return nullptr;
-}
 
 void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes)
 {
@@ -315,13 +323,13 @@ void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes)
 
 		this->TriCount += m->Indices.size() / 3;
 		this->VertCount += m->Positions.size();
-		if (m->GetMaxExtents().x > MaxExtents.x) MaxExtents.x = m->GetMaxExtents().x;
-		if (m->GetMaxExtents().y > MaxExtents.y) MaxExtents.y = m->GetMaxExtents().y;
-		if (m->GetMaxExtents().z > MaxExtents.z) MaxExtents.z = m->GetMaxExtents().z;
+		if (m->MaxExtents().x > MaxExtents.x) MaxExtents.x = m->MaxExtents().x;
+		if (m->MaxExtents().y > MaxExtents.y) MaxExtents.y = m->MaxExtents().y;
+		if (m->MaxExtents().z > MaxExtents.z) MaxExtents.z = m->MaxExtents().z;
 
-		if (m->GetMinExtents().x < MinExtents.x) MinExtents.x = m->GetMinExtents().x;
-		if (m->GetMinExtents().y < MinExtents.y) MinExtents.y = m->GetMinExtents().y;
-		if (m->GetMinExtents().z < MinExtents.z) MinExtents.z = m->GetMinExtents().z;
+		if (m->MinExtents().x < MinExtents.x) MinExtents.x = m->MinExtents().x;
+		if (m->MinExtents().y < MinExtents.y) MinExtents.y = m->MinExtents().y;
+		if (m->MinExtents().z < MinExtents.z) MinExtents.z = m->MinExtents().z;
 	}
 
 	Vector3 localOrigin = { (MinExtents.x + MaxExtents.x) / 2.f, (MinExtents.y + MaxExtents.y) / 2.f , (MinExtents.z + MaxExtents.z) / 2.f };
@@ -380,18 +388,21 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 
 		skeleton->GlobalInverseTransform = model_data->ImporterSceneRoot()->NodeTransform.Inverted();
 
-		auto rootBoneNode = model_data->GetRootBoneNode(skeleton);
+		auto rootBoneNode = skeleton->GetRootBoneNode();
 		assert(rootBoneNode != nullptr);
 		skeleton->RootBoneName = rootBoneNode->Name;
 		skeleton->Bones[skeleton->m_boneMap[skeleton->RootBoneName]]->ParentID = -1;
-		BuildBoneHierarchy(rootBoneNode, skeleton);
+		//BuildBoneHierarchy(rootBoneNode, skeleton);*/
+		skeleton->BuildIntoHierarchy();
+		auto rootBone = skeleton->GetBone(skeleton->RootBoneName);
+		rootBone->CalculateInverseBindTransform(Transform());
 
 		printf("There are %d Bones in the skeleton:\n", skeleton->Bones.size());
 
 
 		for (size_t i = 0; i < skeleton->Bones.size(); ++i) {
 			BoneData* bd = skeleton->Bones[i].get();
-			printf("Bone ID: %d, Name: %s Has: %d children.\n", bd->Id, bd->Name.data(), bd->Children.size());
+			printf("Bone ID: %d, Name: %s Has: %d children. Position: %s\n", bd->Id, bd->Name.data(), bd->Children.size(), bd->InverseBindTransform.Position.ToString().data());
 		}
 
 		if (scene->HasAnimations()) {
@@ -450,14 +461,14 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 		}
 
 		if (0) {
-			int boneIdToMove = skeleton->m_boneMap["Bip01_L_Thigh"];
-			BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
-			//boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
-			Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(25));
-			Transform t = boneToMove->BoneTransform;
-			t.Orientation *= q;// *t.Orientation;
-			boneToMove->BoneTransform = t;
-			boneToMove->EvaluateSubtree();
+			//int boneIdToMove = skeleton->m_boneMap["Bip01_L_Thigh"];
+			//BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
+			////boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
+			//Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(25));
+			//Transform t = boneToMove->BoneTransform;
+			//t.Orientation *= q;// *t.Orientation;
+			//boneToMove->BoneTransform = t;
+			//boneToMove->EvaluateSubtree();
 		}
 
 
@@ -469,6 +480,478 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 	}
 
 
+}
+
+vector<tinyxml2::XMLNode*> GetChildren(tinyxml2::XMLNode* parent) {
+	using namespace tinyxml2;
+	vector<XMLNode*> result;
+	if (parent->NoChildren()) {
+		return result;
+	}
+	auto ch = parent->FirstChild();
+	result.push_back(ch);
+	auto sib = ch->NextSibling();
+	while (sib) {
+		result.push_back(sib);
+		sib = sib->NextSibling();
+	}
+	return result;
+}
+
+tinyxml2::XMLNode* GetNodeByID(tinyxml2::XMLNode* rootNode, const std::string& id) {
+	auto elem = rootNode->ToElement();
+	if (!elem)return nullptr;
+	auto nid = elem->Attribute("id");
+	if (nid) {
+		string nodeid = nid;
+		if (nodeid == id || "#" + nodeid == id) {
+			return rootNode;
+		}
+	}
+	auto children = GetChildren(rootNode);
+	for (auto child : children) {
+		auto s = GetNodeByID(child, id);
+		if (s) return s;
+	}
+	return nullptr;
+}
+
+vector<tinyxml2::XMLNode*> FindChildNodes(tinyxml2::XMLNode* parent, const string& name) {
+	vector<tinyxml2::XMLNode*> result;
+	/*if (string(parent->Value()) == name) {
+
+	}
+	auto children = GetChildren(parent);
+	for (auto c : children) {
+		)
+	}*/
+	return result;
+}
+
+vector<tinyxml2::XMLNode*> GetChildNodesByName(tinyxml2::XMLNode* parent, const string& name) {
+	using namespace tinyxml2;
+	vector<XMLNode*> matches;
+	auto ch = parent->FirstChild();
+	if (string(ch->Value()) == name) {
+		matches.push_back(ch);
+		auto sib = ch->NextSibling();
+		while (sib) {
+			if (string(sib->Value()) == name) {
+				matches.push_back(sib);
+			}
+			sib = sib->NextSibling();
+		}
+	}
+	else {
+		auto sib = ch->NextSibling();
+		while (sib) {
+			if (string(sib->Value()) == name) {
+				matches.push_back(sib);
+			}
+			sib = sib->NextSibling();
+		}
+	}
+	return matches;
+}
+
+tinyxml2::XMLNode* GetChildNode(tinyxml2::XMLNode* parent, const string& name) {
+	using namespace tinyxml2;
+
+	vector<XMLNode*> children;
+	if (!parent->NoChildren()) {
+		auto child = parent->FirstChild();
+		if (string(child->Value()) == name) {
+			return child;
+		}
+		children.push_back(child);
+		auto sib = child->NextSibling();
+		while (sib) {
+			if (string(sib->Value()) == name) {
+				return sib;
+			}
+			children.push_back(sib);
+			sib = sib->NextSibling();
+		}
+	}
+	for (auto ch : children) {
+		auto x = GetChildNode(ch, name);
+		if (x) return x;
+	}
+	return nullptr;
+}
+
+tinyxml2::XMLNode* GetChildNodeByNameAndAttribute(tinyxml2::XMLNode* parent, const string& nodeName, const string& attrName, const string& attrValue) {
+	auto nodes = GetChildNodesByName(parent, nodeName);
+	for (auto node : nodes) {
+		string attrval = node->ToElement()->Attribute(attrName.c_str());
+		if (attrval == attrValue || "#" + attrval == attrValue) {
+			return node;
+		}
+	}
+}
+
+
+
+Mesh* ModelLoader::BuildXmlMesh(tinyxml2::XMLNode* meshNode) {
+
+	auto vertsNode = GetChildNode(meshNode, "vertices"s);
+	auto polylistNode = GetChildNode(meshNode, "polylist"s);
+	auto trianglesNode = GetChildNode(meshNode, "triangles"s);
+
+	if (!polylistNode && trianglesNode) {
+		return BuildTriangleListMesh(meshNode);
+	}
+	else if (polylistNode && !trianglesNode) {
+		return BuildPolylistMesh(meshNode);
+	}
+	return nullptr;
+}
+
+Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
+{
+	auto polylistNode = GetChildNode(meshNode, "polylist"s);
+	auto inputs = GetChildNodesByName(polylistNode, "input"s);
+
+	string vertexSourceID;
+	string normalSourceID;
+	string texcoordSourceID;
+	string positionSourceID;
+	for (auto input : inputs) {
+		string semantic = input->ToElement()->Attribute("semantic");
+		if (semantic == "VERTEX") {
+			vertexSourceID = input->ToElement()->Attribute("source");
+		}
+		if (semantic == "NORMAL") {
+			normalSourceID = input->ToElement()->Attribute("source");
+		}
+		if (semantic == "TEXCOORD") {
+			texcoordSourceID = input->ToElement()->Attribute("source");
+		}
+	}
+	auto vertexSource = GetChildNodeByNameAndAttribute(meshNode, "vertices"s, "id"s, vertexSourceID);
+	auto positionSourceInputs = GetChildNodesByName(vertexSource, "input"s);
+	for (auto input : positionSourceInputs) {
+		string semantic = input->ToElement()->Attribute("semantic");
+		if (semantic == "POSITION"s) {
+			positionSourceID = input->ToElement()->Attribute("source");
+		}
+	}
+	auto positionSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, positionSourceID);
+	string meshName = "collada_loader_mesh"s;
+	auto mesh = m_scene->GetMeshCache().CreateInstance<Mesh>(meshName);
+	// at the position node the position data will be...
+	auto floatNode = GetChildNode(positionSource, "float_array");
+	auto posElem = floatNode->ToElement();
+	int posCount = posElem->IntAttribute("count");
+	istringstream floatstr(posElem->GetText());
+	vector<float> floats;
+	floats.reserve(posCount);
+	string fs;
+	while (getline(floatstr, fs, ' ')) {
+		float pf = stof(fs);
+		floats.push_back(pf);
+	}
+	vector<Vector3> positions;
+	for (int i = 0; i < posCount / 3; ++i) {
+		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
+		positions.push_back(p);
+	}
+	floats.clear();
+	// normals
+	auto normalSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, normalSourceID);
+	floatNode = GetChildNode(normalSource, "float_array"s);
+	auto normalElem = floatNode->ToElement();
+	int normalCount = normalElem->IntAttribute("count");
+	floats.reserve(normalCount);
+	floatstr = istringstream(normalElem->GetText());
+	while (getline(floatstr, fs, ' ')) {
+		float nf = stof(fs);
+		floats.push_back(nf);
+	}
+	vector<Vector3> normals;
+	normals.reserve(normalCount / 3);
+	for (int i = 0; i < normalCount / 3; ++i) {
+		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
+		normals.push_back(p);
+	}
+	floats.clear();
+
+	auto texcoordSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, texcoordSourceID);
+	floatNode = GetChildNode(texcoordSource, "float_array"s);
+	auto texcoordElem = floatNode->ToElement();
+	int texcoordCount = texcoordElem->IntAttribute("count");
+	floats.reserve(texcoordCount);
+	floatstr = istringstream(texcoordElem->GetText());
+
+	while (getline(floatstr, fs, ' ')) {
+		float tcf = stof(fs);
+		floats.push_back(tcf);
+	}
+	vector<Vector2> texCoords;
+	for (int i = 0; i < texcoordCount / 2; ++i) {
+		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };
+		texCoords.push_back(p);
+	};
+
+	// now for the indices...
+	int inputCount = inputs.size();
+	auto indexNode = GetChildNode(polylistNode, "p"s);
+	istringstream intstr(indexNode->ToElement()->GetText());
+	vector<int> ints;
+	while (getline(intstr, fs, ' ')) {
+		ints.push_back(atoi(fs.data()));
+	}
+	//mesh->Positions.resize(positions.size());
+	//mesh->Normals.resize(normals.size());
+	//mesh->TexCoords.resize(texCoords.size());
+	//vector<int> positionsVisited;
+	int dupCount = 0;
+	for (int i = 0; i < ints.size() / inputCount; ++i) {
+
+		int pi = ints[i * inputCount];
+		int ni = ints[i * inputCount + 1];
+		int ti = ints[i * inputCount + 2];
+
+		/*if (std::find(positionsVisited.begin(), positionsVisited.end(), pi) != positionsVisited.end()) {
+			dupCount++;
+			printf("Position Duplicate at index: %d\n", pi);
+		}
+		positionsVisited.push_back(pi);*/
+
+		Vector3 p = positions[pi];
+		Vector3 n = normals[ni];
+		Vector2 t = texCoords[ti];
+
+		mesh->Positions.push_back(p);
+		mesh->Normals.push_back(n);
+		mesh->TexCoords.push_back(t);
+
+		mesh->Indices.push_back(i);
+		dupCount++;
+	}
+
+	printf("%d Dups found\n", dupCount);
+	auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
+	mat->Diffuse = { 1.f, 0.f, 1.f };
+	mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
+	mesh->SetMaterial(mat);
+	mesh->CalculateTangentSpace();
+	mesh->CalculateExtents();
+	return mesh;
+	//return nullptr;
+}
+
+Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
+{
+	auto vertsNode = GetChildNode(meshNode, "vertices"s);
+	auto inputs = GetChildNodesByName(vertsNode, "input"s);
+
+	string positionSourceID;
+	string normalSourceID;
+	string texcoordSourceID;
+	for (auto input : inputs) {
+		string semantic = input->ToElement()->Attribute("semantic");
+		if (semantic == "POSITION") {
+			positionSourceID = input->ToElement()->Attribute("source");
+		}
+		if (semantic == "NORMAL") {
+			normalSourceID = input->ToElement()->Attribute("source");
+		}
+		if (semantic == "TEXCOORD") {
+			texcoordSourceID = input->ToElement()->Attribute("source");
+		}
+	}
+
+	// positions
+	auto positionSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, positionSourceID);
+	string meshName = positionSource->ToElement()->Attribute("name");
+	auto mesh = m_scene->GetMeshCache().CreateInstance<Mesh>(meshName);
+	// at the position node the position data will be...
+	auto floatNode = GetChildNode(positionSource, "float_array");
+	auto posElem = floatNode->ToElement();
+	int posCount = posElem->IntAttribute("count");
+	istringstream floatstr(posElem->GetText());
+	vector<float> floats;
+	floats.reserve(posCount);
+	string fs;
+	while (getline(floatstr, fs, ' ')) {
+		float pf = stof(fs);
+		floats.push_back(pf);
+	}
+	vector<Vector3> positions;
+	for (int i = 0; i < posCount / 3; ++i) {
+		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
+		positions.push_back(p);
+	}
+	floats.clear();
+	// normals
+	auto normalSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, normalSourceID);
+	floatNode = GetChildNode(normalSource, "float_array"s);
+	auto normalElem = floatNode->ToElement();
+	int normalCount = normalElem->IntAttribute("count");
+	floats.reserve(normalCount);
+	floatstr = istringstream(normalElem->GetText());
+	while (getline(floatstr, fs, ' ')) {
+		float nf = stof(fs);
+		floats.push_back(nf);
+	}
+	vector<Vector3> normals;
+	normals.reserve(normalCount / 3);
+	for (int i = 0; i < normalCount / 3; ++i) {
+		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
+		normals.push_back(p);
+	}
+	floats.clear();
+
+	auto texcoordSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, texcoordSourceID);
+	floatNode = GetChildNode(texcoordSource, "float_array"s);
+	auto texcoordElem = floatNode->ToElement();
+	int texcoordCount = texcoordElem->IntAttribute("count");
+	floats.reserve(texcoordCount);
+	floatstr = istringstream(texcoordElem->GetText());
+
+	while (getline(floatstr, fs, ' ')) {
+		float tcf = stof(fs);
+		floats.push_back(tcf);
+	}
+	vector<Vector2> texCoords;
+	for (int i = 0; i < texcoordCount / 2; ++i) {
+		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };
+		texCoords.push_back(p);
+	};
+
+	// now for the indices...	
+	auto indexNode = GetChildNode(meshNode, "triangles"s);
+	auto indexInputs = GetChildNodesByName(indexNode, "input");
+	int inputCount = indexInputs.size();
+	for (auto inp : indexInputs) {
+		auto listNode = GetChildNode(indexNode, "p"s);
+		istringstream intstr(listNode->ToElement()->GetText());
+		vector<int> ints;
+		while (getline(intstr, fs, ' ')) {
+			ints.push_back(atoi(fs.data()));
+		}	
+		int dupCount = 0;
+
+		for (int i = 0; i < ints.size() / inputCount; ++i) {
+
+			int pi = ints[i * inputCount];			
+
+			Vector3 p = positions[pi];
+			Vector3 n = normals[pi];
+			Vector2 t = texCoords[pi];
+
+			mesh->Positions.push_back(p);
+			mesh->Normals.push_back(n);
+			mesh->TexCoords.push_back(t);
+
+			mesh->Indices.push_back(i);
+			dupCount++;
+		}
+	}	
+	auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
+	mat->Diffuse = { 1.f, 0.f, 0.2f };
+	mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
+	mesh->SetMaterial(mat);
+	mesh->CalculateTangentSpace();
+	mesh->CalculateExtents();
+	return mesh;
+}
+
+Material* ModelLoader::BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode) {
+	using namespace tinyxml2;
+	
+	string materialID;
+	string materialName;
+	string effectID;
+
+	materialID = materialNode->ToElement()->Attribute("id");
+	materialName = materialNode->ToElement()->Attribute("name");
+
+	auto instanceEffectNode = GetChildNode(materialNode, "instance_effect");
+	effectID = instanceEffectNode->ToElement()->Attribute("url");
+
+	auto effectNode = GetNodeByID(effectsLibNode, effectID);
+	
+	int i = 0;
+	
+	return nullptr;
+
+
+
+}
+
+Matrix4 ReadColladaMatrix(tinyxml2::XMLNode* matNode) {
+	istringstream ss(matNode->ToElement()->GetText());
+	string fs;
+	float matFloats[16];
+	int i = 0;
+	while (getline(ss, fs, ' ')) {
+		float mf = stof(fs);
+		matFloats[i] = mf;
+		i++;
+	}
+	Vector4 vecs[4];
+	for (int i = 0, j = 0; i < 16; i += 4, j++) {
+		Vector4 v = { matFloats[i], matFloats[i + 1], matFloats[i + 2], matFloats[i + 3] };
+		vecs[j] = v;
+	}
+	Matrix4 mat = Matrix4(vecs[0], vecs[1], vecs[2], vecs[3]);
+	return mat.Transposed();
+}
+
+std::unique_ptr<Skeleton> ModelLoader::BuildXmlSkeleton(tinyxml2::XMLNode * rootNode)
+{
+	vector<BoneData> boneStack;
+	auto skeleton = make_unique<Skeleton>();
+
+	auto nodelist = GetChildNodesByName(rootNode, "node");
+	
+	if (string(nodelist[0]->ToElement()->Attribute("type")) == "JOINT"s) {
+		auto nd = nodelist[0]->ToElement();
+		auto matNode = GetChildNode(nd, "matrix");
+		Matrix4 mat = ReadColladaMatrix(matNode);
+		Transform t = mat.Decompose();
+		auto bd = make_unique<BoneData>();
+		bd->Name = nodelist[0]->ToElement()->Attribute("name");
+		bd->NodeTransform = t;
+	}
+
+	return std::unique_ptr<Skeleton>();
+}
+
+void ModelLoader::LoadXmlModel(const std::string & filename, const std::string & name)
+{
+	using namespace tinyxml2;
+	auto modelData = m_scene->GetModelCache().CreateInstance<ModelData>(name);
+	XMLDocument doc;
+	doc.LoadFile(filename.c_str());
+	auto docRoot = doc.RootElement();
+	auto geomLib = GetChildNode(docRoot, "library_geometries"s);
+	auto geomNodes = GetChildNodesByName(geomLib, "geometry"s);
+
+	auto materialsLib = GetChildNode(docRoot, "library_materials"s);
+	auto effectsLib = GetChildNode(docRoot, "library_effects"s);
+	auto imagesLib = GetChildNode(docRoot, "library_images"s);
+	auto materials = GetChildNodesByName(materialsLib, "material");
+	for (auto mat : materials) {
+		auto mater = BuildXmlMaterial(mat, effectsLib, imagesLib);
+	}
+
+	int geomCount = 0;
+	for (auto geomNode : geomNodes) {
+		auto meshNode = GetChildNode(geomNode, "mesh"s);
+		auto mesh = BuildXmlMesh(meshNode);
+		modelData->AddMesh(mesh);
+		modelData->AddMaterial(mesh->GetMaterial());
+	}
+	CenterOnOrigin(modelData->GetMeshes());
+	auto vsLib = GetChildNode(docRoot, "library_visual_scenes");
+	auto scenes = GetChildNodesByName(vsLib, "visual_scene");
+	for (auto scene : scenes) {
+		BuildXmlSkeleton(scene);
+	}
+	int x = 0;
 }
 
 void ModelLoader::ProcessAiSceneNode(const aiScene* scene, aiNode* node, const string& directory, ModelData* model_data)
@@ -570,8 +1053,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 				ImporterSceneNode* isn = model_data->FindImporterSceneNode(bname);
 				isn->isUsedBone = true;
 				bd->INode = isn;
-				//bd->NodeTransform = isn->NodeTransform;
-				bd->BoneTransform = isn->NodeTransform;
+				//bd->NodeTransform = isn->NodeTransform;				
 				//auto pnode = isn->Parent;
 				//while (pnode != nullptr) {
 				//	bd->NodeTransform = pnode->NodeTransform * bd->NodeTransform;	
@@ -587,7 +1069,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 					bd->Id = (int)skeleton->Bones.size();
 					skeleton->m_boneMap[bname] = bd->Id;
 					m->Bones.push_back(bd->Id);
-					skeleton->Bones.push_back(move(bd));					
+					skeleton->Bones.push_back(move(bd));
 				}
 				else {
 					int idx = skeleton->m_boneMap[bname];
@@ -783,7 +1265,7 @@ void ModelLoader::CalculateHalfExtents()
 	float maxx, maxy, maxz;
 	maxx = maxy = maxz = -100000.f;
 	for (auto& mesh : m_model_meshes) {
-		auto he = mesh->GetHalfExtents();
+		auto he = mesh->HalfExtents();
 		if (he.x > maxx) maxx = he.x;
 		if (he.y > maxy) maxy = he.y;
 		if (he.z > maxz) maxz = he.z;

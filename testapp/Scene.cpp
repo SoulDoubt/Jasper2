@@ -457,9 +457,9 @@ void Scene::InitializeManual()
         
     }
     
-     //ml.LoadModel("../models/testman/test_B3D.b3d"s, "lara");
-     ml.LoadModel("../models/testman/test_Milkshape.ms3d"s, "Threepio");
-     //ml.LoadModel("../models/testman/test_Collada_DAE.DAE"s, "lara");
+     ml.LoadXmlModel("../models/C3P0/C3P0.dae"s, "Threepio");
+     //ml.LoadXmlModel("../models/cowboy/model.dae"s, "Threepio");
+     //ml.LoadModel("../models/testman/test_Collada_DAE.DAE"s, "Threepio");
      auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio", "Threepio", true, false));
      lara.GetLocalTransform().Position = { 5.f, 1.2f, 4.f};
 	 lara.GetLocalTransform().UniformScale(0.25);

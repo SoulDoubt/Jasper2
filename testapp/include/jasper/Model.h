@@ -7,6 +7,7 @@
 #include "ResourceManager.h"
 #include "Mesh.h"
 #include "AnimationSystem.h"
+#include "tinyxml2.h"
 
 
 class aiScene;
@@ -134,9 +135,16 @@ public:
     void SaveToAssetFile(const std::string& filename);
 	void CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes);
 	void LoadModel(const std::string& filename, const std::string& name);
+	void LoadXmlModel(const std::string& filename, const std::string& name);
     void OutputMeshData(const std::string& filename);
 
     std::unique_ptr<GameObject> CreateModelInstance(const std::string& name, const std::string& modelName, bool generateCollider, bool splitColliders);
+
+	Mesh* BuildXmlMesh(tinyxml2::XMLNode* meshNode);
+	Mesh* BuildPolylistMesh(tinyxml2::XMLNode* meshNode);
+	Mesh* BuildTriangleListMesh(tinyxml2::XMLNode* meshNode);
+	Material* BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode);
+	std::unique_ptr<Skeleton> BuildXmlSkeleton(tinyxml2::XMLNode* rootNode);
 
 private:
     std::string m_name;

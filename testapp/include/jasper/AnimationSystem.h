@@ -63,14 +63,19 @@ struct BoneData {
 	std::string ParentName;
 	std::vector<VertexBoneWeight> Weights;
 
-	Transform NodeTransform;
-	Transform BoneTransform;
-	Transform ParentTransform;
+	// Node Transform is the mesh space transform of the bone relative to the 
+	// mesh's origin.
+	Transform NodeTransform;			
+	// Offset Transform declares the transformation needed to transform from 
+	// mesh space to the local space of this bone.
 	Transform BoneOffsetTransform;
-	Transform InverseBindTransform;
-	Transform SkinningTransform;
+	Transform InverseBindTransform; 
+	// The transform to actually send up to the shader
+	Transform RenderTransform() const;
 	
-	Transform BuildParentTransform();
+	void CalculateInverseBindTransform(Transform parentTransform);
+	
+	Transform GetWorldTransform() const;
 
 	void EvaluateSubtree();
 	
@@ -87,10 +92,17 @@ public:
 	std::vector<std::unique_ptr<BoneData>> Bones;
 	std::unordered_map<std::string, int> m_boneMap;
 
+	BoneData* RootBone;
 
 	void EvaluateBoneSubtree(const BoneData& parent);
 	void TraverseSkeleton(const ImporterSceneNode* node);
 	void TransformBone(BoneData* bone);
+	void BuildIntoHierarchy();
+	BoneData* GetBone(const std::string& name);
+	ImporterSceneNode* GetRootBoneNode();
+private:
+	
+	void RecursiveBuild(ImporterSceneNode* parentNode);
 };
 
 struct RotationKeyframe {

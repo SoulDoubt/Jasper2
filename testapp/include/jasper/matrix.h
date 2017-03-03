@@ -269,6 +269,8 @@ public:
     static Matrix4 FromTransform(const Transform& tr);
     static Matrix4 FromBtTransform(const btTransform& t);
 
+	Transform Decompose();
+
     float Determinant() const;
     Matrix4 Inverted() const;
     Matrix3 NormalMatrix() const;

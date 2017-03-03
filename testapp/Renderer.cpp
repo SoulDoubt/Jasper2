@@ -14,6 +14,7 @@
 
 
 
+
 namespace Jasper
 {
 
@@ -224,7 +225,7 @@ void Renderer::RenderScene()
     previousMaterial = nullptr;
     //m_forwardLitShader->Bind();
     for (auto& mr : m_renderersToRender) {
-    
+		
         if (!mr->IsEnabled()) continue;
         if (!mr->IsVisible()) continue;
 
@@ -243,12 +244,13 @@ void Renderer::RenderScene()
         
         if (shader == m_animatedShader){
 			const auto skeleton = mesh->GetSkeleton();
+			//RenderSkeleton(skeleton);
             const auto& bones = skeleton->Bones;
 			const auto& globalInverse = skeleton->GlobalInverseTransform;
             
             for (size_t i = 0; i < bones.size(); ++i){
                 const auto b = bones[i].get();
-				Transform bt = b->SkinningTransform;//globalInverse * b->BoneTransform * b->BoneOffsetTransform;
+				Transform bt = b->RenderTransform();
                 shader->SetBoneTransform(i, bt.TransformMatrix());                
             }
         }
@@ -268,8 +270,7 @@ void Renderer::RenderScene()
         //}
         if (material != previousMaterial) {
             material->Release();
-        }
-        
+        }        
     }
     
 }
@@ -714,6 +715,11 @@ void Renderer::BlitDepthBufferToScreen()
     m_gBuffer->BindForReading();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glBlitFramebuffer(0, 0, m_windowWidth, m_windowHeight, 0, 0, m_windowWidth, m_windowHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+}
+
+void Renderer::RenderSkeleton(Skeleton * skeleton)
+{
+	
 }
 
 }

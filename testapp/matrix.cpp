@@ -149,4 +149,43 @@ Matrix4 Matrix4::FromTransform(const Transform& tr)
     return mat;
 }
 
+Transform Matrix4::Decompose()
+{
+	// extract the position
+	Vector3 pos;
+	pos.x = this->mat[0].w;
+	pos.y = this->mat[1].w;
+	pos.z = this->mat[2].w;
+
+	// now get the columns of the top-left 3x3
+	Vector3 col0 = { mat[0].x, mat[1].x, mat[2].x };
+	Vector3 col1 = { mat[0].y, mat[1].y, mat[2].y };
+	Vector3 col2 = { mat[0].z, mat[1].z, mat[2].z };
+
+	Vector3 scaling;
+	scaling.x = col0.Length();
+	scaling.y = col1.Length();
+	scaling.z = col2.Length();
+
+	// get the sign of the scaling vector
+	float det = Determinant();
+	if (det < 0) scaling = -scaling;
+
+	// now unscale the matrix...
+	if (scaling.x > 0.f) col0 /= scaling.x;
+	if (scaling.y > 0.f) col1 /= scaling.y;
+	if (scaling.z > 0.f) col2 /= scaling.z;
+
+	// now reconstruct a 3x3 rotation matrix
+	Matrix3 rot = {
+		Vector3(col0.x, col1.x, col2.x),
+		Vector3(col0.y, col1.y, col2.y),
+		Vector3(col0.z, col1.z, col2.z)
+	};
+
+	Quaternion orientation = Quaternion(rot);
+
+	return Transform(pos, orientation, scaling);
+}
+
 } // namespace jasper
