@@ -593,4 +593,48 @@ void StaticTriangleMeshCollider::InitFromMeshes(const std::vector<Mesh*>& meshes
 }
 
 
+GhostCollider::GhostCollider(std::string name, const Vector3 & halfExtents, PhysicsWorld * world)
+	: PhysicsCollider(name, halfExtents, world)
+{
+	
+}
+
+void GhostCollider::Awake()
+{
+	auto go = GetGameObject();
+	auto& trans = go->GetLocalTransform();
+	auto btTrans = trans.AsBtTransform();
+
+	float halfX, halfY, halfZ;
+	if (m_mesh != nullptr) {
+		//Vector3 halfExtents = m_mesh->GetHalfExtents();
+		Vector3 minExtents = m_mesh->MinExtents();
+		Vector3 maxExtents = m_mesh->MaxExtents();
+		halfX = (maxExtents.x - minExtents.x) / 2.0f;
+		halfY = (maxExtents.y - minExtents.y) / 2.0f;
+		halfZ = (maxExtents.z - minExtents.z) / 2.0f;
+	}
+	else {
+		halfX = m_halfExtents.x;
+		halfY = m_halfExtents.y;
+		halfZ = m_halfExtents.z;
+	}
+
+	float radius = std::max(halfX, halfZ);
+	if (radius == halfX) {
+		radius *= trans.Scale.x;
+	}
+	else {
+		radius *= trans.Scale.y;
+	}
+
+	float height = (halfY)* trans.Scale.y * 2;
+	height = height - (2 * radius);
+
+	m_collisionShape = make_unique<btCapsuleShape>(radius, height);
+	
+	m_ghostObject = make_unique<btPairCachingGhostObject>();
+
+}
+
 } // namespace Jasper

@@ -52,6 +52,8 @@ private :
 	PhysicsCollider* m_collider;
 	PhysicsWorld* m_physicsWorld;
 
+
+
 	void UpdateVectors();
 
 	CameraType m_type;

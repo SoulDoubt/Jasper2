@@ -360,8 +360,7 @@ struct Vertex_PN {
 };
 
 struct Tri {
-    uint a, b, c;
-
+    uint32_t a, b, c;
     Tri(float x, float y, float z) : a(x), b(y), c(z) {}
 };
 
@@ -377,6 +376,8 @@ enum class MeshType
 class Skeleton;
 class BoneData;
 class VertexBoneWeight;
+
+
 
 class Mesh : public Component
 {

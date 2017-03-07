@@ -18,6 +18,10 @@
 #include "AssetSerializer.h"
 #include "AnimationSystem.h"
 
+#include <PythonInterface.h>
+
+
+
 
 //#include "VHACD.h"
 
@@ -609,6 +613,8 @@ Mesh* ModelLoader::BuildXmlMesh(tinyxml2::XMLNode* meshNode) {
 
 Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 {
+	ColladaMesh colladaMesh;
+
 	auto polylistNode = GetChildNode(meshNode, "polylist"s);
 	auto inputs = GetChildNodesByName(polylistNode, "input"s);
 
@@ -640,7 +646,7 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	string meshName = "collada_loader_mesh"s;
 	auto mesh = m_scene->GetMeshCache().CreateInstance<Mesh>(meshName);
 	// at the position node the position data will be...
-	auto floatNode = GetChildNode(positionSource, "float_array");
+	auto floatNode = GetChildNode(positionSource, "float_array"s);
 	auto posElem = floatNode->ToElement();
 	int posCount = posElem->IntAttribute("count");
 	istringstream floatstr(posElem->GetText());
@@ -655,6 +661,7 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	for (int i = 0; i < posCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
 		positions.push_back(p);
+		colladaMesh.Positions.push_back(p);
 	}
 	floats.clear();
 	// normals
@@ -673,6 +680,7 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	for (int i = 0; i < normalCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
 		normals.push_back(p);
+		colladaMesh.Normals.push_back(p);
 	}
 	floats.clear();
 
@@ -691,6 +699,7 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	for (int i = 0; i < texcoordCount / 2; ++i) {
 		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };
 		texCoords.push_back(p);
+		colladaMesh.TexCoords.push_back(p);
 	};
 
 	// now for the indices...
@@ -711,16 +720,13 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 		int pi = ints[i * inputCount];
 		int ni = ints[i * inputCount + 1];
 		int ti = ints[i * inputCount + 2];
-
-		/*if (std::find(positionsVisited.begin(), positionsVisited.end(), pi) != positionsVisited.end()) {
-			dupCount++;
-			printf("Position Duplicate at index: %d\n", pi);
-		}
-		positionsVisited.push_back(pi);*/
+		colladaMesh.PositionIndices.push_back((uint32_t)pi);
+		colladaMesh.NormalIndices.push_back((uint32_t)ni);
+		colladaMesh.TexCoordIndices.push_back((uint32_t)ti);				
 
 		Vector3 p = positions[pi];
 		Vector3 n = normals[ni];
-		Vector2 t = texCoords[ti];
+		Vector2 t = texCoords[ti];						
 
 		mesh->Positions.push_back(p);
 		mesh->Normals.push_back(n);
@@ -729,20 +735,21 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 		mesh->Indices.push_back(i);
 		dupCount++;
 	}
-
-	printf("%d Dups found\n", dupCount);
+	
 	auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
 	mat->Diffuse = { 1.f, 0.f, 1.f };
 	mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 	mesh->SetMaterial(mat);
 	mesh->CalculateTangentSpace();
 	mesh->CalculateExtents();
+	
 	return mesh;
 	//return nullptr;
 }
 
 Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 {
+	ColladaMesh colladaMesh;
 	auto vertsNode = GetChildNode(meshNode, "vertices"s);
 	auto inputs = GetChildNodesByName(vertsNode, "input"s);
 
@@ -783,6 +790,7 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
 		positions.push_back(p);
 	}
+
 	floats.clear();
 	// normals
 	auto normalSource = GetChildNodeByNameAndAttribute(meshNode, "source"s, "id"s, normalSourceID);
@@ -830,13 +838,17 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 		vector<int> ints;
 		while (getline(intstr, fs, ' ')) {
 			ints.push_back(atoi(fs.data()));
-		}	
+		}
 		int dupCount = 0;
-
+		colladaMesh.NormalIndices.reserve(ints.size());
+		colladaMesh.PositionIndices.reserve(ints.size());
+		colladaMesh.TexCoordIndices.reserve(ints.size();
 		for (int i = 0; i < ints.size() / inputCount; ++i) {
-
-			int pi = ints[i * inputCount];			
-
+			
+			int pi = ints[i * inputCount];
+			colladaMesh.PositionIndices.push_back(ints[i * inputCount]);
+			colladaMesh.NormalIndices.push_back(ints[i * inputCount]);
+			colladaMesh.TexCoordIndices.push_back(ints[i * inputCount]);
 			Vector3 p = positions[pi];
 			Vector3 n = normals[pi];
 			Vector2 t = texCoords[pi];
@@ -848,19 +860,22 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 			mesh->Indices.push_back(i);
 			dupCount++;
 		}
-	}	
+	}
 	auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
 	mat->Diffuse = { 1.f, 0.f, 0.2f };
 	mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 	mesh->SetMaterial(mat);
 	mesh->CalculateTangentSpace();
 	mesh->CalculateExtents();
+	colladaMesh.Positions = move(positions);
+	colladaMesh.Normals = move(normals);
+	colladaMesh.TexCoords = move(texCoords);
 	return mesh;
 }
 
 Material* ModelLoader::BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode) {
 	using namespace tinyxml2;
-	
+
 	string materialID;
 	string materialName;
 	string effectID;
@@ -872,12 +887,10 @@ Material* ModelLoader::BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml
 	effectID = instanceEffectNode->ToElement()->Attribute("url");
 
 	auto effectNode = GetNodeByID(effectsLibNode, effectID);
-	
+
 	int i = 0;
-	
+
 	return nullptr;
-
-
 
 }
 
@@ -897,39 +910,173 @@ Matrix4 ReadColladaMatrix(tinyxml2::XMLNode* matNode) {
 		vecs[j] = v;
 	}
 	Matrix4 mat = Matrix4(vecs[0], vecs[1], vecs[2], vecs[3]);
+	// collada matricies are column major
 	return mat.Transposed();
 }
 
+void RecurseXmlBones(tinyxml2::XMLNode* parentNode, Bone& parentBone) {
+	// it is assumed that the bone coresponding to the parent node
+	// is on the top of the bone stack
+	auto childNodes = GetChildNodesByName(parentNode, "node"s);
+	for (auto child : childNodes) {
+		Bone b;
+		b.Name = child->ToElement()->Attribute("name");
+		auto matNode = GetChildNode(child, "matrix");
+		Matrix4 mat = ReadColladaMatrix(matNode);
+		Transform t = mat.Decompose();
+		b.BindLocalTransform = t;
+		parentBone.Children.push_back(b);
+		RecurseXmlBones(child, parentBone.Children[parentBone.Children.size() - 1]);
+	}
+
+}
+
+void RecursivePrintBones(const Bone& parent) {
+	printf("Bone: %s Has %d children.\n", parent.Name.data(), parent.Children.size());
+	for (const auto& child : parent.Children) {
+		RecursivePrintBones(child);
+	}
+}
+
+//std::vector<string> GetJointsList() {
+//
+//}
+
 std::unique_ptr<Skeleton> ModelLoader::BuildXmlSkeleton(tinyxml2::XMLNode * rootNode)
 {
-	vector<BoneData> boneStack;
+	using namespace tinyxml2;
+	vector<Bone> bones;
 	auto skeleton = make_unique<Skeleton>();
 
 	auto nodelist = GetChildNodesByName(rootNode, "node");
-	
-	if (string(nodelist[0]->ToElement()->Attribute("type")) == "JOINT"s) {
-		auto nd = nodelist[0]->ToElement();
-		auto matNode = GetChildNode(nd, "matrix");
-		Matrix4 mat = ReadColladaMatrix(matNode);
-		Transform t = mat.Decompose();
-		auto bd = make_unique<BoneData>();
-		bd->Name = nodelist[0]->ToElement()->Attribute("name");
-		bd->NodeTransform = t;
+	for (auto n : nodelist) {
+		XMLNode* jn = nullptr;
+		string nodeType = n->ToElement()->Attribute("type");
+		if (nodeType == "JOINT") {
+			jn = n;
+		}
+		else {
+			auto children = GetChildNodesByName(n, "node");
+			for (auto cc : children) {
+				nodeType = cc->ToElement()->Attribute("type");
+				if (nodeType == "JOINT") {
+					jn = cc;
+					break;
+				}
+			}
+		}
+		if (jn) {
+			auto nd = n->ToElement();
+			auto matNode = GetChildNode(nd, "matrix");
+			if (matNode) {
+				Matrix4 mat = ReadColladaMatrix(matNode);
+				Transform t = mat.Decompose();
+				Bone bd;
+				bd.Name = jn->ToElement()->Attribute("name");
+				bd.BindLocalTransform = t;
+				bones.push_back(bd);
+				RecurseXmlBones(jn, bones[bones.size() - 1]);
+			}
+		}
+	}
+	auto skel = make_unique<Skeleton>();
+
+	return skel;
+}
+
+ColladaSkin BuildXMLSkin(tinyxml2::XMLNode* node) {
+	auto skinNode = GetChildNode(GetChildNode(node, "controller"), "skin");	
+	auto weightNode = GetChildNode(skinNode, "vertex_weights");
+	auto jointsDataNode = GetChildNodeByNameAndAttribute(weightNode, "input", "semantic", "JOINT");
+	auto weightsDataNode = GetChildNodeByNameAndAttribute(weightNode, "input", "semantic", "WEIGHT");
+	string jointsDataID = jointsDataNode->ToElement()->Attribute("source");
+	string weightsDataID = weightsDataNode->ToElement()->Attribute("source");
+	auto jointsNode = GetChildNodeByNameAndAttribute(skinNode, "source", "id", jointsDataID);
+	auto nameArrayNode = GetChildNode(jointsNode, "Name_array");
+
+	istringstream intstr(nameArrayNode->ToElement()->GetText());
+	vector<string> jointNames;
+	string nm;
+	while (getline(intstr, nm, ' ')) {
+		jointNames.push_back(nm);
 	}
 
-	return std::unique_ptr<Skeleton>();
+	auto weightsNode = GetChildNodeByNameAndAttribute(skinNode, "source", "id", weightsDataID);
+
+	auto weightArrayNode = GetChildNode(weightsNode, "float_array");
+	auto weightsCount = weightArrayNode->ToElement()->IntAttribute("count");
+	vector<float> weights;
+	weights.reserve(weightsCount);
+	intstr = istringstream(weightArrayNode->ToElement()->GetText());
+	string wf;
+	while (getline(intstr, wf, ' ')) {
+		weights.push_back(stof(wf));
+	}
+
+	auto countNode = GetChildNode(weightNode, "vcount");
+	vector<int> weightCounts;
+	intstr = istringstream(countNode->ToElement()->GetText());
+	string wc;
+	while (getline(intstr, wc, ' ')) {
+		weightCounts.push_back(atoi(wc.data()));
+	}
+
+	ColladaSkin skin = { jointNames, weights };
+
+	int x = 0;
+	return skin;
+}
+
+
+
+vector<std::unique_ptr<ColladaMesh>> ModelLoader::LoadColladaPython(const std::string& filename) {
+	using namespace PythonInterface;
+	std::vector<std::unique_ptr<ColladaMesh>> colladaMeshes;
+	auto& python = PythonInterpreter::GetInstance();
+	auto pyModule = python.LoadModule("load_collada"s);
+
+	if (pyModule) {
+		auto args = make_tuple("C:/Users/Al/documents/visual studio 2017/Projects/Jasper/models/C3P0/C3P0.dae");
+		auto result = python.ExecuteFunction(pyModule, "load_model"s, args);
+		if (result != nullptr) {
+			if (PyObject_HasAttrString(result, "geometries"))
+			{
+				printf("Has Geometries\n");
+				PyObject* pyGeoms = PyObject_GetAttrString(result, "geometries");
+				PythonInterface::ParseColladaGeometries(pyGeoms, colladaMeshes);
+				Py_DecRef(pyGeoms);
+			}
+			if (PyObject_HasAttrString(result, "controllers")) {
+				auto controllers = PyObject_GetAttrString(result, "controllers");
+				ParseColladaControllers(controllers, colladaMeshes);
+			}
+			Py_DecRef(result);
+		}
+	}
+	else {
+		PyErr_Print();
+	}
+
+	Py_DecRef(pyModule);
+	return colladaMeshes;
+
+
+
 }
 
 void ModelLoader::LoadXmlModel(const std::string & filename, const std::string & name)
 {
+	//auto colladaMeshes = LoadColladaPython(filename);
+
 	using namespace tinyxml2;
 	auto modelData = m_scene->GetModelCache().CreateInstance<ModelData>(name);
-	XMLDocument doc;
+	tinyxml2::XMLDocument doc;
 	doc.LoadFile(filename.c_str());
 	auto docRoot = doc.RootElement();
 	auto geomLib = GetChildNode(docRoot, "library_geometries"s);
 	auto geomNodes = GetChildNodesByName(geomLib, "geometry"s);
 
+	auto controllerLib = GetChildNode(docRoot, "library_controllers"s);
 	auto materialsLib = GetChildNode(docRoot, "library_materials"s);
 	auto effectsLib = GetChildNode(docRoot, "library_effects"s);
 	auto imagesLib = GetChildNode(docRoot, "library_images"s);
@@ -951,6 +1098,9 @@ void ModelLoader::LoadXmlModel(const std::string & filename, const std::string &
 	for (auto scene : scenes) {
 		BuildXmlSkeleton(scene);
 	}
+	ColladaSkin skin = BuildXMLSkin(controllerLib);
+
+	
 	int x = 0;
 }
 

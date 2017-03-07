@@ -7,6 +7,8 @@
 #include <memory>
 #include <type_traits>
 
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+
 
 
 namespace Jasper
@@ -24,7 +26,8 @@ enum class PHYSICS_COLLIDER_TYPE
     Plane,
     Sphere,
     Compound,
-    StaticTriangleMesh
+    StaticTriangleMesh,
+	Ghost
 };
 
 
@@ -111,6 +114,20 @@ protected:
     const Mesh* m_mesh = nullptr;
 
 
+};
+
+class GhostCollider : public PhysicsCollider {
+public: 
+	GhostCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* wprld);
+	void Awake() override;
+
+	PHYSICS_COLLIDER_TYPE GetColliderType() const override {
+		return PHYSICS_COLLIDER_TYPE::Ghost;
+	}
+
+private:
+	std::unique_ptr<btPairCachingGhostObject> m_ghostObject;
+	
 };
 
 class CompoundCollider : public PhysicsCollider

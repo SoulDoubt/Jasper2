@@ -82,6 +82,30 @@ struct BoneData {
 
 };
 
+struct ColladaSkin{
+	std::vector<std::string> JointNames;
+	std::vector<float> Weights;
+};
+
+struct ColladaMesh
+{
+	std::string Name;
+	std::vector<Vector3> Positions;
+	std::vector<Vector3> Normals;
+	std::vector<Vector2> TexCoords;
+	std::vector<uint32_t> PositionIndices;
+	std::vector<uint32_t> NormalIndices;
+	std::vector<uint32_t> TexCoordIndices;
+	ColladaSkin Skin;
+};
+
+struct Bone {
+	std::string Name;
+	Transform BindLocalTransform;
+	std::vector<Bone> Children;
+	
+};
+
 class Skeleton
 {
 public:

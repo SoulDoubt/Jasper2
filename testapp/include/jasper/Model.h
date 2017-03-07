@@ -105,10 +105,7 @@ private:
 
 };
 
-class ModelInstance : public Component
-{
 
-};
 
 class ModelLoader //: public Component
 {
@@ -135,7 +132,10 @@ public:
     void SaveToAssetFile(const std::string& filename);
 	void CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes);
 	void LoadModel(const std::string& filename, const std::string& name);
+
 	void LoadXmlModel(const std::string& filename, const std::string& name);
+
+	std::vector<std::unique_ptr<ColladaMesh>> LoadColladaPython(const std::string& filename);
     void OutputMeshData(const std::string& filename);
 
     std::unique_ptr<GameObject> CreateModelInstance(const std::string& name, const std::string& modelName, bool generateCollider, bool splitColliders);
