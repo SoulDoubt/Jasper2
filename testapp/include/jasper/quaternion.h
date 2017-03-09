@@ -263,6 +263,50 @@ inline Quaternion Slerp(const Quaternion& a, const Quaternion& b, float pct) {
 	}
 }
 
+
+inline Quaternion Interpolate(const Quaternion& pStart, const Quaternion& pEnd, float pct){
+	// calc cosine theta
+	float cosom = pStart.x * pEnd.x + pStart.y * pEnd.y + pStart.z * pEnd.z + pStart.w * pEnd.w;
+
+	// adjust signs (if necessary)
+	Quaternion end = pEnd;
+	if (cosom < static_cast<float>(0.0))
+	{
+		cosom = -cosom;
+		end.x = -end.x;   // Reverse all signs
+		end.y = -end.y;
+		end.z = -end.z;
+		end.w = -end.w;
+	}
+
+	// Calculate coefficients
+	float sclp, sclq;
+	if ((static_cast<float>(1.0) - cosom) > static_cast<float>(0.0001)) // 0.0001 -> some epsillon
+	{
+		// Standard case (slerp)
+		float omega;
+		float sinom;
+		omega = std::acos(cosom); // extract theta from dot product's cos theta
+		sinom = sin(omega);
+		sclp = sin((static_cast<float>(1.0) - pct) * omega) / sinom;
+		sclq = sin(pct * omega) / sinom;
+	}
+	else
+	{
+		// Very close, do linear interp (because it's faster)
+		sclp = static_cast<float>(1.0) - pct;
+		sclq = pct;
+	}
+	Quaternion pOut;
+	pOut.x = sclp * pStart.x + sclq * end.x;
+	pOut.y = sclp * pStart.y + sclq * end.y;
+	pOut.z = sclp * pStart.z + sclq * end.z;
+	pOut.w = sclp * pStart.w + sclq * end.w;
+
+	return pOut;
+}
+
+
 inline float Quaternion::Pitch() const
 {
 	return asinf(2 * x*y + 2 * z*w);

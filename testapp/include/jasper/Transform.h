@@ -98,9 +98,9 @@ inline Transform Transform::Inverted() const{
 inline Transform operator*(const Transform& ps, const Transform& ls)
 {
     Transform ws;
-    ws.Position = ps.Position + ps.Orientation * (ps.Scale * ls.Position);
+    ws.Position    = ps.Position + ps.Orientation * (ps.Scale * ls.Position);
     ws.Orientation = ps.Orientation * ls.Orientation;
-    ws.Scale = ps.Scale * ls.Scale;
+    ws.Scale       = ps.Scale * ls.Scale;
     return ws;
 }
 

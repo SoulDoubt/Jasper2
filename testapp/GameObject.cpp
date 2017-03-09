@@ -91,6 +91,9 @@ GameObject& GameObject::AttachChild(std::unique_ptr<GameObject> child)
 {
     child->SetParent(this);
     child->SetScene(this->m_scene);
+	for (auto& ch : child->Children()) {
+		ch->SetScene(this->m_scene);
+	}
     GameObject* ret = child.get();
     m_children.push_back(move(child));
     return *ret;

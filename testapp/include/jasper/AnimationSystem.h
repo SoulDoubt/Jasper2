@@ -63,22 +63,36 @@ struct BoneData {
 	std::string ParentName;
 	std::vector<VertexBoneWeight> Weights;
 
+
+
 	// Node Transform is the mesh space transform of the bone relative to the 
 	// mesh's origin.
-	Transform NodeTransform;			
+	Transform NodeTransform;	
+	//Transform WorldTransform;
+	//Transform TransformationTransform;
 	// Offset Transform declares the transformation needed to transform from 
 	// mesh space to the local space of this bone.
 	Transform BoneOffsetTransform;
-	Transform InverseBindTransform; 
+	//Transform InverseBindTransform; 
+	Transform ToParentSpace();
 	// The transform to actually send up to the shader
 	Transform RenderTransform() const;
 	
-	void CalculateInverseBindTransform(Transform parentTransform);
+	void CalculateInverseBindTransforms(Transform parentTransform);
 	
-	Transform GetWorldTransform() const;
+	Transform GetSkinningTransform() {
+		return GetWorldTransform() * BoneOffsetTransform;
+	}
+
+			
+
+
+	Transform GetWorldTransform();
+	void UpdateWorldTransform();
 
 	void EvaluateSubtree();
-	
+private:
+	BoneData* getParentBone() const;
 
 };
 
@@ -115,6 +129,7 @@ public:
 	Transform GlobalInverseTransform;
 	std::vector<std::unique_ptr<BoneData>> Bones;
 	std::unordered_map<std::string, int> m_boneMap;
+
 
 	BoneData* RootBone;
 

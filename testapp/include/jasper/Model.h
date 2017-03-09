@@ -140,9 +140,9 @@ public:
 
     std::unique_ptr<GameObject> CreateModelInstance(const std::string& name, const std::string& modelName, bool generateCollider, bool splitColliders);
 
-	Mesh* BuildXmlMesh(tinyxml2::XMLNode* meshNode);
-	Mesh* BuildPolylistMesh(tinyxml2::XMLNode* meshNode);
-	Mesh* BuildTriangleListMesh(tinyxml2::XMLNode* meshNode);
+	std::unique_ptr<ColladaMesh> BuildXmlMesh(tinyxml2::XMLNode* meshNode);
+	std::unique_ptr<ColladaMesh> BuildPolylistMesh(tinyxml2::XMLNode* meshNode);
+	std::unique_ptr<ColladaMesh> BuildTriangleListMesh(tinyxml2::XMLNode* meshNode);
 	Material* BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode);
 	std::unique_ptr<Skeleton> BuildXmlSkeleton(tinyxml2::XMLNode* rootNode);
 

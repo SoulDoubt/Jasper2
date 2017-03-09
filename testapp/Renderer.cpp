@@ -249,8 +249,8 @@ void Renderer::RenderScene()
 			const auto& globalInverse = skeleton->GlobalInverseTransform;
             
             for (size_t i = 0; i < bones.size(); ++i){
-                const auto b = bones[i].get();
-				Transform bt = b->RenderTransform();
+                const auto b = bones[i].get();								
+				Transform bt = b->GetSkinningTransform();
                 shader->SetBoneTransform(i, bt.TransformMatrix());                
             }
         }

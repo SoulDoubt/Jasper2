@@ -78,4 +78,12 @@ void PhysicsDebugDrawer::Draw()
     glBindVertexArray(0);
 }
 
+void DebugDrawer::Initialize()
+{
+}
+
+void DebugDrawer::DrawSkeleton(Skeleton * s)
+{
+}
+
 } // Jasper

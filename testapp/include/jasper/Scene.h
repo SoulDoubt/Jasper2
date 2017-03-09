@@ -18,8 +18,12 @@
 #include "Material.h"
 #include "CharacterController.h"
 
+
+
 namespace Jasper
 {
+
+class Skeleton;
 
 class Scene
 {
@@ -127,7 +131,10 @@ public:
     void DeserializeGameObject(std::ifstream& ifs, GameObject* parent);
 
     void DebugDrawPhysicsWorld();
+	void DebugDrawSkeleton(Skeleton* skeleton, Transform t);
 
+	Skeleton* skeleton_to_debug = nullptr;
+	Transform skeleton_debug_game_object_transform;
 
 
     ResourceManager<Material>& GetMaterialCache() {

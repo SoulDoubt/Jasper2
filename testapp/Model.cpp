@@ -161,6 +161,7 @@ std::unique_ptr<PhysicsCollider> GenerateSinglePhysicsCollider(ModelData* md, Sc
 std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name, const string& modelName, bool generateCollider, bool splitColliders)
 {
 	auto go = make_unique<GameObject>(name);
+	auto child = make_unique<GameObject>(name + "_model_instance"s);
 	auto modeldata = m_scene->GetModelCache().GetResourceByName(modelName);
 	if (modeldata) {
 		for (const auto mesh : modeldata->GetMeshes()) {
@@ -168,19 +169,23 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 			if (!mat) {
 				printf("%s had no material bound.\n", mesh->GetName().c_str());
 			}
-			go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
+			child->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
 		}
 		if (generateCollider && modeldata->GetSkeleton()->Bones.size() == 0) {
 			unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
-			go->AttachComponent(move(collider));
+			child->AttachComponent(move(collider));
 		}
 		else if (generateCollider && modeldata->GetSkeleton()->Bones.size() > 0) {
 			modeldata->CreateRagdollCollider(m_scene, go.get());
 		}
 		if (modeldata->Animator) {
-			go->AttachComponent(move(modeldata->Animator));
+			child->AttachComponent(move(modeldata->Animator));
 		}
+		//child->SetLocalTransform(modeldata->GetSkeleton()->GlobalInverseTransform);
 	}
+	
+
+	go->AttachChild(move(child));
 	return move(go);
 }
 
@@ -198,10 +203,10 @@ void CreateChildHulls(BoneData* rootBone, Skeleton* skeleton, vector<unique_ptr<
 		std::set_difference(bone->Weights.begin(), bone->Weights.end(), rootBone->Weights.begin(), rootBone->Weights.end(), std::inserter(uniqueChildWeights, uniqueChildWeights.begin()));
 		for (size_t i = 0; i < uniqueChildWeights.size(); ++i) {
 			VertexBoneWeight& vb = uniqueChildWeights[i];
-			if (vb.Weight >= 0.5f) {
+			//if (vb.Weight >= 0.75f) {
 				Vector3 position = vb.mesh->Positions[vb.Index];
 				h->addPoint(position.AsBtVector3());
-			}
+			//}
 		}
 		hulls.emplace_back(move(hull));
 		CreateChildHulls(bone, skeleton, hulls);
@@ -246,11 +251,11 @@ bool FileExists(const std::string& name)
 }
 
 void BuildBoneTreeRecursive(BoneData* parent, Skeleton* skeleton) {
-	for (int i : parent->Children) {
+/*	for (int i : parent->Children) {
 		BoneData* child = skeleton->Bones[i].get();
 		child->InverseBindTransform = parent->InverseBindTransform * child->NodeTransform;
 		BuildBoneTreeRecursive(child, skeleton);
-	}
+	}*/
 }
 
 void BuildBoneTree(ImporterSceneNode* rootBoneNode, Skeleton* skeleton) {
@@ -263,7 +268,7 @@ void BuildBoneTree(ImporterSceneNode* rootBoneNode, Skeleton* skeleton) {
 			bone->NodeTransform = parent->NodeTransform * bone->NodeTransform;
 			parent = parent->Parent;
 		}
-		bone->InverseBindTransform = bone->NodeTransform.Inverted();
+		//bone->InverseBindTransform = bone->NodeTransform.Inverted();
 		for (int i = 0; i < bone->Children.size(); ++i) {
 			int childIndex = bone->Children.at(i);
 			BoneData* childBone = skeleton->Bones.at(childIndex).get();
@@ -306,7 +311,7 @@ void BuildBoneHierarchy(ImporterSceneNode* rootNode, Skeleton* skeleton) {
 			bone->Children.push_back(childId);
 			auto& childBone = skeleton->Bones.at(childId);
 			childBone->ParentID = bone->Id;
-			childBone->InverseBindTransform = bone->InverseBindTransform * childBone->NodeTransform;
+			//childBone->InverseBindTransform = bone->InverseBindTransform * childBone->NodeTransform;
 			BuildBoneHierarchy(childBone->INode, skeleton);
 		}
 	}
@@ -380,7 +385,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 	size_t sz = meshes.size();
 	printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());
 
-	CenterOnOrigin(meshes);
+	//CenterOnOrigin(meshes);
 
 	// recurse the isn graph and find any bones that are are used in this model...
 
@@ -390,23 +395,25 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 
 		Skeleton* skeleton = model_data->GetSkeleton();
 
-		skeleton->GlobalInverseTransform = model_data->ImporterSceneRoot()->NodeTransform.Inverted();
+		skeleton->GlobalInverseTransform = model_data->ImporterSceneRoot()->NodeTransform;
 
 		auto rootBoneNode = skeleton->GetRootBoneNode();
 		assert(rootBoneNode != nullptr);
 		skeleton->RootBoneName = rootBoneNode->Name;
 		skeleton->Bones[skeleton->m_boneMap[skeleton->RootBoneName]]->ParentID = -1;
-		//BuildBoneHierarchy(rootBoneNode, skeleton);*/
-		skeleton->BuildIntoHierarchy();
+		skeleton->GlobalInverseTransform = rootBoneNode->NodeTransform.Inverted();
+		BuildBoneHierarchy(rootBoneNode, skeleton);
+		//skeleton->BuildIntoHierarchy();
 		auto rootBone = skeleton->GetBone(skeleton->RootBoneName);
-		rootBone->CalculateInverseBindTransform(Transform());
+		rootBone->CalculateInverseBindTransforms(Transform());
+		//rootBone->CalculateInverseBindTransform(Transform());
 
 		printf("There are %d Bones in the skeleton:\n", skeleton->Bones.size());
 
 
 		for (size_t i = 0; i < skeleton->Bones.size(); ++i) {
 			BoneData* bd = skeleton->Bones[i].get();
-			printf("Bone ID: %d, Name: %s Has: %d children. Position: %s\n", bd->Id, bd->Name.data(), bd->Children.size(), bd->InverseBindTransform.Position.ToString().data());
+			printf("Bone ID: %d, Name: %s Has: %d children. Position: %s\n", bd->Id, bd->Name.data(), bd->Children.size(), bd->NodeTransform.Position.ToString().data());
 		}
 
 		if (scene->HasAnimations()) {
@@ -465,13 +472,13 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 		}
 
 		if (0) {
-			//int boneIdToMove = skeleton->m_boneMap["Bip01_L_Thigh"];
-			//BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
-			////boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
-			//Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(25));
-			//Transform t = boneToMove->BoneTransform;
-			//t.Orientation *= q;// *t.Orientation;
-			//boneToMove->BoneTransform = t;
+			int boneIdToMove = skeleton->m_boneMap["Bip01_R_Thigh"];
+			BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
+			//boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
+			Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(45));
+			Transform t = boneToMove->NodeTransform;
+			t.Orientation *= q;// *t.Orientation;
+			boneToMove->NodeTransform = t;
 			//boneToMove->EvaluateSubtree();
 		}
 
@@ -596,7 +603,7 @@ tinyxml2::XMLNode* GetChildNodeByNameAndAttribute(tinyxml2::XMLNode* parent, con
 
 
 
-Mesh* ModelLoader::BuildXmlMesh(tinyxml2::XMLNode* meshNode) {
+unique_ptr<ColladaMesh> ModelLoader::BuildXmlMesh(tinyxml2::XMLNode* meshNode) {
 
 	auto vertsNode = GetChildNode(meshNode, "vertices"s);
 	auto polylistNode = GetChildNode(meshNode, "polylist"s);
@@ -611,9 +618,9 @@ Mesh* ModelLoader::BuildXmlMesh(tinyxml2::XMLNode* meshNode) {
 	return nullptr;
 }
 
-Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
+unique_ptr<ColladaMesh> ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 {
-	ColladaMesh colladaMesh;
+	unique_ptr<ColladaMesh> colladaMesh = make_unique<ColladaMesh>();
 
 	auto polylistNode = GetChildNode(meshNode, "polylist"s);
 	auto inputs = GetChildNodesByName(polylistNode, "input"s);
@@ -655,13 +662,14 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	string fs;
 	while (getline(floatstr, fs, ' ')) {
 		float pf = stof(fs);
-		floats.push_back(pf);
+		floats.emplace_back(pf);
 	}
-	vector<Vector3> positions;
+	//vector<Vector3> positions;
+	colladaMesh->Positions.reserve(floats.size() / 3);
 	for (int i = 0; i < posCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
-		positions.push_back(p);
-		colladaMesh.Positions.push_back(p);
+		//positions.push_back(p);
+		colladaMesh->Positions.emplace_back(p);
 	}
 	floats.clear();
 	// normals
@@ -673,14 +681,14 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	floatstr = istringstream(normalElem->GetText());
 	while (getline(floatstr, fs, ' ')) {
 		float nf = stof(fs);
-		floats.push_back(nf);
+		floats.emplace_back(nf);
 	}
-	vector<Vector3> normals;
-	normals.reserve(normalCount / 3);
+	//vector<Vector3> normals;
+	colladaMesh->Normals.reserve(normalCount / 3);
 	for (int i = 0; i < normalCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
-		normals.push_back(p);
-		colladaMesh.Normals.push_back(p);
+		//normals.push_back(p);
+		colladaMesh->Normals.emplace_back(p);
 	}
 	floats.clear();
 
@@ -693,13 +701,13 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 
 	while (getline(floatstr, fs, ' ')) {
 		float tcf = stof(fs);
-		floats.push_back(tcf);
+		floats.emplace_back(tcf);
 	}
-	vector<Vector2> texCoords;
+	//vector<Vector2> texCoords;
+	colladaMesh->TexCoords.reserve(floats.size() / 2);
 	for (int i = 0; i < texcoordCount / 2; ++i) {
-		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };
-		texCoords.push_back(p);
-		colladaMesh.TexCoords.push_back(p);
+		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };		
+		colladaMesh->TexCoords.emplace_back(p);
 	};
 
 	// now for the indices...
@@ -708,7 +716,7 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 	istringstream intstr(indexNode->ToElement()->GetText());
 	vector<int> ints;
 	while (getline(intstr, fs, ' ')) {
-		ints.push_back(atoi(fs.data()));
+		ints.emplace_back(atoi(fs.data()));
 	}
 	//mesh->Positions.resize(positions.size());
 	//mesh->Normals.resize(normals.size());
@@ -720,36 +728,36 @@ Mesh * ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshNode)
 		int pi = ints[i * inputCount];
 		int ni = ints[i * inputCount + 1];
 		int ti = ints[i * inputCount + 2];
-		colladaMesh.PositionIndices.push_back((uint32_t)pi);
-		colladaMesh.NormalIndices.push_back((uint32_t)ni);
-		colladaMesh.TexCoordIndices.push_back((uint32_t)ti);				
+		colladaMesh->PositionIndices.emplace_back((uint32_t)pi);
+		colladaMesh->NormalIndices.emplace_back((uint32_t)ni);
+		colladaMesh->TexCoordIndices.emplace_back((uint32_t)ti);				
 
-		Vector3 p = positions[pi];
-		Vector3 n = normals[ni];
-		Vector2 t = texCoords[ti];						
+		//Vector3 p = positions[pi];
+		//Vector3 n = normals[ni];
+		//Vector2 t = texCoords[ti];						
 
-		mesh->Positions.push_back(p);
-		mesh->Normals.push_back(n);
-		mesh->TexCoords.push_back(t);
+		//mesh->Positions.push_back(p);
+		//mesh->Normals.push_back(n);
+		//mesh->TexCoords.push_back(t);
 
-		mesh->Indices.push_back(i);
-		dupCount++;
+		//mesh->Indices.push_back(i);
+		//dupCount++;
 	}
 	
-	auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
-	mat->Diffuse = { 1.f, 0.f, 1.f };
-	mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
-	mesh->SetMaterial(mat);
-	mesh->CalculateTangentSpace();
-	mesh->CalculateExtents();
+	//auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
+	//mat->Diffuse = { 1.f, 0.f, 1.f };
+	//mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
+	//mesh->SetMaterial(mat);
+	//mesh->CalculateTangentSpace();
+	//mesh->CalculateExtents();
 	
-	return mesh;
+	return move(colladaMesh);
 	//return nullptr;
 }
 
-Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
+unique_ptr<ColladaMesh> ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 {
-	ColladaMesh colladaMesh;
+	unique_ptr<ColladaMesh> colladaMesh = make_unique<ColladaMesh>();
 	auto vertsNode = GetChildNode(meshNode, "vertices"s);
 	auto inputs = GetChildNodesByName(vertsNode, "input"s);
 
@@ -783,12 +791,12 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 	string fs;
 	while (getline(floatstr, fs, ' ')) {
 		float pf = stof(fs);
-		floats.push_back(pf);
+		floats.emplace_back(pf);
 	}
-	vector<Vector3> positions;
+	colladaMesh->Positions.reserve(floats.size() / 3);
 	for (int i = 0; i < posCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
-		positions.push_back(p);
+		colladaMesh->Positions.emplace_back(p);
 	}
 
 	floats.clear();
@@ -801,13 +809,12 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 	floatstr = istringstream(normalElem->GetText());
 	while (getline(floatstr, fs, ' ')) {
 		float nf = stof(fs);
-		floats.push_back(nf);
+		floats.emplace_back(nf);
 	}
-	vector<Vector3> normals;
-	normals.reserve(normalCount / 3);
+	colladaMesh->Normals.reserve(floats.size() / 3);	
 	for (int i = 0; i < normalCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
-		normals.push_back(p);
+		colladaMesh->Normals.emplace_back(p);
 	}
 	floats.clear();
 
@@ -817,15 +824,14 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 	int texcoordCount = texcoordElem->IntAttribute("count");
 	floats.reserve(texcoordCount);
 	floatstr = istringstream(texcoordElem->GetText());
-
 	while (getline(floatstr, fs, ' ')) {
 		float tcf = stof(fs);
-		floats.push_back(tcf);
+		floats.emplace_back(tcf);
 	}
-	vector<Vector2> texCoords;
+	colladaMesh->TexCoords.reserve(floats.size() / 2);
 	for (int i = 0; i < texcoordCount / 2; ++i) {
 		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };
-		texCoords.push_back(p);
+		colladaMesh->TexCoords.emplace_back(p);
 	};
 
 	// now for the indices...	
@@ -837,19 +843,19 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 		istringstream intstr(listNode->ToElement()->GetText());
 		vector<int> ints;
 		while (getline(intstr, fs, ' ')) {
-			ints.push_back(atoi(fs.data()));
+			ints.emplace_back(atoi(fs.data()));
 		}
 		int dupCount = 0;
-		colladaMesh.NormalIndices.reserve(ints.size());
-		colladaMesh.PositionIndices.reserve(ints.size());
-		colladaMesh.TexCoordIndices.reserve(ints.size();
+		colladaMesh->NormalIndices.reserve(ints.size());
+		colladaMesh->PositionIndices.reserve(ints.size());
+		colladaMesh->TexCoordIndices.reserve(ints.size());
 		for (int i = 0; i < ints.size() / inputCount; ++i) {
 			
 			int pi = ints[i * inputCount];
-			colladaMesh.PositionIndices.push_back(ints[i * inputCount]);
-			colladaMesh.NormalIndices.push_back(ints[i * inputCount]);
-			colladaMesh.TexCoordIndices.push_back(ints[i * inputCount]);
-			Vector3 p = positions[pi];
+			colladaMesh->PositionIndices.push_back(ints[i * inputCount]);
+			colladaMesh->NormalIndices.push_back(ints[i * inputCount]);
+			colladaMesh->TexCoordIndices.push_back(ints[i * inputCount]);
+			/*Vector3 p = positions[pi];
 			Vector3 n = normals[pi];
 			Vector2 t = texCoords[pi];
 
@@ -857,11 +863,11 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 			mesh->Normals.push_back(n);
 			mesh->TexCoords.push_back(t);
 
-			mesh->Indices.push_back(i);
+			mesh->Indices.push_back(i);*/
 			dupCount++;
 		}
 	}
-	auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
+	/*auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
 	mat->Diffuse = { 1.f, 0.f, 0.2f };
 	mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 	mesh->SetMaterial(mat);
@@ -869,8 +875,8 @@ Mesh* ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * meshNode)
 	mesh->CalculateExtents();
 	colladaMesh.Positions = move(positions);
 	colladaMesh.Normals = move(normals);
-	colladaMesh.TexCoords = move(texCoords);
-	return mesh;
+	colladaMesh.TexCoords = move(texCoords);*/
+	return move(colladaMesh);
 }
 
 Material* ModelLoader::BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode) {
@@ -902,7 +908,7 @@ Matrix4 ReadColladaMatrix(tinyxml2::XMLNode* matNode) {
 	while (getline(ss, fs, ' ')) {
 		float mf = stof(fs);
 		matFloats[i] = mf;
-		i++;
+		++i;
 	}
 	Vector4 vecs[4];
 	for (int i = 0, j = 0; i < 16; i += 4, j++) {
@@ -1084,15 +1090,15 @@ void ModelLoader::LoadXmlModel(const std::string & filename, const std::string &
 	for (auto mat : materials) {
 		auto mater = BuildXmlMaterial(mat, effectsLib, imagesLib);
 	}
-
+	vector<unique_ptr<ColladaMesh>> colladaMeshes;
 	int geomCount = 0;
 	for (auto geomNode : geomNodes) {
 		auto meshNode = GetChildNode(geomNode, "mesh"s);
-		auto mesh = BuildXmlMesh(meshNode);
-		modelData->AddMesh(mesh);
-		modelData->AddMaterial(mesh->GetMaterial());
+		colladaMeshes.emplace_back(BuildXmlMesh(meshNode));
+		//modelData->AddMesh(mesh);
+		//modelData->AddMaterial(mesh->GetMaterial());
 	}
-	CenterOnOrigin(modelData->GetMeshes());
+	//CenterOnOrigin(modelData->GetMeshes());
 	auto vsLib = GetChildNode(docRoot, "library_visual_scenes");
 	auto scenes = GetChildNodesByName(vsLib, "visual_scene");
 	for (auto scene : scenes) {
@@ -1174,7 +1180,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 			}
 			if (aiMesh->HasVertexColors(0)) {
 				//int x = 0;
-				printf("Has colors\n");
+				//printf("Has colors\n");
 			}
 			m->AddVertex(v);
 		}
@@ -1201,6 +1207,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 				aiMatrix4x4 mm = bone->mOffsetMatrix;
 				bd->BoneOffsetTransform = aiMatrix4x4ToTransform(mm);
 				ImporterSceneNode* isn = model_data->FindImporterSceneNode(bname);
+				bd->NodeTransform = isn->NodeTransform;
 				isn->isUsedBone = true;
 				bd->INode = isn;
 				//bd->NodeTransform = isn->NodeTransform;				
@@ -1294,6 +1301,9 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 			if (texString.length > 0) {
 
 				myMaterial->SetTextureSpecularMap(directory + "/" + texString.C_Str());
+			}
+			if (myMaterial->GetTextureDiffuseMap() == nullptr) {
+				myMaterial->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 			}
 			m->SetMaterial(myMaterial);
 		}

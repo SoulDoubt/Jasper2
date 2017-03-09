@@ -13,6 +13,7 @@ namespace Jasper
 
 class Scene;
 class Shader;
+class Skeleton;
 
 struct DebugVertex {
 	Vector3 Position;
@@ -84,10 +85,39 @@ public:
 
 	virtual void draw3dText(const btVector3& location, const char* textString) {}
 
+	void DrawSkeleton(Skeleton* skel);
 
 
 
+};
 
+
+
+class DebugDrawer {
+
+public:
+	Scene* scene;
+	GLBuffer vbo;
+	GLBuffer ibo;
+	uint vao;
+	Matrix4 mvpMatrix;
+	Shader* debugShader;
+	std::vector<DebugVertex> m_verts;
+	std::vector<uint> m_indices;
+
+public:
+	DebugDrawer(Scene* scene) : scene(scene),
+		vbo(GLBuffer::BufferType::VERTEX),
+		ibo(GLBuffer::BufferType::INDEX) {}
+	void Initialize();
+	void DrawSkeleton(Skeleton* s);
+	void SetShader(Shader* s) {
+		debugShader = s;
+	}
+
+	void SetMvpMatrix(const Matrix4& mat) {
+		mvpMatrix = mat;
+	}
 };
 
 
