@@ -23,9 +23,9 @@ public:
 	Quad(const std::string& name, const Vector3& normal, const Vector3& point);
 	~Quad();
 
-	ComponentType GetComponentType() const override {
+	/*ComponentType GetComponentType() const override {
 		return ComponentType::Mesh;
-	}
+	}*/
 
 	MeshType GetMeshType() const override {
 		return MeshType::Quad;

@@ -32,7 +32,7 @@ public:
     void Awake() override {}
     void Start() override {}
     void FixedUpdate() override {}
-    void Update(float dt) override {}
+    void Update(double dt) override {}
     void LateUpdate() override {}
     void Serialize(std::ofstream& ofs) const override;
 	virtual void Deserialize(std::ifstream& ifs) {}
@@ -61,7 +61,7 @@ public:
     void Awake()override {}
     void Start()override {}
     void FixedUpdate()override {}
-    void Update(float dt) override;
+    void Update(double dt) override;
     void LateUpdate()override {}
 
 	ScriptType GetScriptType() const override{
@@ -95,7 +95,7 @@ public:
     void Awake()override {}
     void Start()override {}
     void FixedUpdate()override {}
-    void Update(float dt) override;
+    void Update(double dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;    
 
@@ -154,7 +154,7 @@ public:
     void Awake()override {}
     void Start()override {}
     void FixedUpdate()override {}
-	void Update(float dt) override;
+	void Update(double dt) override;
     void LateUpdate()override {}
     bool ShowGui() override;
 
@@ -240,7 +240,7 @@ public:
     void Awake()override {}
     void Start()override {}
     void FixedUpdate()override {}
-    void Update(float dt) override;
+    void Update(double dt) override;
     void LateUpdate()override {}
     
 	ScriptType GetScriptType() const override {
@@ -269,7 +269,7 @@ public:
     void Awake() override {}
     void Start() override {}
     void FixedUpdate() override {}
-    void Update(float dt) override;
+    void Update(double dt) override;
     void LateUpdate() override {}
     ComponentType GetComponentType() const override {
      return ComponentType::RotateInPlaceScript;

@@ -161,7 +161,7 @@ std::unique_ptr<PhysicsCollider> GenerateSinglePhysicsCollider(ModelData* md, Sc
 std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name, const string& modelName, bool generateCollider, bool splitColliders)
 {
 	auto go = make_unique<GameObject>(name);
-	auto child = make_unique<GameObject>(name + "_model_instance"s);
+	//auto child = make_unique<GameObject>(name + "_model_instance"s);
 	auto modeldata = m_scene->GetModelCache().GetResourceByName(modelName);
 	if (modeldata) {
 		for (const auto mesh : modeldata->GetMeshes()) {
@@ -169,23 +169,26 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 			if (!mat) {
 				printf("%s had no material bound.\n", mesh->GetName().c_str());
 			}
-			child->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
+			go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
 		}
 		if (generateCollider && modeldata->GetSkeleton()->Bones.size() == 0) {
 			unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
-			child->AttachComponent(move(collider));
+			go->AttachComponent(move(collider));
 		}
 		else if (generateCollider && modeldata->GetSkeleton()->Bones.size() > 0) {
-			modeldata->CreateRagdollCollider(m_scene, go.get());
+			//modeldata->CreateRagdollCollider(m_scene, go.get());
 		}
 		if (modeldata->Animator) {
-			child->AttachComponent(move(modeldata->Animator));
+			go->AttachComponent(move(modeldata->Animator));
+		}
+		if (modeldata->m_skeleton) {
+			go->AttachNewComponent<SkeletonComponent>(m_name + "_skeleton", modeldata->m_skeleton);
 		}
 		//child->SetLocalTransform(modeldata->GetSkeleton()->GlobalInverseTransform);
 	}
 	
 
-	go->AttachChild(move(child));
+	//go->AttachChild(move(child));
 	return move(go);
 }
 
@@ -229,10 +232,12 @@ void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
 		}
 	}
 	hulls.emplace_back(move(hullShape));
-	CreateChildHulls(rootBone, m_skeleton.get(), hulls);
+	CreateChildHulls(rootBone, m_skeleton, hulls);
 
-	unique_ptr<CompoundCollider> collider = make_unique<CompoundCollider>(rootBone->Name + "_collider"s, hulls, scene->GetPhysicsWorld());
-	collider->Mass = 50.f;
+
+
+	unique_ptr<RagdollCollider> collider = make_unique<RagdollCollider>(rootBone->Name + "_collider"s, hulls, scene->GetPhysicsWorld());
+	//collider->Mass = 50.f;
 	go->AttachComponent(std::move(collider));
 	printf("Created Ragdoll.\n");
 
@@ -322,8 +327,21 @@ void ModelData::CreateImporterSceneGraph(aiNode* rootNode) {
 	BuildSceneRecursive(m_importerSceneRoot.get(), nullptr);
 }
 
+void SetYUp(ModelData* md){
+	Transform rot;
+	rot.Orientation = Quaternion::FromAxisAndAngle({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90.f));
+	/*for (auto mesh : md->GetMeshes()) {
+		for (auto& v : mesh->Positions) {
+			v = rot * v;
+		}
+	}*/
+	/*if (md->GetSkeleton()) {
+		auto skel = md->GetSkeleton();
+		skel->RootBone->NodeTransform = rot * skel->RootBone->NodeTransform;		
+	}*/
+}
 
-void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes)
+void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes, Skeleton* skeleton)
 {
 	MaxExtents = { -1000000.0f, -1000000.0f, -1000000.0f };
 	MinExtents = { 1000000.0f, 1000000.0f, 1000000.0f };
@@ -345,10 +363,18 @@ void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes)
 	float epsilon = 0.000001f;
 	if (fabs(localOrigin.x) > epsilon || fabs(localOrigin.y) > epsilon || fabs(localOrigin.z) > epsilon) {
 		for (auto& m : meshes) {
-			for (auto& v : m->Positions) {
+			/*for (auto& v : m->Positions) {
 				v -= localOrigin;
 			}
-			m->CalculateExtents();
+			m->CalculateExtents();*/
+			if (skeleton != nullptr) {
+				for (auto& bone : skeleton->Bones) {
+					if (!bone->PositionCorrected) {
+						bone->NodeTransform.Position += localOrigin;
+						bone->PositionCorrected = true;
+					}
+				}
+			}
 		}
 	}
 }
@@ -385,14 +411,21 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 	size_t sz = meshes.size();
 	printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());
 
-	//CenterOnOrigin(meshes);
+	
+
+	if (model_data->GetSkeleton()->Bones.size() > 0)
+	{
+		//CenterOnOrigin(meshes, model_data->GetSkeleton());
+	}
+	else {
+		//CenterOnOrigin(meshes, nullptr);
+	}
 
 	// recurse the isn graph and find any bones that are are used in this model...
 
 
 	if (model_data->GetSkeleton()->Bones.size() > 0) {
-
-
+	
 		Skeleton* skeleton = model_data->GetSkeleton();
 
 		skeleton->GlobalInverseTransform = model_data->ImporterSceneRoot()->NodeTransform;
@@ -405,7 +438,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 		BuildBoneHierarchy(rootBoneNode, skeleton);
 		//skeleton->BuildIntoHierarchy();
 		auto rootBone = skeleton->GetBone(skeleton->RootBoneName);
-		rootBone->CalculateInverseBindTransforms(Transform());
+		//rootBone->CalculateInverseBindTransforms(Transform());
 		//rootBone->CalculateInverseBindTransform(Transform());
 
 		printf("There are %d Bones in the skeleton:\n", skeleton->Bones.size());
@@ -471,19 +504,24 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 			}
 		}
 
-		if (0) {
-			int boneIdToMove = skeleton->m_boneMap["Bip01_R_Thigh"];
+		if (1) {
+			int boneIdToMove = skeleton->m_boneMap["lShoulder_0_"];
+			int boneid2 = skeleton->m_boneMap["lUpperArm_0_"];
 			BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
+			BoneData* boneToMove2 = skeleton->Bones[boneid2].get();
 			//boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
 			Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(45));
 			Transform t = boneToMove->NodeTransform;
 			t.Orientation *= q;// *t.Orientation;
 			boneToMove->NodeTransform = t;
+			boneToMove2->NodeTransform = t;
+			
 			//boneToMove->EvaluateSubtree();
 		}
 
 
 	}
+	SetYUp(model_data);
 
 	for (auto& mesh : model_data->GetMeshes()) {
 
@@ -948,11 +986,11 @@ void RecursivePrintBones(const Bone& parent) {
 //
 //}
 
-std::unique_ptr<Skeleton> ModelLoader::BuildXmlSkeleton(tinyxml2::XMLNode * rootNode)
+Skeleton* ModelLoader::BuildXmlSkeleton(tinyxml2::XMLNode * rootNode)
 {
 	using namespace tinyxml2;
 	vector<Bone> bones;
-	auto skeleton = make_unique<Skeleton>();
+	auto skeleton = m_scene->GetSkeletonCache().CreateInstance<Skeleton>(this->m_name);
 
 	auto nodelist = GetChildNodesByName(rootNode, "node");
 	for (auto n : nodelist) {
@@ -985,9 +1023,8 @@ std::unique_ptr<Skeleton> ModelLoader::BuildXmlSkeleton(tinyxml2::XMLNode * root
 			}
 		}
 	}
-	auto skel = make_unique<Skeleton>();
-
-	return skel;
+	
+	return skeleton;
 }
 
 ColladaSkin BuildXMLSkin(tinyxml2::XMLNode* node) {
@@ -1195,7 +1232,15 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 		}
 
 		if (aiMesh->HasBones()) {
-			Skeleton* skeleton = model_data->GetSkeleton();
+			Skeleton* sk = nullptr;
+			if (m_scene->GetSkeletonCache().GetResourceByName(this->m_name + "_skeleton") != nullptr) {
+				sk = m_scene->GetSkeletonCache().GetResourceByName(this->m_name + "_skeleton");
+			}
+			else {
+				sk = m_scene->GetSkeletonCache().CreateInstance<Skeleton>(this->m_name + "_skeleton");
+			}
+			model_data->m_skeleton = sk;			
+			m->SetSkeleton(sk);
 			for (uint i = 0; i < aiMesh->mNumBones; ++i) {
 				aiBone* bone = aiMesh->mBones[i];
 				string bname = bone->mName.data;
@@ -1203,7 +1248,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 				auto bd = make_unique<BoneData>();
 				bd->Name = bname;
 				bd->mesh = m;
-				bd->skeleton = skeleton;
+				bd->skeleton = sk;
 				aiMatrix4x4 mm = bone->mOffsetMatrix;
 				bd->BoneOffsetTransform = aiMatrix4x4ToTransform(mm);
 				ImporterSceneNode* isn = model_data->FindImporterSceneNode(bname);
@@ -1222,14 +1267,14 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 					auto bw = bone->mWeights[j];
 					bd->Weights.emplace_back(VertexBoneWeight{ bw.mVertexId, bw.mWeight, m });
 				}
-				if (skeleton->m_boneMap.find(bname) == skeleton->m_boneMap.end()) {
-					bd->Id = (int)skeleton->Bones.size();
-					skeleton->m_boneMap[bname] = bd->Id;
+				if (sk->m_boneMap.find(bname) == sk->m_boneMap.end()) {
+					bd->Id = (int)sk->Bones.size();
+					sk->m_boneMap[bname] = bd->Id;
 					m->Bones.push_back(bd->Id);
-					skeleton->Bones.push_back(move(bd));
+					sk->Bones.push_back(move(bd));
 				}
 				else {
-					int idx = skeleton->m_boneMap[bname];
+					int idx = sk->m_boneMap[bname];
 					//BoneData& bdata = skeleton->Bones[idx];
 					m->Bones.push_back(idx);
 					printf("Bone already in boneMap: %s\n", bd->Name.data());

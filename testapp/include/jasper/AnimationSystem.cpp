@@ -154,6 +154,13 @@ ImporterSceneNode* Skeleton::GetRootBoneNode()
 	return nullptr;
 }
 
+void SkeletonComponent::Update(double dt)
+{
+	auto go = this->GetGameObject();
+	go->GetScene()->skeleton_to_debug = this->m_skeleton;
+	go->GetScene()->skeleton_debug_game_object_transform = go->GetWorldTransform();
+}
+
 
 Transform BoneData::ToParentSpace()
 {
@@ -164,21 +171,21 @@ Transform BoneData::ToParentSpace()
 	return NodeTransform;
 }
 
-Transform BoneData::RenderTransform() const
-{
-	//return InverseBindTransform * BoneOffsetTransform;
-	return Transform();
-}
-
-void BoneData::CalculateInverseBindTransforms(Transform parentTransform)
-{
-	/*Transform bindTransform = parentTransform * NodeTransform;
-	InverseBindTransform = bindTransform.Inverted();
-	for (int child : Children) {
-		auto& childBone = skeleton->Bones.at(child);
-		childBone->CalculateInverseBindTransforms(bindTransform);
-	}*/
-}
+//Transform BoneData::RenderTransform() const
+//{
+//	//return InverseBindTransform * BoneOffsetTransform;
+//	return Transform();
+//}
+//
+//void BoneData::CalculateInverseBindTransforms(Transform parentTransform)
+//{
+//	/*Transform bindTransform = parentTransform * NodeTransform;
+//	InverseBindTransform = bindTransform.Inverted();
+//	for (int child : Children) {
+//		auto& childBone = skeleton->Bones.at(child);
+//		childBone->CalculateInverseBindTransforms(bindTransform);
+//	}*/
+//}
 
 Transform BoneData::GetWorldTransform() {
 	Transform result = NodeTransform;
@@ -196,13 +203,13 @@ void BoneData::UpdateWorldTransform()
 	//this->WorldTransform = result;
 }
 
-void BoneData::EvaluateSubtree() {
-	/*for (int i : Children) {
-		auto& child = skeleton->Bones[i];
-		child.BoneTransform = this->BoneTransform * child.BoneTransform;
-		child.EvaluateSubtree();
-	}*/
-}
+//void BoneData::EvaluateSubtree() {
+//	/*for (int i : Children) {
+//		auto& child = skeleton->Bones[i];
+//		child.BoneTransform = this->BoneTransform * child.BoneTransform;
+//		child.EvaluateSubtree();
+//	}*/
+//}
 
 
 
@@ -277,11 +284,115 @@ void AnimationComponent::AddAnimation(const Animation&& anim) {
 	m_animations.emplace_back(anim);
 }
 
-void AnimationComponent::Update(float dt)
+//void AnimationComponent::Update(float dt) {
+//	if (m_isPlaying){
+//	auto anim = this->m_animations[m_currentAnimationIndex];
+//	// extract ticks per second. Assume default value if not given
+//	double ticksPerSecond = anim.TicksPerSecond != 0.0 ? anim.TicksPerSecond : 25.0;
+//	// every following time calculation happens in ticks
+//	dt *= ticksPerSecond;
+//
+//	// map into anim's duration
+//	double time = 0.0f;
+//	if (anim.Duration > 0.0)
+//		time = fmod(dt, anim.Duration);
+//
+//	//if (mTransforms.size() != mAnim->mNumChannels)
+//	//	mTransforms.resize(mAnim->mNumChannels);
+//
+//	// calculate the transformations for each animation channel
+//	for (unsigned int a = 0; a < anim.BoneAnimations.size(); a++)
+//	{
+//		const auto channel = anim.BoneAnimations[a];
+//
+//		// ******** Position *****
+//		Vector3 presentPosition(0, 0, 0);
+//		if (channel.PositionKeyframes.size() > 0)
+//		{
+//			// Look for present frame number. Search from last position if time is after the last time, else from beginning
+//			// Should be much quicker than always looking from start for the average use case.
+//			unsigned int frame = (time >= mLastTime) ? mLastPositions[a].get<0>() : 0;
+//			while (frame < channel->mNumPositionKeys - 1)
+//			{
+//				if (time < channel->mPositionKeys[frame + 1].mTime)
+//					break;
+//				frame++;
+//			}
+//
+//			// interpolate between this frame's value and next frame's value
+//			unsigned int nextFrame = (frame + 1) % channel->mNumPositionKeys;
+//			const aiVectorKey& key = channel->mPositionKeys[frame];
+//			const aiVectorKey& nextKey = channel->mPositionKeys[nextFrame];
+//			double diffTime = nextKey.mTime - key.mTime;
+//			if (diffTime < 0.0)
+//				diffTime += mAnim->mDuration;
+//			if (diffTime > 0)
+//			{
+//				float factor = float((time - key.mTime) / diffTime);
+//				presentPosition = key.mValue + (nextKey.mValue - key.mValue) * factor;
+//			}
+//			else
+//			{
+//				presentPosition = key.mValue;
+//			}
+//
+//			mLastPositions[a].get<0>() = frame;
+//		}
+//
+//		// ******** Rotation *********
+//		aiQuaternion presentRotation(1, 0, 0, 0);
+//		if (channel->mNumRotationKeys > 0)
+//		{
+//			unsigned int frame = (time >= mLastTime) ? mLastPositions[a].get<1>() : 0;
+//			while (frame < channel->mNumRotationKeys - 1)
+//			{
+//				if (time < channel->mRotationKeys[frame + 1].mTime)
+//					break;
+//				frame++;
+//			}
+//
+//			// interpolate between this frame's value and next frame's value
+//			unsigned int nextFrame = (frame + 1) % channel->mNumRotationKeys;
+//			const aiQuatKey& key = channel->mRotationKeys[frame];
+//			const aiQuatKey& nextKey = channel->mRotationKeys[nextFrame];
+//			double diffTime = nextKey.mTime - key.mTime;
+//			if (diffTime < 0.0)
+//				diffTime += mAnim->mDuration;
+//			if (diffTime > 0)
+//			{
+//				float factor = float((time - key.mTime) / diffTime);
+//				aiQuaternion::Interpolate(presentRotation, key.mValue, nextKey.mValue, factor);
+//			}
+//			else
+//			{
+//				presentRotation = key.mValue;
+//			}
+//
+//			mLastPositions[a].get<1>() = frame;
+//		}
+//
+//		// ******** Scaling **********
+//		aiVector3D presentScaling(1, 1, 1);
+//		if (channel->mNumScalingKeys > 0)
+//		{
+//			unsigned int frame = (time >= mLastTime) ? mLastPositions[a].get<2>() : 0;
+//			while (frame < channel->mNumScalingKeys - 1)
+//			{
+//				if (time < channel->mScalingKeys[frame + 1].mTime)
+//					break;
+//				frame++;
+//			}
+//
+//			// TODO: (thom) interpolation maybe? This time maybe even logarithmic, not linear
+//			presentScaling = channel->mScalingKeys[frame].mValue;
+//			mLastPositions[a].get<2>() = frame;
+//		}
+//	}
+//}
+
+void AnimationComponent::Update(double dt)
 {
-	auto go = this->GetGameObject();
-	go->GetScene()->skeleton_to_debug = m_skeleton;
-	go->GetScene()->skeleton_debug_game_object_transform = go->GetWorldTransform();
+	
 	if (m_isPlaying) {
 		auto& currentAnim = m_animations[m_currentAnimationIndex];
 		high_resolution_clock::time_point currentTime = high_resolution_clock::now();
@@ -324,79 +435,46 @@ void AnimationComponent::UpdateSkeleton(BoneData* rootBone, float animTime, cons
 	int rotIndex = boneAnim.FindRotationKeyframe(animTime, m_lastPlayedRotation);
 	int posIndex = boneAnim.FindPositionKeyframe(animTime, m_lastPlayedPosition);
 	int scaleIndex = boneAnim.FindScaleKeyframe(animTime, m_lastPlayedScale);
-	auto& animRotation = boneAnim.RotationKeyframes[rotIndex];
-	auto& animPosition = boneAnim.PositionKeyframes[posIndex];
-	auto& animScale = boneAnim.ScaleKeyframes[scaleIndex];
 
+	int nextRot = (rotIndex + 1) % boneAnim.RotationKeyframes.size();
+	int nextPos = (posIndex + 1) % boneAnim.PositionKeyframes.size();
+	int nextSca = (scaleIndex + 1) % boneAnim.ScaleKeyframes.size();
+
+	const auto& currentRotation = boneAnim.RotationKeyframes[rotIndex];
+	const auto& currentPosition = boneAnim.PositionKeyframes[posIndex];
+	const auto& currentScale    = boneAnim.ScaleKeyframes[scaleIndex];
+
+	const auto& nextRotation = boneAnim.RotationKeyframes[nextRot];
+	const auto& nextPosition = boneAnim.PositionKeyframes[nextPos];
+	const auto& nextScale    = boneAnim.ScaleKeyframes[nextSca];
 	//bone->UpdateWorldTransform();
 	//Transform worldTransform = bone->;
 	Transform nodeTransform = bone->NodeTransform;
 	//Transform nodeTransform = bone->ToParentSpace();
 
-
-	// if we are not one keyframe into the animation, use the bone's transform
-	// which is Bind.
-	Quaternion previousRotation;
-	float previousRotationTime = 0.f;
-	//previousRotation.Value = nodeTransform.Orientation;
-	//previousRotation.Time = 0.f;
-	// we now have the keyframes that are due up next
-	if (rotIndex - 1 > 0) {
-		previousRotation = boneAnim.RotationKeyframes[rotIndex - 1].Value;
-		previousRotationTime = boneAnim.RotationKeyframes[rotIndex - 1].Time;
-	}
-	else {
-		previousRotation = boneAnim.RotationKeyframes[0].Value;
-		previousRotationTime = boneAnim.RotationKeyframes[0].Time;
-	}
-
-	Vector3 previousPosition;
-	float previousPositionTime = 0.f;
-	if (posIndex - 1 > 0) {
-		previousPosition = boneAnim.PositionKeyframes[posIndex - 1].Value;
-		previousPositionTime = boneAnim.PositionKeyframes[posIndex - 1].Time;
-	}
-	else {
-		previousPosition = boneAnim.PositionKeyframes[0].Value;
-		previousPositionTime = boneAnim.PositionKeyframes[0].Time;
-	}
-
-	Vector3 previousScale;
-	float previousScaleTime = 0.f;
-	if (scaleIndex - 1 > 0) {
-		previousScale = boneAnim.ScaleKeyframes[scaleIndex - 1].Value;
-		previousScaleTime = boneAnim.ScaleKeyframes[scaleIndex - 1].Time;
-	}
-	else {
-		previousScale = boneAnim.ScaleKeyframes[0].Value;
-		previousScaleTime = boneAnim.ScaleKeyframes[0].Time;
-	}
-
-
-
-	float rotDelta = animRotation.Time - previousRotationTime;
-	float posDelta = animPosition.Time - previousPositionTime;
-	float scaleDelta = animScale.Time - previousScaleTime;
+	float rotDelta = nextRotation.Time - currentRotation.Time;
+	float posDelta = nextPosition.Time - currentPosition.Time;
+	float scaleDelta = nextScale.Time - currentScale.Time;
 	float rotPct = rotDelta > 0.f ? animTime / rotDelta : 0.f;
 	float posPct = posDelta > 0.f ? animTime / posDelta : 0.f;
 	float sclPct = scaleDelta > 0.f ?animTime / scaleDelta: 0.f;
 
 	//Transform animBoneTransform;// = rootBone->BoneTransform;
 	//Quaternion rotq = animRotation.Value;
-	Quaternion rotq = Interpolate(previousRotation, animRotation.Value, rotPct);
-	Vector3    posq = Lerp(previousPosition, animPosition.Value, posPct);
-	Vector3    sclq = Lerp(previousScale, animScale.Value, sclPct);
+	Quaternion rotq = Interpolate(currentRotation.Value, nextRotation.Value, rotPct);
+	Vector3    posq = Lerp(currentPosition.Value, nextPosition.Value, posPct);
+	Vector3    sclq = Lerp(currentScale.Value, nextScale.Value, sclPct);
 	
 	//animBoneTransform.Orientation = rotq;
 
 	//nodeTransform.Orientation = animRotation.Value;
 	//nodeTransform.Position = animPosition.Value;
 	//nodeTransform.Scale = animScale.Value;
-	nodeTransform.Orientation = rotq;
-	nodeTransform.Position = posq;
-	nodeTransform.Scale = sclq;
+	nodeTransform.Orientation = nextRotation.Value;
+	nodeTransform.Position = nextPosition.Value;
+	nodeTransform.Scale = nextScale.Value;
 	//bone->TransformationTransform = parentTransform * nodeTransform;
-	Transform nt = Transform(animPosition.Value, animRotation.Value, animScale.Value);
+	Transform nt = nodeTransform; // Transform(animPosition.Value, animRotation.Value, animScale.Value);
 	bone->NodeTransform = nt;// nodeTransform;
 	bone->UpdateWorldTransform();
 

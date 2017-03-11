@@ -15,7 +15,7 @@ void ParticleSystem::Awake()
 {
 }
 
-void ParticleSystem::Update(float dt)
+void ParticleSystem::Update(double dt)
 {
 }
 
@@ -36,7 +36,7 @@ void ParticleRenderer::Initialize()
 
 }
 
-void ParticleRenderer::Update(float dt)
+void ParticleRenderer::Update(double dt)
 {
     // update stuff
     // ...

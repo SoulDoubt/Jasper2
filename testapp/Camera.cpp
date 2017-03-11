@@ -90,7 +90,7 @@ void Camera::Awake()
     }
 }
 
-void Camera::Update(float dt){
+void Camera::Update(double dt){
     UpdateViewMatrix();
     UpdateFrustum();
 }

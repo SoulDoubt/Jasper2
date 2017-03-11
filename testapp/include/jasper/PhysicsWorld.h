@@ -25,7 +25,7 @@ public:
 
     void Initialize();
     void Destroy();
-    void Update(float dt);
+    void Update(double dt);
 
     void AddRigidBody(btRigidBody* rb);
     void AddCollider(PhysicsCollider* collider);

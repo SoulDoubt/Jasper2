@@ -78,7 +78,7 @@ void PhysicsCollider::FixedUpdate()
 
 }
 
-void PhysicsCollider::Update(float dt)
+void PhysicsCollider::Update(double dt)
 {
     if (m_isEnabled) {
         auto go = this->GetGameObject();
@@ -184,7 +184,7 @@ void CompoundCollider::Awake()
         if (i == 0) {
             compound->addChildShape(btTrans, hull.get());
         } else {
-            btTrans = btTransform::getIdentity();
+            //btTrans = btTransform::getIdentity();
             compound->addChildShape(btTrans, hull.get());
         }
     }
@@ -635,6 +635,37 @@ void GhostCollider::Awake()
 	
 	m_ghostObject = make_unique<btPairCachingGhostObject>();
 
+}
+
+RagdollCollider::RagdollCollider(const std::string & name, ShapeList & hulls, PhysicsWorld* world)
+	:PhysicsCollider(name, Vector3(0.f, 0.f, 0.f), world)
+{
+	
+	for (auto& hull : hulls) {
+		m_hulls.emplace_back(move(hull));
+	}
+	
+}
+
+void RagdollCollider::Awake()
+{
+	auto t = GetGameObject()->GetLocalTransform();
+	auto btTrans = t.AsBtTransform();
+	for (const auto& hull : m_hulls) {
+		unique_ptr<btDefaultMotionState> ms = make_unique<btDefaultMotionState>(btTrans);
+		float mass = 5;
+		btVector3 inertia;
+		hull->calculateLocalInertia(mass, inertia);
+		btRigidBody::btRigidBodyConstructionInfo rbci(Mass, ms.get(), hull.get(), inertia);
+		unique_ptr<btRigidBody> rb = make_unique<btRigidBody>(rbci);
+		rb->setUserPointer(GetGameObject());
+		m_world->AddRigidBody(rb.get());
+		m_bodies.emplace_back(move(rb));
+	}
+}
+
+void RagdollCollider::Update(double dt)
+{
 }
 
 } // namespace Jasper

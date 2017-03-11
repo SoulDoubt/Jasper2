@@ -134,11 +134,13 @@ void Renderer::CullGameObjects()
             auto t = go->GetWorldTransform();
             auto bt = t.AsBtTransform();
             btVector3 min, max;
-            c->GetCollisionShape()->getAabb(bt, min, max);
-            Vector3 half = {((max - min) * 0.5f)};
-            if (TestFrustum(frustum, t.Position, half)) {
-                m_renderersToRender.push_back(mr);
-            }
+			if (c->GetCollisionShape() != nullptr) {
+				c->GetCollisionShape()->getAabb(bt, min, max);
+				Vector3 half = { ((max - min) * 0.5f) };
+				if (TestFrustum(frustum, t.Position, half)) {
+					m_renderersToRender.push_back(mr);
+				}
+			}
         } else {
             m_renderersToRender.push_back(mr);
         }

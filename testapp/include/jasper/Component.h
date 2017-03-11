@@ -26,6 +26,10 @@ enum class ComponentType{
     ScriptComponent
 };
 
+class ComponentManager {
+
+};
+
 class Component
 {
 public:
@@ -55,7 +59,7 @@ public:
     virtual void Awake();
     virtual void Start();
     virtual void FixedUpdate();
-    virtual void Update(float dt);
+    virtual void Update(double dt);
     virtual void LateUpdate();
     virtual bool ShowGui();
     virtual void Serialize(std::ofstream& ofs) const;

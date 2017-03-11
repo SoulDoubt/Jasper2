@@ -4,7 +4,7 @@
 namespace Jasper
 {
 
-void RotateInPlaceScript::Update(float dt)
+void RotateInPlaceScript::Update(double dt)
 {
     auto go = GetGameObject();
     Transform& t = go->GetLocalTransform();

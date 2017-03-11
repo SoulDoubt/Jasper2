@@ -27,7 +27,7 @@ void LauncherScript::Serialize(std::ofstream & ofs) const
 
 }
 
-void LauncherScript::Update(float dt)
+void LauncherScript::Update(double dt)
 {
     auto gameObject = GetGameObject();
     auto awakeTime = gameObject->TimeAwakened;

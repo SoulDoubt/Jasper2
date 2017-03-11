@@ -52,7 +52,7 @@ public:
     void Awake() override;
     void Start() override;
     void FixedUpdate() override;
-    void Update(float dt) override;
+    void Update(double dt) override;
     void LateUpdate() override;
     bool ShowGui() override;
     void Serialize(std::ofstream& ofs) const;
@@ -243,6 +243,25 @@ public:
     ~SphereCollider();
 
     void Awake() override;
+
+};
+
+class RagdollCollider :
+	public PhysicsCollider {
+
+	using ShapeList = std::vector<std::unique_ptr<btCollisionShape>>;
+	using BodyList = std::vector<std::unique_ptr<btRigidBody>>;
+	using MotionStateList = std::vector<std::unique_ptr<btDefaultMotionState>>;
+public:
+	
+	RagdollCollider(const std::string& name, ShapeList& hulls, PhysicsWorld* world);
+
+	void Awake() override;
+	void Update(double dt) override;
+
+	ShapeList m_hulls;
+	BodyList m_bodies;
+	MotionStateList m_motionStates;
 
 };
 

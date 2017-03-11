@@ -76,21 +76,21 @@ struct BoneData {
 	//Transform InverseBindTransform; 
 	Transform ToParentSpace();
 	// The transform to actually send up to the shader
-	Transform RenderTransform() const;
+	//Transform RenderTransform() const;
 	
-	void CalculateInverseBindTransforms(Transform parentTransform);
+	//void CalculateInverseBindTransforms(Transform parentTransform);
 	
 	Transform GetSkinningTransform() {
 		return GetWorldTransform() * BoneOffsetTransform;
 	}
 
-			
+	bool PositionCorrected = false;
 
 
 	Transform GetWorldTransform();
 	void UpdateWorldTransform();
 
-	void EvaluateSubtree();
+	//void EvaluateSubtree();
 private:
 	BoneData* getParentBone() const;
 
@@ -120,28 +120,45 @@ struct Bone {
 	
 };
 
-class Skeleton
+class Skeleton //: public Component
 {
 public:
-
-
+	
+	Skeleton(const std::string& name) : m_name(name){}
 	std::string RootBoneName;
 	Transform GlobalInverseTransform;
+	std::string& GetName() {
+		return m_name;
+	}
+
 	std::vector<std::unique_ptr<BoneData>> Bones;
 	std::unordered_map<std::string, int> m_boneMap;
 
-
 	BoneData* RootBone;
 
-	void EvaluateBoneSubtree(const BoneData& parent);
+	//void EvaluateBoneSubtree(const BoneData& parent);
 	void TraverseSkeleton(const ImporterSceneNode* node);
 	void TransformBone(BoneData* bone);
 	void BuildIntoHierarchy();
 	BoneData* GetBone(const std::string& name);
 	ImporterSceneNode* GetRootBoneNode();
-private:
+
 	
+
+private:
+	std::string m_name;
 	void RecursiveBuild(ImporterSceneNode* parentNode);
+};
+
+class SkeletonComponent : public Component {
+public:
+	SkeletonComponent(const std::string& name, Skeleton* skeleton) 
+		: Component(name + "Skeleton"), m_skeleton(skeleton) {}
+
+	void Update(double dt) override;
+
+private:
+	Skeleton* m_skeleton;
 };
 
 struct RotationKeyframe {
@@ -202,7 +219,7 @@ public:
 	std::vector<Animation>& GetAnimations();
 	void AddAnimation(const Animation&& anim);
 
-	void Update(float dt) override;
+	void Update(double dt) override;
 	void Awake() override;
 	void UpdateSkeleton(BoneData* rootBone, float animTime, const Transform& parentTransform);
 

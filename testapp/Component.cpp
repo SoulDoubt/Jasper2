@@ -25,7 +25,7 @@ void Component::Start() {
 void Component::FixedUpdate() {
 }
 
-void Component::Update(float dt) {
+void Component::Update(double dt) {
 
 }
 

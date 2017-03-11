@@ -21,7 +21,7 @@ SkyboxRenderer::~SkyboxRenderer()
     Destroy();
 }
 
-void SkyboxRenderer::Update(float dt)
+void SkyboxRenderer::Update(double dt)
 {
     Render();
 }

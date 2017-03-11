@@ -242,7 +242,7 @@ void GameObject::FixedUpdate()
 
 }
 
-void GameObject::Update(float dt)
+void GameObject::Update(double dt)
 {
     UpdateCurrent(dt);
     UpdateChildren(dt);
@@ -293,7 +293,7 @@ void GameObject::StartChildren()
     }
 }
 
-void GameObject::UpdateCurrent(float dt)
+void GameObject::UpdateCurrent(double dt)
 {
 //    for (int i = 0; i < m_components.size(); ++i) {
 //        auto& c = m_components[i];
@@ -314,7 +314,7 @@ void GameObject::UpdateCurrent(float dt)
 
 }
 
-void GameObject::UpdateChildren(float dt)
+void GameObject::UpdateChildren(double dt)
 {
     //printf("\nUpdating children for game object %s\n", this->GetName().c_str());
     //printf("%d children in collection\n", m_children.size());

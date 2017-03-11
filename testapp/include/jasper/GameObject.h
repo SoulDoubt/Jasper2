@@ -87,7 +87,7 @@ public:
 	virtual void Awake();
 	virtual void Start();
 	virtual void FixedUpdate();
-	virtual void Update(float dt);
+	virtual void Update(double dt);
 	virtual void LateUpdate();
 	virtual bool ShowGui();
 
@@ -175,8 +175,8 @@ protected:
 	void AwakeChildren();
 	virtual void StartCurrent();
 	void StartChildren();
-	virtual void UpdateCurrent(float dt);
-	void UpdateChildren(float dt);
+	virtual void UpdateCurrent(double dt);
+	void UpdateChildren(double dt);
 	virtual void DestroyCurrent();
 	void DestroyChildren();
 	virtual void LateUpdateCurrent();

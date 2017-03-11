@@ -9,7 +9,6 @@
 namespace Jasper
 {
 
-
 class Transform
 {
 

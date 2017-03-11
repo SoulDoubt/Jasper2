@@ -83,7 +83,7 @@ void PhysicsWorld::Destroy()
 
 }
 
-void PhysicsWorld::Update(float dt)
+void PhysicsWorld::Update(double dt)
 {
     m_world->stepSimulation(dt, 10);
 }

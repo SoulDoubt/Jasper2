@@ -379,7 +379,7 @@ class VertexBoneWeight;
 
 
 
-class Mesh : public Component
+class Mesh //: public Component
 {
 public:
     enum class VERTEX_FORMAT
@@ -436,25 +436,27 @@ public:
 
     std::vector<int> Bones;
 
+	
+
     int m_numBones = 0;
 
     explicit Mesh(const std::string& name);
     virtual ~Mesh();
 
-    void Initialize() override;
-    void Destroy() override;
+    virtual void Initialize();
+    virtual void Destroy();
 
     void FlipTextureCoords();
 
-    ComponentType GetComponentType() const override {
+   /* ComponentType GetComponentType() const override {
         return ComponentType::Mesh;
-    }
+    }*/
 
     virtual MeshType GetMeshType() const {
         return MeshType::Arbitrary;
     }
 
-    void Serialize(std::ofstream& ofs) const override;
+    virtual void Serialize(std::ofstream& ofs) const;
 
     std::vector<Vector3> Positions;
     std::vector<Vector3> Normals;
@@ -462,6 +464,7 @@ public:
     std::vector<Vector4> Colors;
     std::vector<Vector4> Tangents;
     std::vector<Vector3> Bitangents;
+	std::vector<uint>    Indices;
 
     Vector4 Color;
 
@@ -527,7 +530,7 @@ public:
     }
 
     //std::vector<Vertex> Vertices;
-    std::vector<uint> Indices;
+    
 
     void CalculateTangentSpace();
     void CalculateFaceNormals();
@@ -551,7 +554,17 @@ public:
         return m_skeleton;
     }
 
+	const std::string& GetName() const {
+		return m_name;
+	}
+
+	void SetName(const std::string& name) {
+		m_name = name;
+	}
+
 protected:
+
+	std::string m_name;
 
     int renderer_count = 0;
 

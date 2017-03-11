@@ -30,7 +30,7 @@ public:
     void Initialize() override;
     void Destroy() override;
     void Awake() override;
-    void Update(float dt) override;
+    void Update(double dt) override;
 
 
 
@@ -44,7 +44,7 @@ public:
     ParticleRenderer(std::string name, Shader* shader, ParticleSystem* system);
     
     void Initialize() override;
-    void Update(float dt) override;
+    void Update(double dt) override;
     
 
     private:

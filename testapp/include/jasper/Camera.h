@@ -33,7 +33,7 @@ public:
     }
 
     void Awake() override;
-    void Update(float dt) override;
+    void Update(double dt) override;
 
     void SetPhysicsWorld(PhysicsWorld* world);
 

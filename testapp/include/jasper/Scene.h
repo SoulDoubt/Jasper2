@@ -62,7 +62,7 @@ public:
 
     GameObject* GetGameObjectByName(const std::string& name);
 
-    void Update(float dt);
+    void Update(double dt);
     void Awake();
     void Start();
     void Destroy();
@@ -156,6 +156,10 @@ public:
     ResourceManager<Shader>& GetShaderCache() {
         return m_shaderManager;
     }
+
+	ResourceManager<Skeleton>& GetSkeletonCache() {
+		return m_skeletons;
+	}
     
     std::vector<PointLight*>& GetPointLights() {
         return m_pointLights;
@@ -207,6 +211,7 @@ private:
     ResourceManager<Material> m_materialManager;
     ResourceManager<Texture> m_textureManager;
     ResourceManager<ModelData> m_modelManager;    
+	ResourceManager<Skeleton> m_skeletons;
     
     std::vector<PointLight*> m_pointLights;
     

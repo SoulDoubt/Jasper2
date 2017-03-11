@@ -10,7 +10,7 @@ using namespace std::chrono;
 namespace Jasper
 {
 
-void DefaultScript::Update(float dt)
+void DefaultScript::Update(double dt)
 {
 //        auto go = GetGameObject();
 //        auto current = high_resolution_clock::now();
@@ -39,7 +39,7 @@ void DefaultScript::Update(float dt)
 //        }
 }
 
-void DestroyScript::Update(float dt)
+void DestroyScript::Update(double dt)
 {
     auto go = GetGameObject();
     auto current = std::chrono::high_resolution_clock::now();

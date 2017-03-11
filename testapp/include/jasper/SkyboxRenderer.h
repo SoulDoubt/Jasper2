@@ -15,7 +15,7 @@ public:
     SkyboxRenderer(const SkyboxRenderer& o) = delete;
     SkyboxRenderer& operator=(const SkyboxRenderer& o) = delete;
     ~SkyboxRenderer();
-    void Update(float dt) override;
+    void Update(double dt) override;
     void Render() override;
     ComponentType GetComponentType() const override {
         return ComponentType::SkyboxRenderer;

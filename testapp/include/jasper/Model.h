@@ -29,7 +29,7 @@ public:
 
     ModelData(std::string name) {
         m_name = std::move(name);
-        m_skeleton = std::make_unique<Skeleton>();
+        //m_skeleton = std::make_unique<SkeletonComponent>();
     }
 
     std::vector<Mesh*>& GetMeshes()  {
@@ -52,7 +52,7 @@ public:
     }
 
     Skeleton* GetSkeleton() {
-        return m_skeleton.get();
+        return m_skeleton;
     }
 
     void CreateRagdollCollider(Scene* scene, GameObject* go);
@@ -90,17 +90,17 @@ public:
 		}
 	}
 	
-	ImporterSceneNode* GetRootBoneNode(Skeleton* skeleton);
+	//ImporterSceneNode* GetRootBoneNode(SkeletonComponent* skeleton);
 
 	std::unique_ptr<AnimationComponent> Animator;
-
+	Skeleton* m_skeleton;
 
 private:
 
     std::string						   m_name;
     std::vector<Mesh*>				   m_meshes;
     std::vector<Material*>			   m_materials;
-    std::unique_ptr<Skeleton>		   m_skeleton;
+    
 	std::unique_ptr<ImporterSceneNode> m_importerSceneRoot;
 
 };
@@ -130,7 +130,7 @@ public:
     uint VertCount = 0;
 
     void SaveToAssetFile(const std::string& filename);
-	void CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes);
+	void CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes, Skeleton* skeleton);
 	void LoadModel(const std::string& filename, const std::string& name);
 
 	void LoadXmlModel(const std::string& filename, const std::string& name);
@@ -144,7 +144,7 @@ public:
 	std::unique_ptr<ColladaMesh> BuildPolylistMesh(tinyxml2::XMLNode* meshNode);
 	std::unique_ptr<ColladaMesh> BuildTriangleListMesh(tinyxml2::XMLNode* meshNode);
 	Material* BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode);
-	std::unique_ptr<Skeleton> BuildXmlSkeleton(tinyxml2::XMLNode* rootNode);
+	Skeleton* BuildXmlSkeleton(tinyxml2::XMLNode* rootNode);
 
 private:
     std::string m_name;

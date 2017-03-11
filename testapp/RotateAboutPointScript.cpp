@@ -10,7 +10,7 @@
 namespace Jasper
 {
 
-void RotateAboutPointScript::Update(float dt)
+void RotateAboutPointScript::Update(double dt)
 {
     auto go = GetGameObject();
     if (go != nullptr) {

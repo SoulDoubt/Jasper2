@@ -170,7 +170,7 @@ void MeshRenderer::Start() {}
 
 void MeshRenderer::FixedUpdate() {}
 
-void MeshRenderer::Update(float dt)
+void MeshRenderer::Update(double dt)
 {
 
 }

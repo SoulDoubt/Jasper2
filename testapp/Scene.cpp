@@ -478,19 +478,20 @@ void Scene::InitializeManual()
 		float a = DEG_TO_RAD(i * 30);
 		float ax = cx + radius * sinf(a);
 		float az = cz + radius * cosf(a);
-		auto& model = m_rootNode->AttachChild(ml.CreateModelInstance("column"s + to_string(i), "column", true, false));
-		model.GetLocalTransform().Position = { ax, 1.2f, az };
+		//auto& model = m_rootNode->AttachChild(ml.CreateModelInstance("column"s + to_string(i), "column", true, false));
+		//model.GetLocalTransform().Position = { ax, 1.2f, az };
 		//model.GetLocalTransform().UniformScale(0.001f);
 
 	}
 
 	//ml.LoadModel("../models/C3P0/C3P0.dae"s, "Threepio");
 	//ml.LoadModel("../models/Alien/Alien.dae"s, "Threepio");
-	ml.LoadModel("../models/cowboy/model.dae"s, "Threepio");
+	//ml.LoadModel("../models/cowboy/model.dae"s, "Threepio");
 	//ml.LoadModel("../models/viewmodel_ak12/untitled.dae"s, "Threepio");
 	//ml.LoadModel("../models/ArmyPilot/ArmyPilot.dae", "Threepio");
-	//ml.LoadModel("../models/testman/test_Milkshape.ms3d", "Threepio");
-	auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio", "Threepio", true, false));
+	ml.LoadModel("../models/testman/test_Milkshape.ms3d", "Threepio");
+	//ml.LoadModel("../models/Stormtrooper/Stormtrooper.dae", "Threepio"s);
+	auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio"s, "Threepio"s, true, false));
 	lara.GetLocalTransform().Position = { 5.f, 1.2f, 4.f };
 	//lara.GetLocalTransform().UniformScale(0.075);
 	/*for (auto& ch : lara.Children()) {
@@ -643,7 +644,7 @@ Vector3 pa = { -10.f, 1.f, -3.f };
 float lerpTime = 1.0f;
 float currentLerpTime = 0.f;
 
-void Scene::Update(float dt)
+void Scene::Update(double dt)
 {
 	using namespace std::chrono;
 
