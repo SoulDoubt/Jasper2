@@ -1,7 +1,9 @@
-#include "AnimationSystem.h"
-#include "Model.h"
+#include <AnimationSystem.h>
+#include <Model.h>
 #include <vector>
 #include <Scene.h>
+#include <imgui.h>
+#include <AssetSerializer.h>
 
 namespace Jasper
 {
@@ -11,7 +13,12 @@ using namespace std::chrono;
 
 Matrix4 aiMatrix4x4ToMatrix4(const aiMatrix4x4& mm)
 {
-	return Matrix4(Vector4(mm.a1, mm.a2, mm.a3, mm.a4), Vector4(mm.b1, mm.b2, mm.b3, mm.b4), Vector4(mm.c1, mm.c2, mm.c3, mm.c4), Vector4(mm.d1, mm.d2, mm.d3, mm.d4));
+	return Matrix4(
+		Vector4(mm.a1, mm.a2, mm.a3, mm.a4), 
+		Vector4(mm.b1, mm.b2, mm.b3, mm.b4), 
+		Vector4(mm.c1, mm.c2, mm.c3, mm.c4), 
+		Vector4(mm.d1, mm.d2, mm.d3, mm.d4)
+	);
 }
 
 Transform aiMatrix4x4ToTransform(const aiMatrix4x4& mm)
@@ -44,59 +51,6 @@ Vector3 aiVector3ToVector3(const aiVector3D & v)
 }
 
 
-//Transform BoneData::BuildParentTransform()
-//{
-//	vector<Transform> pts;
-//	auto parent = INode->Parent;
-//	while (parent != nullptr) {
-//		pts.push_back(parent->NodeTransform);
-//		parent = parent->Parent;
-//	}
-//	Transform pt;
-//	for (int i = pts.size() - 1; i >= 0; --i) {
-//		pt *= pts.at(i);
-//	}
-//	this->ParentTransform = pt;
-//	return pt;
-//}
-
-void Skeleton::RecursiveBuild(ImporterSceneNode * parentNode)
-{
-	BoneData* parentBone = GetBone(parentNode->Name);
-	parentBone->NodeTransform = parentNode->NodeTransform;
-	assert(parentBone);
-	for (auto& child : parentNode->Children) {
-		if (child.isUsedBone) {
-			auto childBone = GetBone(child.Name);
-			assert(childBone);
-			//childBone->InverseBindTransform = (parentBone->NodeTransform * childBone->NodeTransform).Inverted();
-			parentBone->Children.push_back(childBone->Id);
-			RecursiveBuild(&child);
-		}
-		else {
-			printf("skipping bone child node: %s\n", child.Name.data());
-		}
-	}
-}
-
-
-
-
-void Skeleton::BuildIntoHierarchy()
-{
-	auto rootBoneNode = GetRootBoneNode();
-	auto p = rootBoneNode->Parent;
-	Transform t = rootBoneNode->NodeTransform;
-	while (p != nullptr) {
-		t = p->NodeTransform * t;
-		p = p->Parent;
-	}
-	GlobalInverseTransform = t.Inverted();
-	rootBoneNode->NodeTransform = t;
-	RecursiveBuild(rootBoneNode);
-
-
-}
 
 BoneData* Skeleton::GetBone(const std::string & name)
 {
@@ -107,9 +61,8 @@ BoneData* Skeleton::GetBone(const std::string & name)
 	return nullptr;
 }
 
-BoneData* BoneData::getParentBone() const {
-	if (ParentID == -1) return nullptr;
-	return skeleton->Bones[ParentID].get();
+BoneData* BoneData::getParentBone() const {	
+	return Parent;
 }
 
 
@@ -121,6 +74,7 @@ ImporterSceneNode* Skeleton::GetRootBoneNode()
 
 	auto parentNode = boneNode->Parent;
 	ImporterSceneNode* rootBoneNode = parentNode;
+
 	while (parentNode != nullptr) {
 		auto parentNode = boneNode->Parent;
 		const auto parentBoneIterator = m_boneMap.find(parentNode->Name);
@@ -132,6 +86,7 @@ ImporterSceneNode* Skeleton::GetRootBoneNode()
 			// boneNode is the root bone							
 			rootBoneNode = boneNode;
 			BoneData* rootBone = Bones[m_boneMap[boneNode->Name]].get();
+			rootBone->Parent = nullptr;
 			this->RootBone = rootBone;
 			assert(rootBone != nullptr);
 			if (rootBoneNode->Parent != nullptr) {
@@ -141,17 +96,25 @@ ImporterSceneNode* Skeleton::GetRootBoneNode()
 				while (rbp != nullptr) {
 					t = rbp->NodeTransform * t;
 					rbp = rbp->Parent;
-				}
-				//rootBone->WorldTransform = t;
-				this->GlobalInverseTransform = t;
+				}				
+				this->GlobalInverseTransform = t.Inverted();
+				rootBone->NodeTransform = t;				
 			}
 			else {
-				this->GlobalInverseTransform = rootBoneNode->NodeTransform;
+				this->GlobalInverseTransform = rootBoneNode->NodeTransform.Inverted();
+				rootBone->NodeTransform = rootBoneNode->NodeTransform;
 			}
 			return rootBoneNode;
 		}
 	}
 	return nullptr;
+}
+
+void Skeleton::UpdateWorldTransforms()
+{
+	for (auto& bone : Bones) {
+		bone->UpdateWorldTransform();
+	}
 }
 
 void SkeletonComponent::Update(double dt)
@@ -161,103 +124,132 @@ void SkeletonComponent::Update(double dt)
 	go->GetScene()->skeleton_debug_game_object_transform = go->GetWorldTransform();
 }
 
+void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
+	using namespace ImGui;
+	//if (TreeNode(bd->Name.c_str())) {
 
-Transform BoneData::ToParentSpace()
-{
-	auto p = getParentBone();
-	if (p) {
-		return p->NodeTransform * this->NodeTransform;
+	Transform& t = bd->NodeTransform;
+	Vector3 pos = t.Position;
+	Quaternion rot = t.Orientation;
+	Vector3 scale = t.Scale;
+	float roll = t.Orientation.Roll();
+	float pitch = t.Orientation.Pitch();
+	float yaw = t.Orientation.Yaw();
+	bool rotation_updates = false;
+	if (ImGui::SliderAngle("Nt Roll", &roll)) {
+		rotation_updates = true;
 	}
-	return NodeTransform;
+	if (ImGui::SliderAngle("Nt Pitch", &pitch)) {
+		rotation_updates = true;
+	}
+	if (ImGui::SliderAngle("Nt Yaw", &yaw)) {
+		rotation_updates = true;
+	}
+	/*if (ImGui::InputFloat4("Nt Rot:", rot.AsFloatPtr())) {
+		t.Orientation = rot;
+	}*/
+	/*if (ImGui::DragFloat3("Nt Pos:", pos.AsFloatPtr())) {
+		t.Position = pos;
+	}*/
+	if (ImGui::InputFloat3("Nt Scale:", scale.AsFloatPtr())) {
+		t.Scale = scale;
+	}
+
+
+	/*Transform& ot = bd->BoneOffsetTransform;
+	Vector3 opos = ot.Position;
+	float oroll = ot.Orientation.Roll();
+	float opitch = ot.Orientation.Pitch();
+	float oyaw = ot.Orientation.Yaw();
+	bool orotation_updates = false;
+	if (ImGui::SliderAngle("Offset Roll", &oroll)) {
+		orotation_updates = true;
+	}
+	if (ImGui::SliderAngle("Offset Pitch", &opitch)) {
+		rotation_updates = true;
+	}
+	if (ImGui::SliderAngle("Offset Yaw", &oyaw)) {
+		rotation_updates = true;
+	}
+	if (ImGui::DragFloat3("Offset Pos:", opos.AsFloatPtr())) {
+		ot.Position = opos;
+	}
+
+	if (orotation_updates) {
+		Quaternion oq = Quaternion(opitch, oroll, oyaw);
+		ot.Orientation = oq;
+	}*/
+
+	if (rotation_updates) {
+		Quaternion q = Quaternion(pitch, roll, yaw);
+		t.Orientation = q;
+		bd->skeleton->UpdateWorldTransforms();
+	}
+
+	for (auto& child : bd->Children) {
+		if (TreeNode(skeleton->Bones[child]->Name.c_str())) {
+			SetBoneTransformGui(skeleton->Bones[child].get(), skeleton);
+			TreePop();
+		}
+		//	}
+		//	TreePop();
+	}
 }
 
-//Transform BoneData::RenderTransform() const
-//{
-//	//return InverseBindTransform * BoneOffsetTransform;
-//	return Transform();
-//}
-//
-//void BoneData::CalculateInverseBindTransforms(Transform parentTransform)
-//{
-//	/*Transform bindTransform = parentTransform * NodeTransform;
-//	InverseBindTransform = bindTransform.Inverted();
-//	for (int child : Children) {
-//		auto& childBone = skeleton->Bones.at(child);
-//		childBone->CalculateInverseBindTransforms(bindTransform);
-//	}*/
-//}
+bool SkeletonComponent::ShowGui()
+{
+	using namespace ImGui;
+
+	auto rootBone = m_skeleton->RootBone;
+
+	SetBoneTransformGui(rootBone, m_skeleton);
+
+
+	return false;
+}
+
+void SkeletonComponent::Serialize(std::ofstream & ofs) const
+{
+	assert(m_skeleton);
+	using namespace AssetSerializer;
+	Component::Serialize(ofs);
+	int bonec = static_cast<int>(m_skeleton->Bones.size());
+	WriteInt(ofs, bonec);
+	for (const auto& b : m_skeleton->Bones) {
+		// write bone name
+		WriteString(ofs, b->Name);
+		// write bone id, parent id, node transform, and offset transform
+		int bid = b->Id;
+		int pid = b->ParentID;
+		WriteInt(ofs, bid);
+		WriteInt(ofs, pid);
+		WriteTransform(ofs, b->NodeTransform);
+		WriteTransform(ofs, b->BoneOffsetTransform);
+
+	}
+}
+
+Transform BoneData::GetSkinningTransform() {
+	return WorldTransform * BoneOffsetTransform;
+}
+
 
 Transform BoneData::GetWorldTransform() {
+	
+	return this->WorldTransform;
+}
+
+void BoneData::UpdateWorldTransform()
+{
 	Transform result = NodeTransform;
 	auto pb = getParentBone();
 	while (pb != nullptr) {
 		result = pb->NodeTransform * result;
 		pb = pb->getParentBone();
 	}
-	return result;
+	this->WorldTransform = result;
 }
 
-void BoneData::UpdateWorldTransform()
-{
-	
-	//this->WorldTransform = result;
-}
-
-//void BoneData::EvaluateSubtree() {
-//	/*for (int i : Children) {
-//		auto& child = skeleton->Bones[i];
-//		child.BoneTransform = this->BoneTransform * child.BoneTransform;
-//		child.EvaluateSubtree();
-//	}*/
-//}
-
-
-
-void Skeleton::TraverseSkeleton(const ImporterSceneNode* node)
-{
-	int bdidx = this->m_boneMap[node->Name];
-	BoneData* parent = this->Bones[bdidx].get();
-	int childCount = node->Children.size();
-	printf("Traversing children of: %s \n", parent->Name.data());
-	for (int i = 0; i < childCount; ++i) {
-		auto& child = node->Children[i];
-		int childbdidx = this->m_boneMap[child.Name];
-		BoneData* childbd = this->Bones[childbdidx].get();
-		//childbd.BoneTransform = parent.BoneTransform * child.NodeTransform;
-		childbd->ParentID = parent->Id;
-		//childbd->InverseBindTransform = parent->InverseBindTransform * child.NodeTransform;
-		//parent.Children.push_back(&childbd);		
-		TraverseSkeleton(&child);
-	}
-}
-
-
-void Skeleton::TransformBone(BoneData* bone) {
-	/*if (bone->ParentID > -1) {
-		bone->BoneTransform = Bones[bone->ParentID]->BoneTransform * bone->BoneTransform;
-		TransformBone(Bones[bone->ParentID].get());
-	}
-	else {
-		return;
-	}*/
-}
-
-//Transform BoneData::BuildParentTransforms()
-//{
-//	std::vector<Transform> transforms;
-//	int parentID = ParentID;
-//	while (parentID > -1) {
-//		BoneData& parentBone = skeleton->Bones[parentID];
-//		transforms.push_back(parentBone.BoneTransform);
-//		parentID = parentBone.ParentID;
-//	}
-//	Transform result;
-//	for (int i = transforms.size() - 1; i > -1; --i) {
-//		result *= transforms[i];
-//	}
-//	this->ParentTransform = result;
-//	return result;
-//}
 
 
 // ----------------- AnimationComponent class ------------------------
@@ -284,132 +276,26 @@ void AnimationComponent::AddAnimation(const Animation&& anim) {
 	m_animations.emplace_back(anim);
 }
 
-//void AnimationComponent::Update(float dt) {
-//	if (m_isPlaying){
-//	auto anim = this->m_animations[m_currentAnimationIndex];
-//	// extract ticks per second. Assume default value if not given
-//	double ticksPerSecond = anim.TicksPerSecond != 0.0 ? anim.TicksPerSecond : 25.0;
-//	// every following time calculation happens in ticks
-//	dt *= ticksPerSecond;
-//
-//	// map into anim's duration
-//	double time = 0.0f;
-//	if (anim.Duration > 0.0)
-//		time = fmod(dt, anim.Duration);
-//
-//	//if (mTransforms.size() != mAnim->mNumChannels)
-//	//	mTransforms.resize(mAnim->mNumChannels);
-//
-//	// calculate the transformations for each animation channel
-//	for (unsigned int a = 0; a < anim.BoneAnimations.size(); a++)
-//	{
-//		const auto channel = anim.BoneAnimations[a];
-//
-//		// ******** Position *****
-//		Vector3 presentPosition(0, 0, 0);
-//		if (channel.PositionKeyframes.size() > 0)
-//		{
-//			// Look for present frame number. Search from last position if time is after the last time, else from beginning
-//			// Should be much quicker than always looking from start for the average use case.
-//			unsigned int frame = (time >= mLastTime) ? mLastPositions[a].get<0>() : 0;
-//			while (frame < channel->mNumPositionKeys - 1)
-//			{
-//				if (time < channel->mPositionKeys[frame + 1].mTime)
-//					break;
-//				frame++;
-//			}
-//
-//			// interpolate between this frame's value and next frame's value
-//			unsigned int nextFrame = (frame + 1) % channel->mNumPositionKeys;
-//			const aiVectorKey& key = channel->mPositionKeys[frame];
-//			const aiVectorKey& nextKey = channel->mPositionKeys[nextFrame];
-//			double diffTime = nextKey.mTime - key.mTime;
-//			if (diffTime < 0.0)
-//				diffTime += mAnim->mDuration;
-//			if (diffTime > 0)
-//			{
-//				float factor = float((time - key.mTime) / diffTime);
-//				presentPosition = key.mValue + (nextKey.mValue - key.mValue) * factor;
-//			}
-//			else
-//			{
-//				presentPosition = key.mValue;
-//			}
-//
-//			mLastPositions[a].get<0>() = frame;
-//		}
-//
-//		// ******** Rotation *********
-//		aiQuaternion presentRotation(1, 0, 0, 0);
-//		if (channel->mNumRotationKeys > 0)
-//		{
-//			unsigned int frame = (time >= mLastTime) ? mLastPositions[a].get<1>() : 0;
-//			while (frame < channel->mNumRotationKeys - 1)
-//			{
-//				if (time < channel->mRotationKeys[frame + 1].mTime)
-//					break;
-//				frame++;
-//			}
-//
-//			// interpolate between this frame's value and next frame's value
-//			unsigned int nextFrame = (frame + 1) % channel->mNumRotationKeys;
-//			const aiQuatKey& key = channel->mRotationKeys[frame];
-//			const aiQuatKey& nextKey = channel->mRotationKeys[nextFrame];
-//			double diffTime = nextKey.mTime - key.mTime;
-//			if (diffTime < 0.0)
-//				diffTime += mAnim->mDuration;
-//			if (diffTime > 0)
-//			{
-//				float factor = float((time - key.mTime) / diffTime);
-//				aiQuaternion::Interpolate(presentRotation, key.mValue, nextKey.mValue, factor);
-//			}
-//			else
-//			{
-//				presentRotation = key.mValue;
-//			}
-//
-//			mLastPositions[a].get<1>() = frame;
-//		}
-//
-//		// ******** Scaling **********
-//		aiVector3D presentScaling(1, 1, 1);
-//		if (channel->mNumScalingKeys > 0)
-//		{
-//			unsigned int frame = (time >= mLastTime) ? mLastPositions[a].get<2>() : 0;
-//			while (frame < channel->mNumScalingKeys - 1)
-//			{
-//				if (time < channel->mScalingKeys[frame + 1].mTime)
-//					break;
-//				frame++;
-//			}
-//
-//			// TODO: (thom) interpolation maybe? This time maybe even logarithmic, not linear
-//			presentScaling = channel->mScalingKeys[frame].mValue;
-//			mLastPositions[a].get<2>() = frame;
-//		}
-//	}
-//}
-
 void AnimationComponent::Update(double dt)
 {
-	
+
 	if (m_isPlaying) {
 		auto& currentAnim = m_animations[m_currentAnimationIndex];
 		high_resolution_clock::time_point currentTime = high_resolution_clock::now();
-		auto animDtms = duration_cast<milliseconds>(currentTime - PlaybackStartTime);
-		auto animDt = (float)animDtms.count();
-		animDt /= 1000.f;
+		auto animDtms = duration_cast<microseconds>(currentTime - PlaybackStartTime);
+		auto animDt = (double)animDtms.count();
+		animDt /= 1000000;
 		float tps = currentAnim.TicksPerSecond != 0 ? currentAnim.TicksPerSecond : 24.0f;
 		tps = tps; // slowing down for debugging
-		float animTotalDurationSeconds = currentAnim.Duration / currentAnim.TicksPerSecond;
-		float dtTicks = animDt * tps;
+		double animTotalDurationSeconds = currentAnim.Duration / currentAnim.TicksPerSecond;
+		double dtTicks = animDt * tps;
 		if (dtTicks >= currentAnim.Duration) {
 			PlaybackStartTime = currentTime;
 			return;
 		}
-		float animTime = fmod(dtTicks, currentAnim.Duration);
-		int rootBoneID = m_skeleton->m_boneMap[m_skeleton->RootBoneName];
-		auto rootBone = m_skeleton->Bones[rootBoneID].get();
+		double animTime = fmod(dtTicks, currentAnim.Duration);
+		//int rootBoneID = m_skeleton->m_boneMap[m_skeleton->RootBoneName];
+		auto rootBone = m_skeleton->RootBone;
 		UpdateSkeleton(rootBone, animTime, Transform());
 	}
 	/*else {
@@ -422,77 +308,105 @@ void AnimationComponent::Update(double dt)
 
 void AnimationComponent::Awake()
 {
-	PlayAnimation(0);
+	//PlayAnimation(0);
 }
 
-void AnimationComponent::UpdateSkeleton(BoneData* rootBone, float animTime, const Transform& parentTransform)
+void AnimationComponent::UpdateSkeleton(BoneData* rootBone, double animTime, const Transform& parentTransform)
 {
 	auto skeleton = rootBone->skeleton;
 	//auto& boneAnim  =  m_animations[m_currentAnimationIndex].BoneAnimations.at) {
-	auto& boneAnim = m_animations[m_currentAnimationIndex].BoneAnimations[rootBone->Id];
+	if (rootBone->Id < m_animations[m_currentAnimationIndex].BoneAnimations.size()) {
+		auto& boneAnim = m_animations[m_currentAnimationIndex].BoneAnimations[rootBone->Id];
+		bool isRootBone = false;
+		if (rootBone->ParentID == -1) {
+			isRootBone = true;
+		}
 
-	auto& bone = skeleton->Bones[boneAnim.BoneIndex];
-	int rotIndex = boneAnim.FindRotationKeyframe(animTime, m_lastPlayedRotation);
-	int posIndex = boneAnim.FindPositionKeyframe(animTime, m_lastPlayedPosition);
-	int scaleIndex = boneAnim.FindScaleKeyframe(animTime, m_lastPlayedScale);
+		auto& bone = skeleton->Bones[boneAnim.BoneIndex];
+		int rotIndex = boneAnim.FindRotationKeyframe(animTime, m_lastPlayedRotation);
+		int posIndex = boneAnim.FindPositionKeyframe(animTime, m_lastPlayedPosition);
+		int scaleIndex = boneAnim.FindScaleKeyframe(animTime, m_lastPlayedScale);
 
-	int nextRot = (rotIndex + 1) % boneAnim.RotationKeyframes.size();
-	int nextPos = (posIndex + 1) % boneAnim.PositionKeyframes.size();
-	int nextSca = (scaleIndex + 1) % boneAnim.ScaleKeyframes.size();
+		int nextRot = (rotIndex + 1) % boneAnim.RotationKeyframes.size();
+		int nextPos = (posIndex + 1) % boneAnim.PositionKeyframes.size();
+		int nextSca = (scaleIndex + 1) % boneAnim.ScaleKeyframes.size();
 
-	const auto& currentRotation = boneAnim.RotationKeyframes[rotIndex];
-	const auto& currentPosition = boneAnim.PositionKeyframes[posIndex];
-	const auto& currentScale    = boneAnim.ScaleKeyframes[scaleIndex];
+		const auto& currentRotation = boneAnim.RotationKeyframes[rotIndex];
+		const auto& currentPosition = boneAnim.PositionKeyframes[posIndex];
+		const auto& currentScale = boneAnim.ScaleKeyframes[scaleIndex];
 
-	const auto& nextRotation = boneAnim.RotationKeyframes[nextRot];
-	const auto& nextPosition = boneAnim.PositionKeyframes[nextPos];
-	const auto& nextScale    = boneAnim.ScaleKeyframes[nextSca];
-	//bone->UpdateWorldTransform();
-	//Transform worldTransform = bone->;
-	Transform nodeTransform = bone->NodeTransform;
-	//Transform nodeTransform = bone->ToParentSpace();
+		const auto& nextRotation = boneAnim.RotationKeyframes[nextRot];
+		const auto& nextPosition = boneAnim.PositionKeyframes[nextPos];
+		const auto& nextScale = boneAnim.ScaleKeyframes[nextSca];
+		//bone->UpdateWorldTransform();
+		//Transform worldTransform = bone->;
+		Transform nodeTransform = bone->NodeTransform;
+		//Transform nodeTransform = bone->ToParentSpace();
 
-	float rotDelta = nextRotation.Time - currentRotation.Time;
-	float posDelta = nextPosition.Time - currentPosition.Time;
-	float scaleDelta = nextScale.Time - currentScale.Time;
-	float rotPct = rotDelta > 0.f ? animTime / rotDelta : 0.f;
-	float posPct = posDelta > 0.f ? animTime / posDelta : 0.f;
-	float sclPct = scaleDelta > 0.f ?animTime / scaleDelta: 0.f;
+		float rotDelta = nextRotation.Time - currentRotation.Time;
+		float posDelta = nextPosition.Time - currentPosition.Time;
+		float scaleDelta = nextScale.Time - currentScale.Time;
+		float rotPct = rotDelta > 0.f ? (animTime / rotDelta) / 100.0f : 0.f;
+		float posPct = posDelta > 0.f ? (animTime / posDelta) / 100.0f : 0.f;
+		float sclPct = scaleDelta > 0.f ? (animTime / scaleDelta) / 100.0f : 0.f;
 
-	//Transform animBoneTransform;// = rootBone->BoneTransform;
-	//Quaternion rotq = animRotation.Value;
-	Quaternion rotq = Interpolate(currentRotation.Value, nextRotation.Value, rotPct);
-	Vector3    posq = Lerp(currentPosition.Value, nextPosition.Value, posPct);
-	Vector3    sclq = Lerp(currentScale.Value, nextScale.Value, sclPct);
-	
-	//animBoneTransform.Orientation = rotq;
+		//Transform animBoneTransform;// = rootBone->BoneTransform;
+		//Quaternion rotq = animRotation.Value;
+		Quaternion rotq = Interpolate(currentRotation.Value, nextRotation.Value, rotPct);
+		Vector3    posq = Lerp(currentPosition.Value, nextPosition.Value, posPct);
+		Vector3    sclq = Lerp(currentScale.Value, nextScale.Value, sclPct);
 
-	//nodeTransform.Orientation = animRotation.Value;
-	//nodeTransform.Position = animPosition.Value;
-	//nodeTransform.Scale = animScale.Value;
-	nodeTransform.Orientation = nextRotation.Value;
-	nodeTransform.Position = nextPosition.Value;
-	nodeTransform.Scale = nextScale.Value;
-	//bone->TransformationTransform = parentTransform * nodeTransform;
-	Transform nt = nodeTransform; // Transform(animPosition.Value, animRotation.Value, animScale.Value);
-	bone->NodeTransform = nt;// nodeTransform;
-	bone->UpdateWorldTransform();
+		//animBoneTransform.Orientation = rotq;
 
+		//nodeTransform.Orientation = animRotation.Value;
+		//nodeTransform.Position = animPosition.Value;
+		//nodeTransform.Scale = animScale.Value;
+		nodeTransform.Orientation = rotq;// nextRotation.Value;
+		nodeTransform.Position = posq;
+		nodeTransform.Scale = sclq;
 
+		m_lastPlayedPosition = m_lastPlayedPosition > 0 ? nextPos - 1 : 0;
+		m_lastPlayedRotation = m_lastPlayedRotation > 0 ? nextRot - 1 : 0;
+		m_lastPlayedScale = m_lastPlayedScale > 0 ? nextSca - 1 : 0;
 
+		//nodeTransform = bone->InverseBindTransform * nodeTransform;
 
+		//if (isRootBone) {
+			//nodeTransform.Position += bone->NodeTransform.Position;
+			//nodeTransform.Orientation -= bone->NodeTransform.Orientation;
+		//}
+		//bone->TransformationTransform = parentTransform * nodeTransform;
+		Transform nt = nodeTransform; // Transform(animPosition.Value, animRotation.Value, animScale.Value);
+		bone->NodeTransform = nt;// nodeTransform;
+		bone->UpdateWorldTransform();
 
-	//Transform globalTransform = parentTransform * nodeTransform;
+		//Transform globalTransform = parentTransform * nodeTransform;
 
-	//rootBone->RenderTransform =  m_skeleton->GlobalInverseTransform *  globalTransform * rootBone->BoneOffsetTransform;
-	//Transform globalTransform = parentTransform * animBoneTransform;
+		//rootBone->RenderTransform =  m_skeleton->GlobalInverseTransform *  globalTransform * rootBone->BoneOffsetTransform;
+		//Transform globalTransform = parentTransform * animBoneTransform;
 
-	//rootBone->SkinningTransform = rootBone->InverseBindTransform * globalTransform * animBoneTransform;
+		//rootBone->SkinningTransform = rootBone->InverseBindTransform * globalTransform * animBoneTransform;
 
-	for (int i : rootBone->Children) {
-		BoneData* childBone = m_skeleton->Bones[i].get();
-		UpdateSkeleton(childBone, animTime, Transform());
+		for (int i : rootBone->Children) {
+			BoneData* childBone = m_skeleton->Bones[i].get();
+			UpdateSkeleton(childBone, animTime, Transform());
+		}
 	}
+}
+
+bool AnimationComponent::ShowGui()
+{
+	
+	using namespace ImGui;
+	Component::ShowGui();
+	if (Button("Start")) {
+		this->PlayAnimation(0);
+	}
+	if (Button("Stop")) {
+		this->StopPlayback();
+	}
+
+	return false;
 }
 
 void AnimationComponent::PlayAnimation(int index)
@@ -501,6 +415,16 @@ void AnimationComponent::PlayAnimation(int index)
 	m_currentAnimationIndex = index;
 	PlaybackStartTime = std::chrono::high_resolution_clock::now();
 	m_isPlaying = true;
+	m_lastPlayedRotation = 0;
+	m_lastPlayedPosition = 0;
+	m_lastPlayedScale = 0;
+}
+
+void AnimationComponent::StopPlayback()
+{
+	m_currentAnimationIndex = 0;
+	//PlaybackStartTime = std::chrono::high_resolution_clock::now();
+	m_isPlaying = false;
 	m_lastPlayedRotation = 0;
 	m_lastPlayedPosition = 0;
 	m_lastPlayedScale = 0;

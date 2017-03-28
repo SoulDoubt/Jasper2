@@ -28,8 +28,7 @@ public:
 
 
     ModelData(std::string name) {
-        m_name = std::move(name);
-        //m_skeleton = std::make_unique<SkeletonComponent>();
+        m_name = std::move(name);       
     }
 
     std::vector<Mesh*>& GetMeshes()  {
@@ -89,11 +88,13 @@ public:
 			BuildSceneRecursive(&(node->Children[i]), node);
 		}
 	}
+
+	void SaveToAssetFile(const std::string& filename);
 	
 	//ImporterSceneNode* GetRootBoneNode(SkeletonComponent* skeleton);
 
 	std::unique_ptr<AnimationComponent> Animator;
-	Skeleton* m_skeleton;
+	Skeleton* m_skeleton = nullptr;
 
 private:
 

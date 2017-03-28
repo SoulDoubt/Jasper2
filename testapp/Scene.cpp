@@ -398,8 +398,8 @@ void Scene::InitializeManual()
 	auto floor = m_rootNode->AttachNewChild<GameObject>("floor");
 	auto quadMesh = m_meshManager.CreateInstance<Quad>("floor_quad", Vector2(100.0f, 100.0f), 25, 25, Quad::AxisAlignment::XZ);
 	Material* floorMaterial = m_materialManager.CreateInstance<Material>("floor_material");
-	floorMaterial->SetTextureDiffuse("../textures/186.JPG");
-	floorMaterial->SetTextureNormalMap("../textures/186_norm.JPG");
+	floorMaterial->SetTextureDiffuse("../textures/tile.jpg");
+	floorMaterial->SetTextureNormalMap("../textures/tile_NormalMap.png");
 	floorMaterial->Specular = { 0.8f, .9f, .9f };
 	floorMaterial->Shine = 64;
 	floor->AttachNewComponent<MeshRenderer>("quad_renderer", quadMesh, floorMaterial);
@@ -484,16 +484,32 @@ void Scene::InitializeManual()
 
 	}
 
+	//ml.LoadModel("../models/House/Bambo_House.obj", "House");
+
+	//auto& house = m_rootNode->AttachChild(ml.CreateModelInstance("House"s, "House"s, false, false));
+	//house.GetLocalTransform().Position = { 0.f, 0.f, 25.f };
+
+	//ml.LoadModel("../models/Platinum Master Chief/will_02out.obj", "Threepio");
 	//ml.LoadModel("../models/C3P0/C3P0.dae"s, "Threepio");
-	//ml.LoadModel("../models/Alien/Alien.dae"s, "Threepio");
+	ml.LoadModel("../models/lara/lara.dae"s, "Threepio");
+	//ml.LoadModel("../models/Lara_Croft/Lara_Croft.obj", "Threepio");
+	//ml.LoadModel("../models/lara/lara.dae", "Threepio");
+	//ml.LoadModel("../models/bob/06_13.fbx"s, "Threepio");
+	//ml.LoadModel("../models/Germiona/Germiona.dae"s, "Threepio"s);
+	//ml.LoadModel("../models/Elexis/Blonde Elexis - nude.obj"s, "Threepio"s);
 	//ml.LoadModel("../models/cowboy/model.dae"s, "Threepio");
 	//ml.LoadModel("../models/viewmodel_ak12/untitled.dae"s, "Threepio");
-	//ml.LoadModel("../models/ArmyPilot/ArmyPilot.dae", "Threepio");
-	ml.LoadModel("../models/testman/test_Milkshape.ms3d", "Threepio");
-	//ml.LoadModel("../models/Stormtrooper/Stormtrooper.dae", "Threepio"s);
-	auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio"s, "Threepio"s, true, false));
+	//ml.LoadModel("../models/bob/boblampclean.md5mesh", "Threepio");
+	//ml.LoadModel("../models/testman/test_Collada_DAE.DAE", "Threepio");
+	//ml.LoadModel("../models/Zoey/Zoey.dae"s, "Threepio"s);
+	//ml.LoadModel("../models/ninja/ninja.ms3d", "Threepio");
+	//ml.LoadModel("../models/stormtrooper/stormtrooper.dae", "Threepio");
+	//ml.LoadModel("../models/Predator_Youngblood/Predator_Youngblood.dae"s, "Threepio"s);
+	//ml.LoadModel("../models/testman/test", "Threepio"s);
+	auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio"s, "Threepio"s, false, false));
 	lara.GetLocalTransform().Position = { 5.f, 1.2f, 4.f };
-	//lara.GetLocalTransform().UniformScale(0.075);
+	//lara.GetLocalTransform().UniformScale(1.0f);
+	lara.GetLocalTransform().UniformScale(0.175);
 	/*for (auto& ch : lara.Children()) {
 		ch->GetLocalTransform().Rotate({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90.0));
 	}*/

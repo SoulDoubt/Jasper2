@@ -3,6 +3,7 @@
 #include "imgui.h"
 #include "AssetSerializer.h"
 #include "Mesh.h"
+#include "AnimationSystem.h"
 
 
 namespace Jasper
@@ -113,9 +114,14 @@ void PhysicsCollider::ToggleEnabled(bool e)
         m_rigidBody->setRestitution(Restitution);
         m_rigidBody->setFriction(Friction);
         m_world->AddRigidBody(m_rigidBody.get());
+		//m_rigidBody->setActivationState(ACTIVE_TAG);
         m_rigidBody->activate();
     } else {
         m_world->RemoveRigidBody(m_rigidBody.get());
+		//if (m_rigidBody) {
+		//	m_rigidBody->setActivationState(DISABLE_SIMULATION);
+			//m_rigidBody->
+		//}
     }
     Component::ToggleEnabled(e);
 }
@@ -130,8 +136,14 @@ bool PhysicsCollider::ShowGui()
 {
     Component::ShowGui();
 
+	auto& tt = m_rigidBody->getWorldTransform();
+	Vector3 pp(tt.getOrigin());
+	ImGui::InputFloat3("Position", pp.AsFloatPtr());
+
     if (ImGui::InputFloat("Mass", &Mass)) {
-        this->m_rigidBody->setMassProps(Mass, btVector3(0,0,0));
+		btVector3 inertia;
+		m_collisionShape->calculateLocalInertia(Mass, inertia);
+        this->m_rigidBody->setMassProps(Mass, inertia);		
     }
     if (ImGui::InputFloat("Restitution", &Restitution)) {
         this->m_rigidBody->setRestitution(Restitution);
@@ -652,20 +664,41 @@ void RagdollCollider::Awake()
 	auto t = GetGameObject()->GetLocalTransform();
 	auto btTrans = t.AsBtTransform();
 	for (const auto& hull : m_hulls) {
+		
 		unique_ptr<btDefaultMotionState> ms = make_unique<btDefaultMotionState>(btTrans);
-		float mass = 5;
+		float mass = 5.f;
 		btVector3 inertia;
 		hull->calculateLocalInertia(mass, inertia);
 		btRigidBody::btRigidBodyConstructionInfo rbci(Mass, ms.get(), hull.get(), inertia);
 		unique_ptr<btRigidBody> rb = make_unique<btRigidBody>(rbci);
 		rb->setUserPointer(GetGameObject());
+
+		auto bone = static_cast<BoneData*>(hull->getUserPointer());
+		if (bone) {
+			if (bone->ParentID == -1) {
+				//m_rigidBody = rb.get();
+			}
+		}
 		m_world->AddRigidBody(rb.get());
 		m_bodies.emplace_back(move(rb));
+		m_motionStates.emplace_back(move(ms));
 	}
 }
 
 void RagdollCollider::Update(double dt)
 {
+	for (auto& body : m_bodies) {
+		if (body->getCollisionShape()->getUserPointer()) {
+			auto bone = static_cast<BoneData*>(body->getCollisionShape()->getUserPointer());
+			if (bone) {
+				btTransform bt;
+				body->getMotionState()->getWorldTransform(bt);
+				auto trans = Transform(bt);
+				Vector3 xp = trans.Position - bone->skeleton->RootBone->NodeTransform.Position;
+				bone->NodeTransform.Position = xp;
+			}
+		}
+	}
 }
 
 } // namespace Jasper

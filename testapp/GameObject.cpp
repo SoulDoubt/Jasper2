@@ -20,14 +20,15 @@ GameObject::~GameObject()
 bool GameObject::ShowGui()
 {
     Vector3 scale = m_transform.Scale;
+	float sca = scale.x;
     ImGui::Separator();
     ImGui::Text(this->GetName().data());
     bool rotation_updated = false;
     ImGui::InputFloat3("Position", m_transform.Position.AsFloatPtr());
     ImGui::InputFloat4("Orientation", m_transform.Orientation.AsFloatPtr());
-    if (ImGui::InputFloat3("Scale", scale.AsFloatPtr())) {
-        if (scale.x > 0.f && scale.y > 0.f && scale.z > 0.f) {
-            m_transform.Scale = scale;
+    if (ImGui::InputFloat("Scale", &sca)) {
+        if (sca > 0.f ) {
+            m_transform.UniformScale(sca);
             auto col = GetComponentByType<PhysicsCollider>();
             if (col) {
                 col->SetScale(scale);

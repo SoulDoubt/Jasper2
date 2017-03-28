@@ -85,7 +85,6 @@ public:
 
 	virtual void draw3dText(const btVector3& location, const char* textString) {}
 
-	void DrawSkeleton(Skeleton* skel);
 
 
 

@@ -8,6 +8,23 @@
 namespace Jasper
 {
 
+class Resource {
+
+public:
+
+	enum class ResourceType {
+		Mesh,
+		Texture,
+		Skeleton,
+		Material,
+		ModelData
+	};
+
+	virtual ResourceType GetResourceType() = 0;
+
+
+};
+
 template<typename T>
 class ResourceManager
 {

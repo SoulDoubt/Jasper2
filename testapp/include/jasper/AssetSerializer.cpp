@@ -10,6 +10,7 @@
 #include "SkyboxRenderer.h"
 #include "PhysicsCollider.h"
 #include "Scriptable.h"
+#include <AnimationSystem.h>
 #include <memory>
 
 
@@ -28,39 +29,36 @@ void SerializeMesh(ofstream& ofs, const Mesh* mesh) {
 	// 4) Normal Data
 	// and so on in that fashion
 
-	/*const string name = mesh->GetName();
-	const size_t namesz = name.size();
-	ofs.write(ConstCharPtr(&namesz), sizeof(namesz));
-	ofs.write(ConstCharPtr(name.data()), namesz);*/
+	// write mesh name
+	WriteString(ofs, mesh->GetName());
 
-	const int posc = mesh->Positions.size();
+	/*const int posc = mesh->Positions.size();
 	const int texc = mesh->TexCoords.size();
 	const int norc = mesh->Normals.size();
-	const int tanc = mesh->Tangents.size();
+	const int tanc = meddash->Tangents.size();
 	const int bitanc = mesh->Bitangents.size();
 	const int indc = mesh->Indices.size();
+	const int weightc = mesh->BoneWeights.size();*/
 	// write positions
-	ofs.write(ConstCharPtr(&posc), sizeof(posc));
-	ofs.write(ConstCharPtr(&(mesh->Positions[0])), sizeof(Vector3) * posc);
-	cout << mesh->Positions[0].ToString() << endl;
-	cout << mesh->Positions[1].ToString() << endl;
+	/*ofs.write(ConstCharPtr(&posc), sizeof(posc));
+	ofs.write(ConstCharPtr(&(mesh->Positions[0])), sizeof(Vector3) * posc);*/
+	WriteVector(ofs, mesh->Positions);	
 	// write normals
-	ofs.write(ConstCharPtr(&norc), sizeof(norc));
-	ofs.write(ConstCharPtr(&(mesh->Normals[0])), sizeof(Vector3) * norc);
+	WriteVector(ofs, mesh->Normals);
 	// write tex coords
-	ofs.write(ConstCharPtr(&texc), sizeof(texc));
-	ofs.write(ConstCharPtr(&(mesh->TexCoords[0])), sizeof(Vector2) * texc);
+	WriteVector(ofs, mesh->TexCoords);
 	// write tangents
-	ofs.write(ConstCharPtr(&tanc), sizeof(tanc));
-	ofs.write(ConstCharPtr(&(mesh->Tangents[0])), sizeof(Vector4) * tanc);
+	WriteVector(ofs, mesh->Tangents);
 	// write bitans
-	ofs.write(ConstCharPtr(&bitanc), sizeof(bitanc));
-	ofs.write(ConstCharPtr(&(mesh->Bitangents[0])), sizeof(Vector3) * bitanc);
-
-	ofs.write(ConstCharPtr(&indc), sizeof(indc));
-	ofs.write(ConstCharPtr(&(mesh->Indices[0])), sizeof(uint) * indc);
+	WriteVector(ofs, mesh->Bitangents);
+	// write bone weights
+	WriteVector(ofs, mesh->BoneWeights);
+	// write indices
+	WriteVector(ofs, mesh->Indices);
 	
+
 	std::streampos pos = ofs.tellp();
+
 	printf("%010x \n", pos);
 
 
@@ -68,13 +66,7 @@ void SerializeMesh(ofstream& ofs, const Mesh* mesh) {
 
 void ConstructMesh(std::ifstream& ifs, Scene* scene) {
 	// first deserialize the component that the mesh represents.	
-	size_t namesize;
-	ifs.read(CharPtr(&namesize), sizeof(namesize));
-	char* componentname = new char[namesize + 1];
-	ifs.read(componentname, namesize);
-	componentname[namesize] = '\0';
-	string componentName = string(componentname);
-	delete[] componentname;
+	string meshname = ReadString(ifs);
 	// now let's do the base mesh stuff	
 	ComponentType comptype;
 	ifs.read(CharPtr(&comptype), sizeof(comptype));
@@ -88,48 +80,59 @@ void ConstructMesh(std::ifstream& ifs, Scene* scene) {
 	switch (mt) {
 	case MeshType::Arbitrary:
 	{
-		Mesh* m = scene->GetMeshCache().CreateInstance<Mesh>(componentName);
-		int pc;
-		ifs.read(CharPtr(&pc), sizeof(pc));
+		Mesh* m = scene->GetMeshCache().CreateInstance<Mesh>(meshname);
+		ReadVector(ifs, m->Positions);
+		//int pc;
+		/*ifs.read(CharPtr(&pc), sizeof(pc));
 		m->Positions.reserve(pc);
 		for (int i = 0; i < pc; ++i) {
 			Vector3 p;
 			ifs.read(CharPtr(p.AsFloatPtr()), sizeof(p));
 			m->Positions.push_back(p);
-		}
+		}*/
 
-		int nc;
+		ReadVector(ifs, m->Normals);
+
+		/*int nc;
 		ifs.read(CharPtr(&nc), sizeof(nc));
 		m->Positions.reserve(nc);
 		for (int i = 0; i < nc; ++i) {
 			Vector3 n;
 			ifs.read(CharPtr(n.AsFloatPtr()), sizeof(n));
 			m->Normals.push_back(n);
-		}
+		}*/
 
-		int tc;
+		ReadVector(ifs, m->TexCoords);
+
+		/*int tc;
 		ifs.read(CharPtr(&tc), sizeof(tc));
 		for (int i = 0; i < tc; ++i) {
 			Vector2 t;
 			ifs.read(CharPtr(t.AsFloatPtr()), sizeof(t));
 			m->TexCoords.push_back(t);
-		}
+		}*/
 
-		int tanc;
+		ReadVector(ifs, m->Tangents);
+
+		/*int tanc;
 		ifs.read(CharPtr(&tanc), sizeof(tanc));
 		for (int i = 0; i < tanc; ++i) {
 			Vector4 tan;
 			ifs.read(CharPtr(tan.AsFloatPtr()), sizeof(tan));
 			m->Tangents.push_back(tan);
-		}
+		}*/
 
-		int bc;
+		ReadVector(ifs, m->Bitangents);
+
+		ReadVector(ifs, m->BoneWeights);
+
+		/*int bc;
 		ifs.read(CharPtr(&bc), sizeof(bc));
 		for (int i = 0; i < bc; ++i) {
 			Vector3 b;
 			ifs.read(CharPtr(b.AsFloatPtr()), sizeof(b));
 			m->Bitangents.push_back(b);
-		}
+		}*/
 
 		int indc;
 		ifs.read(CharPtr(&indc), sizeof(indc));
@@ -158,9 +161,9 @@ void ConstructMesh(std::ifstream& ifs, Scene* scene) {
 		ifs.read(CharPtr(&repeatu), sizeof(repeatu));
 		ifs.read(CharPtr(&repeatv), sizeof(repeatv));
 		// construct a cube with the given properties in the scene's mesh cache
-		existing = scene->GetMeshCache().GetResourceByName(componentName);
+		existing = scene->GetMeshCache().GetResourceByName(meshname);
 		if (existing) return;
-		auto cube = scene->GetMeshCache().CreateInstance<Cube>(componentName, dimensions, isCubeMap);
+		auto cube = scene->GetMeshCache().CreateInstance<Cube>(meshname, dimensions, isCubeMap);
 		cube->SetTextureRepeat(repeatu, repeatv);
 	}
 	break;
@@ -173,9 +176,9 @@ void ConstructMesh(std::ifstream& ifs, Scene* scene) {
 		ifs.read(CharPtr(&align), sizeof(align));
 		ifs.read(CharPtr(&repeatu), sizeof(repeatu));
 		ifs.read(CharPtr(&repeatv), sizeof(repeatv));
-		existing = scene->GetMeshCache().GetResourceByName(componentName);
+		existing = scene->GetMeshCache().GetResourceByName(meshname);
 		if (existing) return;
-		scene->GetMeshCache().CreateInstance<Quad>(componentName, size, repeatu, repeatv, align);
+		scene->GetMeshCache().CreateInstance<Quad>(meshname, size, repeatu, repeatv, align);
 	}
 	break;
 	}
@@ -527,6 +530,15 @@ void ConstructScriptComponent(std::ifstream& ifs, std::string name, GameObject* 
 		script = go->AttachNewComponent<RotateAboutPointScript>(name);
 		script->Deserialize(ifs);
 		break;
+	}
+}
+
+void SerializeSkeleton(std::ofstream & ofs, const Skeleton * skeleton)
+{
+	const int bonecount = static_cast<int>(skeleton->Bones.size());
+	ofs.write(ConstCharPtr(&bonecount), sizeof(bonecount));
+	for (const auto& bone : skeleton->Bones) {
+		
 	}
 }
 

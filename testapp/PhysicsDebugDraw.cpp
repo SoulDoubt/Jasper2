@@ -69,7 +69,7 @@ void PhysicsDebugDrawer::Draw()
     ibo.Bind();
     ibo.Allocate(m_indices.data(), count * sizeof (GLuint));
     debugShader->SetModelViewProjectionMatrix(mvpMatrix);
-    glPointSize(3.0f);
+    //glPointSize(5.0f);
     glLineWidth(2.25f);
     
     glDrawElements(GL_LINES, count, GL_UNSIGNED_INT, 0);

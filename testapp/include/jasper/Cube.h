@@ -18,9 +18,6 @@ public:
 
     void Initialize() override;
     void Destroy() override;
-    /*ComponentType GetComponentType() const override {
-        return ComponentType::Mesh;   
-    }*/
 
 	MeshType GetMeshType() const override {
 		return MeshType::Cube;
@@ -51,6 +48,11 @@ protected:
     bool m_isCubemap = false;
     float m_repeatU = 1.f;
     float m_repeatV = 1.f;
+};
+
+
+class Diamond : public Mesh {
+
 };
 
 }

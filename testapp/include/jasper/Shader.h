@@ -182,7 +182,7 @@ public:
     
     int GetBoneWeightAttributeLocation();
     
-    const static int MAX_BONES = 64;
+    const static int MAX_BONES = 192;
     std::vector<int> boneTransformUniformLocations;
     
     void GetBoneTransformUniformLocations();

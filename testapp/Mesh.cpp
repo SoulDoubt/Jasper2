@@ -190,23 +190,26 @@ void Mesh::InitializeForRendering(Shader* shader)
 			v.TexCoords = TexCoords[i];
 			verts[i] = v;
 		}
-		for (int bIndex : this->Bones) {
-			auto skel = this->m_skeleton;
-			const auto b = skel->Bones[bIndex].get();
-			for (const VertexBoneWeight& w : b->Weights) {
-				if (w.Index < Positions.size()) {
-					Vertex_PNU_ANIM& v = verts[w.Index];
+		auto skel = this->m_skeleton;
+		for (auto& vbw : this->BoneWeights) {			
+			const auto b = skel->Bones[vbw.BoneID].get();
+			//for (const VertexBoneWeight& w : b->Weights) {
+				if (vbw.Index < Positions.size()) {
+					Vertex_PNU_ANIM& v = verts[vbw.Index];
 					int idx = v.GetNextAvailableBoneIndex();
 					if (idx < 4) {
-						v.Bones[idx] = b->Id;
-						v.Weights[idx] = w.Weight;
+						v.Bones[idx] = vbw.BoneID;
+						v.Weights[idx] = vbw.Weight;
+					}
+					else {
+						printf("Weight for bone %s out greater than 4", b->Name.c_str());
 					}
 				}
 				else {
 					printf("Bone weight index our of range. %s\n", this->GetName().data());
 				}
 
-			}
+			//}
 			//delete skel;
 		}
 		for (int i = 0; i < Positions.size(); ++i) {
@@ -283,16 +286,27 @@ void Mesh::InitializeForRendering(Shader* shader)
 			verts[i] = v;
 		}
 
-		for (const auto& b : m_skeleton->Bones) {
-			for (const VertexBoneWeight& w : b->Weights) {
-				Vertex_PNUTB_ANIM& v = verts[w.Index];
+		auto skel = this->m_skeleton;
+		for (auto& vbw : this->BoneWeights) {
+			const auto b = skel->Bones[vbw.BoneID].get();
+			//for (const VertexBoneWeight& w : b->Weights) {
+			if (vbw.Index < Positions.size()) {
+				Vertex_PNUTB_ANIM& v = verts[vbw.Index];
 				int idx = v.GetNextAvailableBoneIndex();
 				if (idx < 4) {
-					v.Bones[idx] = b->Id;
-					v.Weights[idx] = w.Weight;
+					v.Bones[idx] = vbw.BoneID;
+					v.Weights[idx] = vbw.Weight;
 				}
-				//int x = 0;
+				else {
+					printf("Weight for bone %s out greater than 4", b->Name.c_str());
+				}
 			}
+			else {
+				printf("Bone weight index our of range. %s\n", this->GetName().data());
+			}
+
+			//}
+			//delete skel;
 		}
 		m_vertexBuffer.Bind();
 		m_vertexBuffer.Allocate(verts, Positions.size() * sizeof(Vertex_PNUTB_ANIM));
@@ -572,6 +586,11 @@ void Mesh::AddTriangle(const Tri& t)
 	Indices.push_back(t.a);
 	Indices.push_back(t.b);
 	Indices.push_back(t.c);
+}
+
+void MeshComponent::Serialize(std::ofstream & ofs) const
+{
+
 }
 
 } // namespace Jasper

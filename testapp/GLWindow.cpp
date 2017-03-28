@@ -186,7 +186,7 @@ void GLWindow::RunLoop()
         double ddd = td.count();
         previousTime = currentTime;
         double timeDelta = timeDiff.count();
-        double dt = timeDelta / 1000000000;
+        double dt = timeDelta / 1000000000.0;
 
 
 

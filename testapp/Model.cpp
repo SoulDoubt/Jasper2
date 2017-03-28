@@ -20,6 +20,7 @@
 
 #include <PythonInterface.h>
 
+#include <cstring>
 
 
 
@@ -30,18 +31,6 @@ namespace Jasper
 
 using namespace std;
 
-
-
-Transform ImporterSceneNode::ConcatParentTransforms()
-{
-	Transform t = NodeTransform;
-	ImporterSceneNode* parent = this->Parent;
-	while (parent != nullptr) {
-		t = parent->NodeTransform * t;
-		parent = parent->Parent;
-	}
-	return t;
-}
 
 ImporterSceneNode aiNodeToImporterSceneNode(aiNode* n) {
 	ImporterSceneNode isn;
@@ -60,7 +49,7 @@ ImporterSceneNode::ImporterSceneNode(aiNode * node)
 
 aiNode* FindAiNode(aiNode* root, const string& name)
 {
-	if (string(root->mName.data) == name) {
+	if (strcmp(root->mName.data, name.c_str()) == 0) {
 		return root;
 	}
 	for (int i = 0; i < root->mNumChildren; ++i) {
@@ -169,19 +158,26 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 			if (!mat) {
 				printf("%s had no material bound.\n", mesh->GetName().c_str());
 			}
+			printf("Mesh Named: %s\n", mesh->GetName().c_str());
+			go->AttachNewComponent<MeshComponent>(mesh->GetName(), mesh);
 			go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
 		}
-		if (generateCollider && modeldata->GetSkeleton()->Bones.size() == 0) {
+		if (generateCollider) {
 			unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
 			go->AttachComponent(move(collider));
 		}
-		else if (generateCollider && modeldata->GetSkeleton()->Bones.size() > 0) {
-			//modeldata->CreateRagdollCollider(m_scene, go.get());
+		else if (generateCollider && modeldata->GetSkeleton()/*)->Bones.size() > 0*/) {
+			modeldata->CreateRagdollCollider(m_scene, go.get());
+			//unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
+			//go->AttachComponent(move(collider));
 		}
 		if (modeldata->Animator) {
 			go->AttachComponent(move(modeldata->Animator));
 		}
 		if (modeldata->m_skeleton) {
+			for (auto& bone : modeldata->m_skeleton->Bones) {
+				bone->UpdateWorldTransform();
+			}
 			go->AttachNewComponent<SkeletonComponent>(m_name + "_skeleton", modeldata->m_skeleton);
 		}
 		//child->SetLocalTransform(modeldata->GetSkeleton()->GlobalInverseTransform);
@@ -196,23 +192,24 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 void CreateChildHulls(BoneData* rootBone, Skeleton* skeleton, vector<unique_ptr<btCollisionShape>>& hulls)
 {
 	for (size_t j = 0; j < rootBone->Children.size(); j++) {
-		unique_ptr<btCollisionShape> hull = make_unique<btConvexHullShape>(nullptr, 0);
-		auto h = static_cast<btConvexHullShape*>(hull.get());
-		BoneData* bone = skeleton->Bones[rootBone->Children[j]].get();
-		std::sort(rootBone->Weights.begin(), rootBone->Weights.end());
-		std::sort(bone->Weights.begin(), bone->Weights.end());
-		vector<VertexBoneWeight> uniqueChildWeights;
+		//unique_ptr<btCollisionShape> hull = make_unique<btConvexHullShape>(nullptr, 0);
+		//auto h = static_cast<btConvexHullShape*>(hull.get());
+		//BoneData* bone = skeleton->Bones[rootBone->Children[j]].get();
+		//std::sort(rootBone->Weights.begin(), rootBone->Weights.end());
+		//std::sort(bone->Weights.begin(), bone->Weights.end());
+		//vector<VertexBoneWeight> uniqueChildWeights;
 
-		std::set_difference(bone->Weights.begin(), bone->Weights.end(), rootBone->Weights.begin(), rootBone->Weights.end(), std::inserter(uniqueChildWeights, uniqueChildWeights.begin()));
-		for (size_t i = 0; i < uniqueChildWeights.size(); ++i) {
-			VertexBoneWeight& vb = uniqueChildWeights[i];
-			//if (vb.Weight >= 0.75f) {
-				Vector3 position = vb.mesh->Positions[vb.Index];
-				h->addPoint(position.AsBtVector3());
-			//}
-		}
-		hulls.emplace_back(move(hull));
-		CreateChildHulls(bone, skeleton, hulls);
+		//std::set_difference(bone->Weights.begin(), bone->Weights.end(), rootBone->Weights.begin(), rootBone->Weights.end(), std::inserter(uniqueChildWeights, uniqueChildWeights.begin()));
+		//for (size_t i = 0; i < uniqueChildWeights.size(); ++i) {
+		//	VertexBoneWeight& vb = uniqueChildWeights[i];
+		//	//if (vb.Weight >= 0.75f) {
+		//		Vector3 position = vb.mesh->Positions[vb.Index];
+		//		h->addPoint(position.AsBtVector3());
+		//	//}
+		//}
+		//hull->setUserPointer(rootBone);
+		//hulls.emplace_back(move(hull));
+		//CreateChildHulls(bone, skeleton, hulls);
 	}
 }
 
@@ -220,11 +217,14 @@ void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
 {
 	vector<unique_ptr<btCollisionShape>> hulls;
 	BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
-	size_t vertCount = rootBone->Weights.size();
+	auto meshes = go->GetComponentsByType<MeshComponent>();
+
+	/*int vertCount = static_cast<int>(rootBone->Weights.size());
 	vector<Vector3> boneVerts(vertCount);
 	unique_ptr<btCollisionShape> hullShape = make_unique<btConvexHullShape>(nullptr, 0);
+	hullShape->setUserPointer(rootBone);
 	auto hs = static_cast<btConvexHullShape*>(hullShape.get());
-	for (size_t i = 0; i < vertCount; ++i) {
+	for (int i = 0; i < vertCount; ++i) {
 		VertexBoneWeight& vb = rootBone->Weights[i];
 		if (vb.Weight > 0.75f) {
 			Vector3 position = vb.mesh->Positions[vb.Index];
@@ -232,12 +232,12 @@ void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
 		}
 	}
 	hulls.emplace_back(move(hullShape));
-	CreateChildHulls(rootBone, m_skeleton, hulls);
+	CreateChildHulls(rootBone, m_skeleton, hulls);*/
 
 
 
-	unique_ptr<RagdollCollider> collider = make_unique<RagdollCollider>(rootBone->Name + "_collider"s, hulls, scene->GetPhysicsWorld());
-	//collider->Mass = 50.f;
+	unique_ptr<CompoundCollider> collider = make_unique<CompoundCollider>(rootBone->Name + "_collider"s, hulls, scene->GetPhysicsWorld());
+	collider->Mass = 50.f;
 	go->AttachComponent(std::move(collider));
 	printf("Created Ragdoll.\n");
 
@@ -255,68 +255,23 @@ bool FileExists(const std::string& name)
 	}
 }
 
-void BuildBoneTreeRecursive(BoneData* parent, Skeleton* skeleton) {
-/*	for (int i : parent->Children) {
-		BoneData* child = skeleton->Bones[i].get();
-		child->InverseBindTransform = parent->InverseBindTransform * child->NodeTransform;
-		BuildBoneTreeRecursive(child, skeleton);
-	}*/
-}
-
-void BuildBoneTree(ImporterSceneNode* rootBoneNode, Skeleton* skeleton) {
-	int boneIndex = skeleton->m_boneMap.at(rootBoneNode->Name);
-	auto& bone = skeleton->Bones[boneIndex];
-	if (bone->ParentID == -1) {
-		// is this is the root bone, we will need to concat any other parent transfoms here
-		auto parent = rootBoneNode->Parent;
-		while (parent != nullptr) {
-			bone->NodeTransform = parent->NodeTransform * bone->NodeTransform;
-			parent = parent->Parent;
-		}
-		//bone->InverseBindTransform = bone->NodeTransform.Inverted();
-		for (int i = 0; i < bone->Children.size(); ++i) {
-			int childIndex = bone->Children.at(i);
-			BoneData* childBone = skeleton->Bones.at(childIndex).get();
-
-		}
-	}
-
-}
-
-
 
 void BuildBoneHierarchy(ImporterSceneNode* rootNode, Skeleton* skeleton) {
 
 	int boneIndex = skeleton->m_boneMap.at(rootNode->Name);
 	auto& bone = skeleton->Bones[boneIndex];
-	//if (bone->ParentID == -1) {
-	//	auto parent = rootNode->Parent;
-	//	while (parent != nullptr) {
-	//		bone->NodeTransform = parent->NodeTransform * bone->NodeTransform;
-	//		parent = parent->Parent;
-	//	}
-	//	//bone->InverseBindTransform = bone->BoneTransform.Inverted();
-	//}
+	//bone->InverseBindTransform = bone->NodeTransform.Inverted();
 	for (auto& childNode : rootNode->Children) {
 		auto childBoneIter = skeleton->m_boneMap.find(childNode.Name);
 		if (childBoneIter == skeleton->m_boneMap.end()) {
-			printf("Missing bone: %s, creating one...\n", childNode.Name.data());
-			//BoneData newbd;
-			//newbd.BoneOffsetTransform = Transform(); // assume identity is fine for thie???
-			//newbd.Name = childNode.Name;
-			//newbd.BoneTransform = childNode.NodeTransform;
-			//newbd.Id = (int)skeleton->Bones.size();
-			//newbd.ParentID = bone.Id;
-			//skeleton->m_boneMap[newbd.Name] = newbd.Id;
-			//skeleton->Bones.push_back(newbd);
-			//BuildBoneHierarchy(&childNode, skeleton);
+			printf("Missing bone: %s, skipping...\n", childNode.Name.data());		
 		}
 		else {
 			int childId = childBoneIter->second;
 			bone->Children.push_back(childId);
 			auto& childBone = skeleton->Bones.at(childId);
 			childBone->ParentID = bone->Id;
-			//childBone->InverseBindTransform = bone->InverseBindTransform * childBone->NodeTransform;
+			childBone->Parent = bone.get();			
 			BuildBoneHierarchy(childBone->INode, skeleton);
 		}
 	}
@@ -409,22 +364,12 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 
 	auto& meshes = model_data->GetMeshes();
 	size_t sz = meshes.size();
-	printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());
-
-	
-
-	if (model_data->GetSkeleton()->Bones.size() > 0)
-	{
-		//CenterOnOrigin(meshes, model_data->GetSkeleton());
-	}
-	else {
-		//CenterOnOrigin(meshes, nullptr);
-	}
+	printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());		
 
 	// recurse the isn graph and find any bones that are are used in this model...
 
 
-	if (model_data->GetSkeleton()->Bones.size() > 0) {
+	if (model_data->GetSkeleton() != nullptr/*->Bones.size() > 0*/) {
 	
 		Skeleton* skeleton = model_data->GetSkeleton();
 
@@ -504,7 +449,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 			}
 		}
 
-		if (1) {
+		if (0) {
 			int boneIdToMove = skeleton->m_boneMap["lShoulder_0_"];
 			int boneid2 = skeleton->m_boneMap["lUpperArm_0_"];
 			BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
@@ -1168,7 +1113,7 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 	if (aiMesh->mName != aiString("")) {
 		string ainame = string(aiMesh->mName.data);
 		if (ainame != "defaultobject") {
-			meshName = ainame;
+			meshName = ainame + to_string(m_processedMeshCount);
 		}
 		else {
 			meshName = m_name + "_mesh_" + to_string(m_processedMeshCount);
@@ -1263,21 +1208,25 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 				//	pnode = pnode->Parent;
 				//}
 
-				for (uint j = 0; j < bone->mNumWeights; ++j) {
-					auto bw = bone->mWeights[j];
-					bd->Weights.emplace_back(VertexBoneWeight{ bw.mVertexId, bw.mWeight, m });
-				}
+				bool newBone = false;
 				if (sk->m_boneMap.find(bname) == sk->m_boneMap.end()) {
 					bd->Id = (int)sk->Bones.size();
 					sk->m_boneMap[bname] = bd->Id;
 					m->Bones.push_back(bd->Id);
-					sk->Bones.push_back(move(bd));
+					newBone = true;
 				}
 				else {
 					int idx = sk->m_boneMap[bname];
 					//BoneData& bdata = skeleton->Bones[idx];
 					m->Bones.push_back(idx);
 					printf("Bone already in boneMap: %s\n", bd->Name.data());
+				}
+				for (uint j = 0; j < bone->mNumWeights; ++j) {
+					auto bw = bone->mWeights[j];
+					m->BoneWeights.emplace_back(VertexBoneWeight(bd->Id, bw.mVertexId, bw.mWeight));
+				}
+				if (newBone) {
+					sk->Bones.push_back(move(bd));
 				}
 			}
 		}
@@ -1569,6 +1518,15 @@ void ModelLoader::OutputMeshData(const string& filename)
 	}
 
 	ofs.close();
+
+}
+
+void ModelData::SaveToAssetFile(const std::string& filename) {
+	ofstream ofs;
+	ofs.open(filename, ios::binary, ios::out);
+	for (const auto mesh : this->m_meshes) {
+		AssetSerializer::SerializeMesh(ofs, mesh);
+	}
 
 }
 

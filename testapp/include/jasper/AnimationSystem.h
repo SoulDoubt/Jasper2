@@ -28,61 +28,40 @@ struct ImporterSceneNode {
 	Transform NodeTransform;
 	ImporterSceneNode* Parent;
 	std::vector<ImporterSceneNode> Children;
-	bool isUsedBone = false;
-	Transform ConcatParentTransforms();
+	bool isUsedBone = false;	
 	ImporterSceneNode(aiNode* ainode);
 	ImporterSceneNode() {}
 };
 
-struct VertexBoneWeight {
-    uint Index;
-    float Weight;
-    Mesh* mesh;
-};
 
-inline bool operator<(const VertexBoneWeight& a, const VertexBoneWeight& b)
-{
-    return (size_t)a.mesh + a.Index < (size_t)b.mesh + b.Index;
-}
 
-inline bool operator==(const VertexBoneWeight& a, const VertexBoneWeight& b)
-{
-    return (a.mesh == b.mesh) && (a.Index == b.Index);
-}
 
 class Skeleton;
 
 struct BoneData {
+
 	int Id;
 	int ParentID;
 	std::vector<int> Children;
-	Mesh* mesh;
-	Skeleton* skeleton;
-	ImporterSceneNode* INode;
 	std::string Name;
-	std::string ParentName;
-	std::vector<VertexBoneWeight> Weights;
-
-
-
+	Skeleton* skeleton = nullptr;
+	ImporterSceneNode* INode = nullptr;
+	BoneData* Parent = nullptr;
+	Mesh* mesh = nullptr;
+		
 	// Node Transform is the mesh space transform of the bone relative to the 
 	// mesh's origin.
-	Transform NodeTransform;	
-	//Transform WorldTransform;
-	//Transform TransformationTransform;
+	Transform NodeTransform;
+	// The transform in model space
+	Transform WorldTransform;
 	// Offset Transform declares the transformation needed to transform from 
 	// mesh space to the local space of this bone.
-	Transform BoneOffsetTransform;
-	//Transform InverseBindTransform; 
-	Transform ToParentSpace();
+	Transform BoneOffsetTransform;	
+	//Transform ToParentSpace();
 	// The transform to actually send up to the shader
 	//Transform RenderTransform() const;
 	
-	//void CalculateInverseBindTransforms(Transform parentTransform);
-	
-	Transform GetSkinningTransform() {
-		return GetWorldTransform() * BoneOffsetTransform;
-	}
+	Transform GetSkinningTransform();
 
 	bool PositionCorrected = false;
 
@@ -90,7 +69,6 @@ struct BoneData {
 	Transform GetWorldTransform();
 	void UpdateWorldTransform();
 
-	//void EvaluateSubtree();
 private:
 	BoneData* getParentBone() const;
 
@@ -120,7 +98,7 @@ struct Bone {
 	
 };
 
-class Skeleton //: public Component
+class Skeleton
 {
 public:
 	
@@ -137,17 +115,20 @@ public:
 	BoneData* RootBone;
 
 	//void EvaluateBoneSubtree(const BoneData& parent);
-	void TraverseSkeleton(const ImporterSceneNode* node);
-	void TransformBone(BoneData* bone);
-	void BuildIntoHierarchy();
+	//void TraverseSkeleton(const ImporterSceneNode* node);
+	//void TransformBone(BoneData* bone);
+	//void BuildIntoHierarchy();
 	BoneData* GetBone(const std::string& name);
 	ImporterSceneNode* GetRootBoneNode();
+
+	void UpdateWorldTransforms();
+
+	
 
 	
 
 private:
 	std::string m_name;
-	void RecursiveBuild(ImporterSceneNode* parentNode);
 };
 
 class SkeletonComponent : public Component {
@@ -156,6 +137,9 @@ public:
 		: Component(name + "Skeleton"), m_skeleton(skeleton) {}
 
 	void Update(double dt) override;
+	bool ShowGui() override;
+
+	void Serialize(std::ofstream& ofs) const override;
 
 private:
 	Skeleton* m_skeleton;
@@ -221,7 +205,8 @@ public:
 
 	void Update(double dt) override;
 	void Awake() override;
-	void UpdateSkeleton(BoneData* rootBone, float animTime, const Transform& parentTransform);
+	void UpdateSkeleton(BoneData* rootBone, double animTime, const Transform& parentTransform);
+	bool ShowGui() override;
 
 	void SetSkeleton(Skeleton* s) {
 		m_skeleton = s;
@@ -234,6 +219,7 @@ public:
 	std::chrono::high_resolution_clock::time_point PlaybackStartTime;
 
 	void PlayAnimation(int index);
+	void StopPlayback();
 
 private:
 

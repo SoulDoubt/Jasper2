@@ -139,8 +139,10 @@ void Shader::GetBoneTransformUniformLocations()
 void Shader::SetBoneTransform(int index, const Matrix4& transform)
 {
     //string name = "boneTrsnaforms[" + std::to_string(index) + "]";
-    int location = boneTransformUniformLocations[index];
-    glUniformMatrix4fv(location, 1, true, transform.AsFloatPtr());
+	if (index < boneTransformUniformLocations.size()) {
+		int location = boneTransformUniformLocations[index];
+		glUniformMatrix4fv(location, 1, true, transform.AsFloatPtr());
+	}
 }
 
 void Shader::AddShader(std::string filename, ShaderType t)
