@@ -136,6 +136,8 @@ void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
 	float pitch = t.Orientation.Pitch();
 	float yaw = t.Orientation.Yaw();
 	bool rotation_updates = false;
+	bool position_updates = false;
+	bool scale_updates = false;
 	if (ImGui::SliderAngle("Nt Roll", &roll)) {
 		rotation_updates = true;
 	}
@@ -153,6 +155,12 @@ void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
 	}*/
 	if (ImGui::InputFloat3("Nt Scale:", scale.AsFloatPtr())) {
 		t.Scale = scale;
+		scale_updates = true;
+	}
+
+	if (ImGui::InputFloat3("Position", pos.AsFloatPtr())) {
+		t.Position = pos;
+		position_updates = true;
 	}
 
 
@@ -186,7 +194,11 @@ void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
 		bd->skeleton->UpdateWorldTransforms();
 	}
 
-	for (auto& child : bd->Children) {
+	if (position_updates || scale_updates) {
+		bd->skeleton->UpdateWorldTransforms();
+	}
+
+	for (int child : bd->Children) {
 		if (TreeNode(skeleton->Bones[child]->Name.c_str())) {
 			SetBoneTransformGui(skeleton->Bones[child].get(), skeleton);
 			TreePop();
@@ -199,6 +211,12 @@ void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
 bool SkeletonComponent::ShowGui()
 {
 	using namespace ImGui;
+
+	static int frameNumber;
+	ImGui::InputInt("Frame:", &frameNumber);
+	if (ImGui::Button("Save Pose as Animation Frame")) {
+		SaveAnimationFrame(frameNumber);
+	}
 
 	auto rootBone = m_skeleton->RootBone;
 
@@ -227,6 +245,14 @@ void SkeletonComponent::Serialize(std::ofstream & ofs) const
 		WriteTransform(ofs, b->BoneOffsetTransform);
 
 	}
+}
+
+void SkeletonComponent::SaveAnimationFrame(int frame)
+{
+	auto go = this->GetGameObject();
+	AnimationComponent* animComponent = go->GetComponentByType<AnimationComponent>();
+	
+	
 }
 
 Transform BoneData::GetSkinningTransform() {
@@ -396,9 +422,27 @@ void AnimationComponent::UpdateSkeleton(BoneData* rootBone, double animTime, con
 
 bool AnimationComponent::ShowGui()
 {
-	
+
 	using namespace ImGui;
 	Component::ShowGui();
+	//ImGui::Text("Animations Defined: %d", this->m_animations.size());
+	int selected_animation;
+	vector<string> animnames;
+	animnames.push_back("None");
+	for (const auto& an : this->GetAnimations()) {
+		animnames.push_back(an.Name);
+	}
+	if (Combo("Animations", &selected_animation, animnames)) {
+
+	}
+	static char buffer[128];
+	ImGui::InputText("New Animation Name:", buffer, 128);
+	if (ImGui::Button("New")) {
+		Animation new_anim;
+		new_anim.Name = buffer;
+		AddAnimation(move(new_anim));
+	}
+
 	if (Button("Start")) {
 		this->PlayAnimation(0);
 	}

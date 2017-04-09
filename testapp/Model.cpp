@@ -183,7 +183,7 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 		//child->SetLocalTransform(modeldata->GetSkeleton()->GlobalInverseTransform);
 	}
 	
-
+	modeldata->SaveToAssetFile(modeldata->GetName() + ".asset");
 	//go->AttachChild(move(child));
 	return move(go);
 }
@@ -1523,11 +1523,24 @@ void ModelLoader::OutputMeshData(const string& filename)
 
 void ModelData::SaveToAssetFile(const std::string& filename) {
 	ofstream ofs;
-	ofs.open(filename, ios::binary, ios::out);
+	ofs.open(filename, ios::out);
+	AssetSerializer::WriteString(ofs, this->m_name);
+	AssetSerializer::WriteInt(ofs, static_cast<int>(m_meshes.size()));
 	for (const auto mesh : this->m_meshes) {
 		AssetSerializer::SerializeMesh(ofs, mesh);
 	}
-
+	AssetSerializer::WriteInt(ofs, static_cast<int>(m_materials.size()));
+	for (const auto material : m_materials) {
+		AssetSerializer::SerializeMaterial(ofs, material);
+	}
+	if (this->m_skeleton != nullptr) {
+		AssetSerializer::WriteBool(ofs, true);
+		AssetSerializer::SerializeSkeleton(ofs, this->m_skeleton);
+	}
+	else {
+		AssetSerializer::WriteBool(ofs, false);
+	}
+		
 }
 
 

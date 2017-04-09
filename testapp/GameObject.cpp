@@ -4,6 +4,8 @@
 #include <chrono>
 #include "imgui.h"
 
+#include <AnimationSystem.h>
+
 namespace Jasper
 {
 
@@ -64,6 +66,15 @@ bool GameObject::ShowGui()
     //if (ImGui::CollapsingHeader("Components")){
     ImGui::Text("Components");
     int i = 0;
+	ImGui::Text("Add New Compomemt");
+	vector<string> componentTypes = { "Select a Component Type", "Animation Component", "Skeleton Component" };
+	int cmpidx = 0;
+	if (Combo("Components", &cmpidx, componentTypes))
+	{
+		if (cmpidx == 1) {
+			AttachNewComponent<AnimationComponent>("Animator");
+		}
+	}
     for (auto& cmp : m_components) {
         if (ImGui::TreeNode((void*)(uintptr_t)i, cmp->GetName().data())) {
             if (ImGui::BeginPopupContextItem("item context menu")) {

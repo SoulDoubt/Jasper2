@@ -105,7 +105,7 @@ public:
 	Skeleton(const std::string& name) : m_name(name){}
 	std::string RootBoneName;
 	Transform GlobalInverseTransform;
-	std::string& GetName() {
+	std::string GetName() const {
 		return m_name;
 	}
 
@@ -122,9 +122,6 @@ public:
 	ImporterSceneNode* GetRootBoneNode();
 
 	void UpdateWorldTransforms();
-
-	
-
 	
 
 private:
@@ -141,8 +138,14 @@ public:
 
 	void Serialize(std::ofstream& ofs) const override;
 
+	Skeleton* GetSkeleton() const {
+		return m_skeleton;
+	}
+
 private:
 	Skeleton* m_skeleton;
+
+	void SaveAnimationFrame(int frame);
 };
 
 struct RotationKeyframe {
@@ -186,8 +189,6 @@ public:
 	float Duration;
 	int Index;
 	std::vector<BoneAnimation> BoneAnimations;
-
-
 
 };
 

@@ -319,6 +319,51 @@ void Scene::Deserialize(const std::string& filepath)
 
 void Scene::InitializeManual()
 {
+	////
+	{
+		ofstream ofs;
+		ofs.open("test_serialization.dat", ios::out, ios::binary);
+
+		Vector2 v2 = { 1.f, 2.f };
+		Vector3 v3 = { 3.f, 1.f, 4.f };
+		Vector4 v4 = { 1.f, 5.f, 9.f, 2.f };
+
+		string sstr = "Hello World!"s;
+
+		vector<Vector3> svec;
+		for (int i = 127; i >= 0; i--) {
+			svec.push_back(Vector3(i, i, i));
+		}
+
+		Transform stt;
+		stt.Position = { 1, 2, 3 };
+		stt.Orientation = { 4, 5, 6, 7 };
+		stt.Scale = { 3,4,5 };
+
+		
+		AssetSerializer::WriteString(ofs, sstr);
+		AssetSerializer::WriteString(ofs, "This is string 2_"s);
+		//AssetSerializer::WriteVector2(ofs, v2);
+		//AssetSerializer::WriteVector3(ofs, v3);
+		//AssetSerializer::WriteVector4(ofs, v4);
+		//AssetSerializer::WriteVector(ofs, svec);
+		//AssetSerializer::WriteTransform(ofs, stt);
+		ofs.close();
+
+		ifstream ifs;
+		ifs.open("test_serialization.dat", ios::in, ios::binary);
+		auto dss = AssetSerializer::ReadString(ifs);
+		auto dss2 = AssetSerializer::ReadString(ifs);
+		//auto dv2 = AssetSerializer::ReadVector2(ifs);
+		//auto dv3 = AssetSerializer::ReadVector3(ifs);
+		//auto dv4 = AssetSerializer::ReadVector4(ifs);
+		vector<Vector3> dvec;
+		AssetSerializer::ReadVector(ifs, dvec);
+		//auto dtt = AssetSerializer::ReadTransform(ifs);
+		ifs.close();
+		//auto v2d = AssetSerializer::Read
+		////
+	}
 	m_rootNode = make_unique<GameObject>("Root_Node");
 	m_rootNode->SetScene(this);
 
@@ -385,6 +430,8 @@ void Scene::InitializeManual()
 
 	m1->Flags = Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 
+	
+
 	//    std::ofstream serializer;
 	//    serializer.open("scenedata.scene", ios::binary | ios::out);
 	//
@@ -405,6 +452,8 @@ void Scene::InitializeManual()
 	floor->AttachNewComponent<MeshRenderer>("quad_renderer", quadMesh, floorMaterial);
 	floor->GetLocalTransform().Translate(Vector3(0.0f, -1.f, 0.0f));
 	floorMaterial->Ambient = { 0.0f, 0.0f, 0.0f };
+
+	
 
 	quadMesh->SetMaterial(floorMaterial);
 	//quadMesh->Initialize();
@@ -490,8 +539,8 @@ void Scene::InitializeManual()
 	//house.GetLocalTransform().Position = { 0.f, 0.f, 25.f };
 
 	//ml.LoadModel("../models/Platinum Master Chief/will_02out.obj", "Threepio");
-	//ml.LoadModel("../models/C3P0/C3P0.dae"s, "Threepio");
-	ml.LoadModel("../models/lara/lara.dae"s, "Threepio");
+	ml.LoadModel("../models/C3P0/C3P0.dae"s, "Threepio"s);
+	//ml.LoadModel("../models/lara/lara2.dae"s, "Threepio");
 	//ml.LoadModel("../models/Lara_Croft/Lara_Croft.obj", "Threepio");
 	//ml.LoadModel("../models/lara/lara.dae", "Threepio");
 	//ml.LoadModel("../models/bob/06_13.fbx"s, "Threepio");
@@ -509,7 +558,22 @@ void Scene::InitializeManual()
 	auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio"s, "Threepio"s, false, false));
 	lara.GetLocalTransform().Position = { 5.f, 1.2f, 4.f };
 	//lara.GetLocalTransform().UniformScale(1.0f);
-	lara.GetLocalTransform().UniformScale(0.175);
+	//lara.GetLocalTransform().UniformScale(0.175);
+	auto test_skel = lara.GetComponentByType<SkeletonComponent>();
+	if (test_skel) {
+		ofstream skel_str;
+		skel_str.open("test_skeleton.dat", ofstream::binary);
+		AssetSerializer::SerializeSkeleton(skel_str, test_skel->GetSkeleton());
+		//AssetSerializer::SerializeSkeleton(skel_str, test_skel->GetSkeleton());
+		
+		skel_str.close();
+
+		ifstream istr;
+		istr.open("test_skeleton.dat", ios::in | ios::binary);
+		auto skk = AssetSerializer::ConstructSkeleton(istr, this);
+		skk->UpdateWorldTransforms();
+//		AssetSerializer::ConstructSkeleton(istr, this);
+	}
 	/*for (auto& ch : lara.Children()) {
 		ch->GetLocalTransform().Rotate({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90.0));
 	}*/

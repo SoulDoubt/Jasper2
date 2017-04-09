@@ -72,6 +72,8 @@ public:
 	const float* AsFloatPtr() const {
 		return &x;
 	}
+
+	std::string ToString();
 };
 
 inline Quaternion::Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
@@ -352,6 +354,11 @@ inline Quaternion Quaternion::FromAxisAndAngle(const Vector3 & axis, float angle
 	q.w = cosf(0.5f * angle);
 
 	return q;
+}
+
+inline std::string Quaternion::ToString()
+{
+	return "{" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ", " + std::to_string(w) + "}";
 }
 
 

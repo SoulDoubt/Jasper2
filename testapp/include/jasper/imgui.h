@@ -104,6 +104,9 @@ struct ImVec4
 #endif
 };
 
+
+
+
 // ImGui end-user API
 // In a namespace so that user can add extra functions in a separate file (e.g. Value() helpers for your vector or common types)
 namespace ImGui
@@ -473,6 +476,44 @@ namespace ImGui
 #endif
 
 } // namespace ImGui
+
+#include <vector>
+#include <string>
+
+static auto vector_getter = [](void* vec, int idx, const char** out_text)
+{
+	auto& vector = *static_cast<std::vector<std::string>*>(vec);
+	if (idx < 0 || idx >= static_cast<int>(vector.size())) {
+		return false;
+	}
+	*out_text = vector.at(idx).c_str();
+	return true;
+};
+
+inline void GetCharVector(std::vector<char>& buff, const std::string& s)
+{
+	buff.reserve(s.size());
+	buff.assign(begin(s), end(s));
+	buff.push_back('\0');
+}
+
+inline bool Combo(const char* label, int* currIndex, std::vector<std::string>& values)
+{
+	if (values.empty()) {
+		return false;
+	}
+	return ImGui::Combo(label, currIndex, vector_getter,
+		static_cast<void*>(&values), values.size());
+}
+
+inline bool ListBox(const char* label, int* currIndex, std::vector<std::string>& values)
+{
+	if (values.empty()) {
+		return false;
+	}
+	return ImGui::ListBox(label, currIndex, vector_getter,
+		static_cast<void*>(&values), values.size());
+}
 
 // Flags for ImGui::Begin()
 enum ImGuiWindowFlags_

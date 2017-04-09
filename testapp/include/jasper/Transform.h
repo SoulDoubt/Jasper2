@@ -79,6 +79,8 @@ public:
     Transform Inverted() const;
 
     void SetIdentity();
+
+	std::string ToString();
 };
 
 inline Transform Transform::Inverted() const{
@@ -171,6 +173,15 @@ inline void Transform::SetIdentity()
     Position = { 0.f, 0.f, 0.f };
     Orientation = { 0.f, 0.f, 0.f, 1.f };
     Scale = { 1.f, 1.f, 1.f };
+}
+
+inline std::string Transform::ToString()
+{
+	std::string s = Position.ToString();
+	s += "\n" + Orientation.ToString();
+	s += "\n" + Scale.ToString();
+	return s;
+	
 }
 
 inline Transform& Transform::UniformScale(const float s)
