@@ -46,9 +46,7 @@ bool Component::ShowGui() {
 
 void Component::Serialize(std::ofstream& ofs) const {
 	using namespace AssetSerializer;
-	const size_t namesize = m_name.size();
-	ofs.write(ConstCharPtr(&namesize), sizeof(namesize));
-	ofs.write(m_name.data(), sizeof(char) * namesize);
+	WriteString(ofs, this->GetName());
 	const auto comptype = GetComponentType();
 	ofs.write(ConstCharPtr(&comptype), sizeof(comptype));
 

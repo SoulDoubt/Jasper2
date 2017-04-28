@@ -10,8 +10,8 @@ namespace Jasper
 
 void PhysicsDebugDrawer::Initialize()
 {
-    m_verts.reserve(20000);
-    m_indices.reserve(20000);
+    //m_verts.reserve(25000);
+    //m_indices.reserve(40000);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -42,40 +42,49 @@ void PhysicsDebugDrawer::Destroy()
 
 void PhysicsDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
-    
-    DebugVertex fromVert = { Vector3(from), Vector4(color, 1.f) };
-    DebugVertex toVert = { Vector3(to), Vector4(color, 1.f) };
+	//size_t vs = m_verts.size();
+	//size_t is = m_indices.size();
+    DebugVertex fromVert = { from, Vector4(color, 1.f) };
+    DebugVertex toVert = { to, Vector4(color, 1.f) };
 
-    m_verts.emplace_back(fromVert);
-    m_verts.emplace_back(toVert);
+	if (usedVerts + 2 < VERTEX_CAPACITY) {
 
-    int i = m_indices.size();
-    m_indices.push_back(i);
-    m_indices.push_back(i + 1);
+		m_verts[usedVerts] = fromVert;
+		m_verts[usedVerts + 1] = toVert;
 
+		usedVerts += 2;
+	}
+	if (usedIndices + 2 < INDEX_CAPACITY) {
+		//int i = m_indices.size();
+		m_indices[usedIndices] = usedIndices;
+		m_indices[usedIndices + 1] = usedIndices + 1;
+
+		usedIndices += 2;
+	}
 }
 
 void PhysicsDebugDrawer::Draw()
 {
-    int count = m_indices.size();
-    int vc = m_verts.size();    
+    //int count = m_indices.size();
+    //int vc = m_verts.size();    
 
     glBindVertexArray(vao);
     debugShader->Bind();
-    
+	glDisable(GL_DEPTH_TEST);
     vbo.Bind();
-    vbo.Allocate(m_verts.data(), vc * sizeof(DebugVertex));
+    vbo.Allocate(m_verts, usedVerts * sizeof(DebugVertex));
     
     ibo.Bind();
-    ibo.Allocate(m_indices.data(), count * sizeof (GLuint));
+    ibo.Allocate(m_indices, usedIndices * sizeof (GLuint));
     debugShader->SetModelViewProjectionMatrix(mvpMatrix);
     //glPointSize(5.0f);
     glLineWidth(2.25f);
     
-    glDrawElements(GL_LINES, count, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_LINES, usedIndices, GL_UNSIGNED_INT, 0);
     debugShader->Release();    
     vbo.Release();
     glBindVertexArray(0);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void DebugDrawer::Initialize()

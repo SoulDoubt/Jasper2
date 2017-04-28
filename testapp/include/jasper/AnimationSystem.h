@@ -37,6 +37,7 @@ struct ImporterSceneNode {
 
 
 class Skeleton;
+class RagdollCapsuleShape;
 
 struct BoneData {
 
@@ -44,11 +45,12 @@ struct BoneData {
 	int ParentID;
 	std::vector<int> Children;
 	std::string Name;
+	std::string MeshName;
 	Skeleton* skeleton = nullptr;
 	ImporterSceneNode* INode = nullptr;
 	BoneData* Parent = nullptr;
 	Mesh* mesh = nullptr;
-		
+	RagdollCapsuleShape* m_collisionShape = nullptr;
 	// Node Transform is the mesh space transform of the bone relative to the 
 	// mesh's origin.
 	Transform NodeTransform;
@@ -57,6 +59,10 @@ struct BoneData {
 	// Offset Transform declares the transformation needed to transform from 
 	// mesh space to the local space of this bone.
 	Transform BoneOffsetTransform;	
+
+	Transform BindTransform;
+
+	int PhysicsControlled = 0;
 	//Transform ToParentSpace();
 	// The transform to actually send up to the shader
 	//Transform RenderTransform() const;
@@ -65,8 +71,8 @@ struct BoneData {
 
 	bool PositionCorrected = false;
 
-
 	Transform GetWorldTransform();
+	void SetWorldTransform(const Transform& t);
 	void UpdateWorldTransform();
 
 private:
@@ -109,6 +115,13 @@ public:
 		return m_name;
 	}
 
+	void SetName(const std::string& name) {
+		m_name = name;
+	}
+
+	void SetPhysicsControl(bool p);
+	bool IsPhysicsControlled() const;
+
 	std::vector<std::unique_ptr<BoneData>> Bones;
 	std::unordered_map<std::string, int> m_boneMap;
 
@@ -126,6 +139,7 @@ public:
 
 private:
 	std::string m_name;
+	bool m_physicsControlled;
 };
 
 class SkeletonComponent : public Component {
@@ -142,31 +156,45 @@ public:
 		return m_skeleton;
 	}
 
+	ComponentType GetComponentType() const override {
+		return ComponentType::SkeletonComponent;
+	}
+
 private:
 	Skeleton* m_skeleton;
 
 	void SaveAnimationFrame(int frame);
+
+	void MirrorPose();
 };
 
 struct RotationKeyframe {
 	float Time;
 	Quaternion Value;
+	RotationKeyframe(float time, Quaternion val)
+		: Time(time), Value(val) {}
+	RotationKeyframe() : Time(0.f), Value(Quaternion()) {}
 };
 
 struct PositionKeyframe {
 	float Time;
 	Vector3 Value;
+	PositionKeyframe(float time, Vector3 val)
+		: Time(time), Value(val) {}
+	PositionKeyframe() : Time(0.f), Value(Vector3()) {}
 };
 
 struct ScaleKeyframe {
 	float Time;
 	Vector3 Value;
+	ScaleKeyframe(float time, Vector3 val)
+		: Time(time), Value(val) {}
+	ScaleKeyframe() : Time(0.f), Value(Vector3(1.f, 1.f, 1.f)) {}
 };
 
 struct BoneAnimation {
 
-	std::string Name;
-	
+	std::string Name;	
 	int BoneIndex;
 	std::vector<RotationKeyframe> RotationKeyframes;
 	std::vector<PositionKeyframe> PositionKeyframes;
@@ -175,6 +203,10 @@ struct BoneAnimation {
 	int FindRotationKeyframe(float time, int startIndex);
 	int FindPositionKeyframe(float time, int startIndex);
 	int FindScaleKeyframe(float time, int startIndex);
+
+	int GetRotationKeyframeByTime(float time);
+	int GetPositionKeyframeByTime(float time);
+	int GetScaleKeyframeByTime(float time);
 
 
 };
@@ -185,10 +217,12 @@ public:
 
 	std::string Name;
 	float Ticks;
-	float TicksPerSecond;
-	float Duration;
+	float TicksPerSecond = 24.f;
+	float Duration = 0.f;
 	int Index;
 	std::vector<BoneAnimation> BoneAnimations;
+	std::vector<int> Keyframes;
+	BoneAnimation* GetBoneAnimationByBoneIndex(int idx);
 
 };
 
@@ -202,9 +236,14 @@ public:
 	~AnimationComponent();
 
 	std::vector<Animation>& GetAnimations();
+
+	const std::vector<Animation>& GetAnimations() const {
+		return m_animations;
+	}
 	void AddAnimation(const Animation&& anim);
 
 	void Update(double dt) override;
+	void UpdateBoneAnimation(Jasper::BoneAnimation & boneAnim, int prevFrame, int nextFrame, double dtFrames);
 	void Awake() override;
 	void UpdateSkeleton(BoneData* rootBone, double animTime, const Transform& parentTransform);
 	bool ShowGui() override;
@@ -217,10 +256,28 @@ public:
 		return m_skeleton;
 	}
 
+	const Skeleton* GetSkeleton() const{
+		return m_skeleton;
+	}
+
+	void PoseSkeleton(int animIndex, int framenumber);
+
+	void AddKeyframe(int framenumber);
+	void UpdateKeyframe(int framenumber);
+	void DeleteKeyframe(int framenumber);
+
 	std::chrono::high_resolution_clock::time_point PlaybackStartTime;
 
 	void PlayAnimation(int index);
 	void StopPlayback();
+
+	void SetLooping(bool loop) {
+		m_loop = loop;
+	}
+
+	ComponentType GetComponentType() const override {
+		return ComponentType::AnimationComponent;
+	}
 
 private:
 
@@ -232,6 +289,10 @@ private:
 	int m_lastPlayedRotation;
 	int m_lastPlayedPosition;
 	int m_lastPlayedScale;
+	int m_edit_animation = -1;
+
+	std::vector<int> GetPreviousAndNextKeyframes(double dt);
+
 
 
     

@@ -16,6 +16,24 @@ class aiNode;
 namespace Jasper
 {
 
+inline Vector3 CalculateMaxExtents(const std::vector<Vector3>& positions) {
+	float maxX = FLT_MIN;
+	float maxY = FLT_MIN;
+	float maxZ = FLT_MIN;
+	for (const auto& p : positions) {
+		if (p.x > maxX) {
+			maxX = p.x;
+		}
+		if (p.y > maxY) {
+			maxY = p.y;
+		}
+		if (p.z > maxZ) {
+			maxZ = p.z;
+		}
+	}
+	return { maxX, maxY, maxZ };
+}
+
 class Material;
 class Shader;
 
@@ -423,17 +441,22 @@ private:
 
 	GLBuffer m_vertexBuffer;
 	GLBuffer m_indexBuffer;
+	std::string m_materialName = "";
 
 
 public:
+
+	std::string GetMaterialName() const;
+
+	void SetMaterialName(const std::string& name) {
+		m_materialName = name;
+	}
 
 	void SetVertexFormat(VERTEX_FORMAT format) {
 		m_vertexFormat = format;
 	}
 
-	void SetMaterial(Material* m) {
-		m_material = m;
-	}
+	void SetMaterial(Material* m);
 
 	int ElementCount() const {
 		return m_elementCount;
@@ -447,9 +470,7 @@ public:
 		return m_vertexBuffer;
 	}
 
-	bool HasBones() const {
-		return Bones.size() > 0;
-	}
+	bool HasBones() const;
 
 	GLBuffer& IndexBuffer() {
 		return m_indexBuffer;
@@ -597,7 +618,7 @@ protected:
 
 	Material* m_material = nullptr;
 
-	Skeleton* m_skeleton;
+	Skeleton* m_skeleton = nullptr;
 
 };
 
@@ -670,10 +691,12 @@ public:
 		return ComponentType::Mesh;
 	}
 
-	MeshComponent(const std::string& name, Mesh* m) 
+	MeshComponent(const std::string& name, Mesh* m)
 		: Component(name), m_mesh(m)
 	{
 	}
+
+	bool ShowGui() override;
 
 	Mesh* GetMesh() {
 		return m_mesh;
@@ -687,10 +710,28 @@ public:
 		m_mesh = m;
 	}
 
+	int VaoID();
+	int VertexBufferID();
+	int IndexBufferID();
+
+	int NumVertices();
+	int NumTriangles();
+
 	void Serialize(std::ofstream& ofs) const override;
+
+	void Initialize() override;
 
 private:
 	Mesh* m_mesh;
+};
+
+class Terrain : public Mesh {
+
+public:
+
+	Terrain(const std::string& name);
+
+
 };
 
 } // namespace Jasper

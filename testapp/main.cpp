@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
 	_tprintf(TEXT("Directory is: (%s)\n"), buffer);
 
 #endif
-	std::unique_ptr<GLWindow> window = std::make_unique<GLWindow>(1440, 900, "Jasper");
+	std::unique_ptr<GLWindow> window = std::make_unique<GLWindow>(1280, 720, "Jasper");
 	window->Init();
 	window->InitializeScene();
 	window->RunLoop();

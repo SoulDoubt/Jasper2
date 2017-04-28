@@ -18,6 +18,8 @@
 #include "Material.h"
 #include "CharacterController.h"
 
+#include <mutex>
+
 
 
 namespace Jasper
@@ -77,6 +79,10 @@ public:
     /*CharacterController* GetPlayer() {
         return m_player.get();
     }*/
+
+	void LoadModel(const std::string& filename, const std::string& name);
+	void LoadAssetModel(const std::string& filename, const std::string& name);
+	void DeleteGameObject(GameObject* go, GameObject* parent);
     
     void DrawPickRay();
 
@@ -119,7 +125,7 @@ public:
 //        return m_modelManager.CreateInstance<T>(std::forward<Args>(args)...);
 //    }
 
-    GameObject* MousePickGameObject(int x, int y, Vector3& hit_point, Vector3& hit_normal);
+    const btCollisionObject* MousePickGameObject(int x, int y, Vector3& hit_point, Vector3& hit_normal);
     void MouseSelectGameObject(int x, int y);
     void ShootMouse(int x, int y);
     void MouseMoveSelectedGameObject(int xrel, int yrel);
@@ -189,8 +195,12 @@ public:
     }
     
     void TogglePhysicsDebugDraw(){
-        debug_draw_physics = !debug_draw_physics;
+        debug_draw_physics =  !debug_draw_physics;
     }
+
+	Material* GetDefaultMaterial() {
+		return m_defaultMaterial;
+	}
 
 private:
 
@@ -229,6 +239,10 @@ private:
     bool debug_draw_physics = false;
     
     GameObject* m_selected_game_object = nullptr;
+
+	Material* m_defaultMaterial = nullptr;
+
+	std::mutex m_background_tasks_mutex;
 
 
 };

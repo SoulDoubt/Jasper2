@@ -11,6 +11,7 @@ namespace Jasper
 {
 
 class PhysicsCollider;
+class RagdollCollider;
 
 class PhysicsWorld
 {
@@ -29,6 +30,7 @@ public:
 
     void AddRigidBody(btRigidBody* rb);
     void AddCollider(PhysicsCollider* collider);
+	void AddRagdoll(RagdollCollider* ragdoll);
     void ConvexSweepTest(btConvexShape* shape, btTransform& from, btTransform& to, btCollisionWorld::ClosestConvexResultCallback& callback);
 	void ContactTest(btCollisionObject* shape, btCollisionWorld::ContactResultCallback& cb);
 
@@ -42,6 +44,8 @@ public:
 
     void RemoveRigidBody(btRigidBody* rb);
     void DeleteRigidBody(btRigidBody* rb);
+	void RemoveConstraint(btTypedConstraint* con);
+	void AddConstraint(btTypedConstraint* con);
 
     std::unique_ptr<PhysicsDebugDrawer> debugDrawer;
 

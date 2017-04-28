@@ -18,6 +18,11 @@
 #include <typeinfo>
 #include <typeindex>
 
+#include <thread>
+#include <future>
+
+
+
 #define DEBUG_DRAW_PHYSICS
 
 namespace Jasper
@@ -77,15 +82,15 @@ void Scene::Serialize(const std::string& filepath)
 
 	// now the materials
 	const size_t materialCount = m_materialManager.GetCache().size();
-	ofs.write(ConstCharPtr(&materialCount), sizeof(materialCount));
+	WriteSize_t(ofs, materialCount);
 	for (const auto& material : m_materialManager.GetCache()) {
 		SerializeMaterial(ofs, material.get());
 	}
 
 	const size_t meshCount = m_meshManager.GetCache().size();
-	ofs.write(ConstCharPtr(&meshCount), sizeof(meshCount));
+	WriteSize_t(ofs, meshCount);
 	for (const auto& mesh : m_meshManager.GetCache()) {
-		mesh->Serialize(ofs);
+		SerializeMesh(ofs, mesh.get());
 	}
 
 	//serialize GameObjects
@@ -106,16 +111,12 @@ void Scene::SerializeGameObject(const GameObject* go, std::ofstream& ofs)
 	const GameObjectType typ = go->GetGameObjectType();
 	ofs.write(ConstCharPtr(&typ), sizeof(typ));
 	const string name = go->GetName();
-	const size_t namesize = name.size();
-	ofs.write(ConstCharPtr(&namesize), sizeof(namesize));
-	ofs.write(name.data(), namesize);
+	WriteString(ofs, name);
 	const Transform t = go->GetWorldTransform();
-	ofs.write(ConstCharPtr(t.Position.AsFloatPtr()), sizeof(t.Position));
-	ofs.write(ConstCharPtr(t.Orientation.AsFloatPtr()), sizeof(t.Orientation));
-	ofs.write(ConstCharPtr(t.Scale.AsFloatPtr()), sizeof(t.Scale));
+	WriteTransform(ofs, t);
 	//not the components for this game object
 	const size_t componentsize = go->Components().size();
-	ofs.write(ConstCharPtr(&componentsize), sizeof(componentsize));
+	WriteSize_t(ofs, componentsize);
 	for (const auto& cmp : go->Components()) {
 		cmp->Serialize(ofs);
 	}
@@ -191,30 +192,25 @@ void Scene::DeserializeGameObject(std::ifstream & ifs, GameObject* parent)
 	size_t componentsize;
 	ifs.read(CharPtr(&componentsize), sizeof(componentsize));
 	for (size_t c = 0; c < componentsize; ++c) {
-		// grab the name and component type
-		size_t componentNameSize;
-		ifs.read(CharPtr(&componentNameSize), sizeof(componentNameSize));
-		char* cnamebuff = new char[componentNameSize + 1];
-		ifs.read(cnamebuff, componentNameSize);
-		cnamebuff[componentNameSize] = '\0';
-		string componentName = string(cnamebuff);
-		delete[] cnamebuff;
-
+		// grab the name base component data
+		string componentName;
 		ComponentType ct;
-		ifs.read(CharPtr(&ct), sizeof(ct));
+		ReadBaseComponentData(ifs, &componentName, &ct);
 		switch (ct) {
 		case ComponentType::MeshRenderer:
-			ConstructMeshRenderer(ifs, componentName, gameObject, this);
+			DeserializeAndAttachMeshRendererComponent(ifs, componentName, gameObject, this);
 			break;
 		case ComponentType::PhysicsCollider:
-			ConstructPhysicsCollider(ifs, componentName, gameObject, this);
+			DeserializeAndAttachPhysicsColliderComponent(ifs, componentName, gameObject, this);
 			break;
 		case ComponentType::SkyboxRenderer:
-			ConstructSkyboxRenderer(ifs, componentName, gameObject, this);
+			DeserializeAndAttachSkyboxRendererComponent(ifs, componentName, gameObject, this);
 			break;
 		case ComponentType::ScriptComponent:
 			ConstructScriptComponent(ifs, componentName, gameObject, this);
 			break;
+		case ComponentType::AnimationComponent:
+
 		default:
 			//int x = 0;
 			printf("Unhandled Component Type in deserialize..\n");
@@ -228,6 +224,61 @@ void Scene::DeserializeGameObject(std::ifstream & ifs, GameObject* parent)
 	}
 
 
+}
+
+
+void Scene::LoadModel(const std::string & filename, const std::string& name)
+{
+
+	ModelLoader ml(this);
+
+	auto attachfunc = [&ml, &name, this]() {
+		auto model_data = this->GetModelCache().GetResourceByName(name);
+		auto& mm = m_rootNode->AttachChild(move(ml.CreateModelInstance(name, name, true, false)));
+		if (model_data->Animator != nullptr) {
+			mm.AttachComponent(move(model_data->Animator));
+		}
+		m_renderer->ProcessSingleGameObject(&mm);
+		mm.Initialize();
+		mm.Awake();
+	};
+
+	auto loadfunc = [&ml, &filename, &name, &attachfunc]() {
+		ml.LoadModel(filename, name);
+
+	};
+
+
+
+	//std::future<void> fut(std::async(loadfunc));
+
+	//fut.get();
+	loadfunc();
+	attachfunc();
+	//ModelLoader ml(this);
+	//ml.LoadModel(filename, name);
+
+
+}
+
+void Scene::LoadAssetModel(const std::string & filename, const std::string& name)
+{
+	static int id = 0;
+	//string name = "New Asset" + to_string(id);
+	ModelLoader ml(this);
+	ml.LoadFromAssetFile(name, filename);
+
+	auto& mm = m_rootNode->AttachChild(move(ml.CreateModelInstance(name, name, false, false)));
+	m_renderer->ProcessSingleGameObject(&mm);
+	mm.Initialize();
+	mm.Awake();
+	id++;
+}
+
+void Scene::DeleteGameObject(GameObject * go, GameObject* parent)
+{
+	m_renderer->UnregisterGameObject(go);
+	auto d = parent->DetachChild(go);
 }
 
 void Scene::DrawPickRay()
@@ -248,7 +299,6 @@ void Scene::DrawPickRay()
 
 void Scene::DebugDrawPhysicsWorld()
 {
-	
 	auto viewMatrix = m_camera->GetViewMatrix();
 	auto projMatrix = m_camera->GetProjectionMatrix();
 	auto& dd = m_physicsWorld->debugDrawer;
@@ -278,10 +328,10 @@ void Scene::DebugDrawSkeleton(Skeleton* s, Transform t)
 	auto& dd = m_physicsWorld->debugDrawer;
 	dd->SetMatrix(projMatrix * viewMatrix * t.TransformMatrix());
 	dd->Reset();
-	
+
 	auto rootBone = s->RootBone;
 	RecusriveDrawSkeleton(rootBone, s, dd.get());
-	
+
 	dd->Draw();
 }
 
@@ -340,7 +390,7 @@ void Scene::InitializeManual()
 		stt.Orientation = { 4, 5, 6, 7 };
 		stt.Scale = { 3,4,5 };
 
-		
+
 		AssetSerializer::WriteString(ofs, sstr);
 		AssetSerializer::WriteString(ofs, "This is string 2_"s);
 		//AssetSerializer::WriteVector2(ofs, v2);
@@ -364,6 +414,14 @@ void Scene::InitializeManual()
 		//auto v2d = AssetSerializer::Read
 		////
 	}
+
+	// create an instance of the default material
+	m_defaultMaterial = m_materialManager.CreateInstance<Material>("default_material");
+	m_defaultMaterial->SetTextureDiffuse("../textures/tile.jpg");
+	m_defaultMaterial->SetTextureNormalMap("../textures/tile_NormalMap.png");
+
+
+
 	m_rootNode = make_unique<GameObject>("Root_Node");
 	m_rootNode->SetScene(this);
 
@@ -371,7 +429,7 @@ void Scene::InitializeManual()
 	m_player = m_rootNode->AttachNewChild<Camera>(Camera::CameraType::FLYING, 60.f, ar, 0.1f, 500.f);
 	//m_player->AttachNewComponent<CapsuleCollider>("player_collider"s, Vector3(0.75f, 1.82f, 0.75f), m_physicsWorld.get());
 	m_camera = m_player;
-	m_camera->GetLocalTransform().Position = { 0.f, 0.f, 0.f };
+	m_camera->GetLocalTransform().Position = { 0.f, 0.f, 10.f };
 	//70, aspectRatio, 0.1f, 1000.0f
 //    m_camera->SetFov(70.f);
 //    m_camera->SetAspectRatio();
@@ -379,7 +437,7 @@ void Scene::InitializeManual()
 //    m_camera->SetFarDistance(1000.0f);
 	//m_camera->SetPhysicsWorld(m_physicsWorld.get());
 
-	m_player->GetLocalTransform().Position = { 10.0f, 5.0f, 0.0f };
+	//m_player->GetLocalTransform().Position = { 10.0f, 5.0f, 0.0f };
 	//auto sh = m_player->AttachNewComponent<ShooterScript>();
 	//sh->Force = 50;
 
@@ -392,12 +450,13 @@ void Scene::InitializeManual()
 	skyboxMesh->SetCubemap(true); // we want to render the inside of the cube    
 	m_shaderManager.CreateInstance<SkyboxShader>("skybox_shader");
 	auto skyboxMaterial = m_materialManager.CreateInstance<Material>("skybox_material");
-	string posx = "../textures/CloudyLightRays/CloudyLightRaysLeft2048.png"s;
-	string negx = "../textures/CloudyLightRays/CloudyLightRaysRight2048.png"s;
-	string posy = "../textures/CloudyLightRays/CloudyLightRaysUp2048.png"s;
-	string negy = "../textures/CloudyLightRays/CloudyLightRaysDown2048.png"s;
-	string posz = "../textures/CloudyLightRays/CloudyLightRaysFront2048.png"s;
-	string negz = "../textures/CloudyLightRays/CloudyLightRaysBack2048.png"s;
+	string posx = "../textures/ame_siege/siege_ft.tga"s;
+	string negx = "../textures/ame_siege/siege_bk.tga"s;
+	string posy = "../textures/ame_siege/siege_up.tga"s;
+	string negy = "../textures/ame_siege/siege_dn.tga"s;
+	string posz = "../textures/ame_siege/siege_rt.tga"s;
+	string negz = "../textures/ame_siege/siege_lf.tga"s;
+
 	skyboxMaterial->SetCubemapTextures(posx, negx, posy, negy, posz, negz);
 	auto sbr = m_skybox->AttachNewComponent<SkyboxRenderer>("skybox_renderer", skyboxMesh, skyboxMaterial);
 	m_renderer->SetSkyboxRenderer(sbr);
@@ -406,10 +465,10 @@ void Scene::InitializeManual()
 	//skyboxMesh->Initialize();
 	// create the Lit Shader Instance to render most objects
 	//auto defaultShader = m_shaderManager.CreateInstance<LitShader>();
-	m_shaderManager.CreateInstance<GeometryPassShader>();
-	m_shaderManager.CreateInstance<DirectionalLightPassShader>();
-	m_shaderManager.CreateInstance<PointLightPassShader>();
-	m_shaderManager.CreateInstance<DeferredStencilPassShader>();
+	//m_shaderManager.CreateInstance<GeometryPassShader>();
+	//m_shaderManager.CreateInstance<DirectionalLightPassShader>();
+	//m_shaderManager.CreateInstance<PointLightPassShader>();
+	//m_shaderManager.CreateInstance<DeferredStencilPassShader>();
 	m_shaderManager.CreateInstance<LitShader>();
 	m_shaderManager.CreateInstance<AnimatedLitShader>();
 
@@ -430,7 +489,7 @@ void Scene::InitializeManual()
 
 	m1->Flags = Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 
-	
+
 
 	//    std::ofstream serializer;
 	//    serializer.open("scenedata.scene", ios::binary | ios::out);
@@ -444,18 +503,18 @@ void Scene::InitializeManual()
 	// Floor
 	auto floor = m_rootNode->AttachNewChild<GameObject>("floor");
 	auto quadMesh = m_meshManager.CreateInstance<Quad>("floor_quad", Vector2(100.0f, 100.0f), 25, 25, Quad::AxisAlignment::XZ);
-	Material* floorMaterial = m_materialManager.CreateInstance<Material>("floor_material");
+	/*Material* floorMaterial = m_materialManager.CreateInstance<Material>("floor_material");
 	floorMaterial->SetTextureDiffuse("../textures/tile.jpg");
 	floorMaterial->SetTextureNormalMap("../textures/tile_NormalMap.png");
 	floorMaterial->Specular = { 0.8f, .9f, .9f };
-	floorMaterial->Shine = 64;
-	floor->AttachNewComponent<MeshRenderer>("quad_renderer", quadMesh, floorMaterial);
+	floorMaterial->Shine = 64;*/
+	floor->AttachNewComponent<MeshRenderer>("quad_renderer", quadMesh, m_defaultMaterial);
 	floor->GetLocalTransform().Translate(Vector3(0.0f, -1.f, 0.0f));
-	floorMaterial->Ambient = { 0.0f, 0.0f, 0.0f };
+	//floorMaterial->Ambient = { 0.0f, 0.0f, 0.0f };
 
-	
 
-	quadMesh->SetMaterial(floorMaterial);
+
+	quadMesh->SetMaterial(m_defaultMaterial);
 	//quadMesh->Initialize();
 	auto floorP = floor->AttachNewComponent<PlaneCollider>("floor_collider", Vector3(0.0, 1.0, 0.0), 0.0, m_physicsWorld.get());
 	floorP->Friction = 0.9f;
@@ -488,15 +547,15 @@ void Scene::InitializeManual()
 
 	//ml->LoadModel("../models/Mathias/Mathias.obj"s, "Cyborg");
 
-	auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 1.0f);
-	ss->SetMaterial(m1);
-	auto icos = m_rootNode->AttachNewChild<GameObject>("icos");
-	icos->GetLocalTransform().Position = { 0.f, 1.f, 0.f };
-	icos->AttachNewComponent<MeshRenderer>("icos_renderer", ss, icosMat);
-	auto sc = icos->AttachNewComponent<SphereCollider>("icos_collider", ss, m_physicsWorld.get());
-	sc->Mass = 50.f;
-	sc->Friction = 0.75f;
-	sc->Restitution = 0.86f;
+	//auto ss = m_meshManager.CreateInstance<Sphere>("base_sphere", 1.0f);
+	//ss->SetMaterial(m1);
+	//auto icos = m_rootNode->AttachNewChild<GameObject>("icos");
+	//icos->GetLocalTransform().Position = { 0.f, 1.f, 0.f };
+	//icos->AttachNewComponent<MeshRenderer>("icos_renderer", ss, icosMat);
+	//auto sc = icos->AttachNewComponent<SphereCollider>("icos_collider", ss, m_physicsWorld.get());
+	//sc->Mass = 50.f;
+	//sc->Friction = 0.75f;
+	//sc->Restitution = 0.86f;
 
 	ModelLoader ml(this);
 	//ml.LoadModel("../models/Street Light/Street Light.obj"s, "column");    
@@ -512,13 +571,13 @@ void Scene::InitializeManual()
 	//pot2.GetLocalTransform().Scale = {0.05f, 0.05f, 0.05f};
 
 
-	auto cylMesh = m_meshManager.CreateInstance<Cylinder>("base_cyl", 2.f, 1.f);
-	cylMesh->SetMaterial(m1);
-	auto cyl = m_rootNode->AttachNewChild<GameObject>("Cyl");
-	auto cylrend = cyl->AttachNewComponent<MeshRenderer>("cyl_renderer", cylMesh, m1);
-	auto cylcol = cyl->AttachNewComponent<CylinderCollider>("cyl_collider", cylMesh, m_physicsWorld.get());
-	cylrend->ToggleWireframe(true);
-	cylcol->Mass = 20.f;
+	//auto cylMesh = m_meshManager.CreateInstance<Cylinder>("base_cyl", 2.f, 1.f);
+	//cylMesh->SetMaterial(m1);
+	//auto cyl = m_rootNode->AttachNewChild<GameObject>("Cyl");
+	//auto cylrend = cyl->AttachNewComponent<MeshRenderer>("cyl_renderer", cylMesh, m1);
+	//auto cylcol = cyl->AttachNewComponent<CylinderCollider>("cyl_collider", cylMesh, m_physicsWorld.get());
+	//cylrend->ToggleWireframe(true);
+	//cylcol->Mass = 20.f;
 
 	float cx = 0;
 	float cz = 10;
@@ -539,12 +598,13 @@ void Scene::InitializeManual()
 	//house.GetLocalTransform().Position = { 0.f, 0.f, 25.f };
 
 	//ml.LoadModel("../models/Platinum Master Chief/will_02out.obj", "Threepio");
-	ml.LoadModel("../models/C3P0/C3P0.dae"s, "Threepio"s);
+	//ml.LoadModel("../models/C3P0/C3P0.dae"s, "Threepio"s);
 	//ml.LoadModel("../models/lara/lara2.dae"s, "Threepio");
 	//ml.LoadModel("../models/Lara_Croft/Lara_Croft.obj", "Threepio");
 	//ml.LoadModel("../models/lara/lara.dae", "Threepio");
 	//ml.LoadModel("../models/bob/06_13.fbx"s, "Threepio");
 	//ml.LoadModel("../models/Germiona/Germiona.dae"s, "Threepio"s);
+
 	//ml.LoadModel("../models/Elexis/Blonde Elexis - nude.obj"s, "Threepio"s);
 	//ml.LoadModel("../models/cowboy/model.dae"s, "Threepio");
 	//ml.LoadModel("../models/viewmodel_ak12/untitled.dae"s, "Threepio");
@@ -555,25 +615,31 @@ void Scene::InitializeManual()
 	//ml.LoadModel("../models/stormtrooper/stormtrooper.dae", "Threepio");
 	//ml.LoadModel("../models/Predator_Youngblood/Predator_Youngblood.dae"s, "Threepio"s);
 	//ml.LoadModel("../models/testman/test", "Threepio"s);
-	auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio"s, "Threepio"s, false, false));
-	lara.GetLocalTransform().Position = { 5.f, 1.2f, 4.f };
+
+
+	//ml.SaveToAssetFile("Threepio"s, "../models/Germiona.jasper"s);
+
+	//ml.LoadFromAssetFile("Threepio"s, "../models/Germiona.jasper"s);
+	//auto& lara = m_rootNode->AttachChild(ml.CreateModelInstance("Threepio"s, "Threepio"s, true, false));
+	//lara.GetLocalTransform().Position = { 4.f, 0.f, 0.f };
+	//lara.GetLocalTransform().Rotate({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90));
 	//lara.GetLocalTransform().UniformScale(1.0f);
 	//lara.GetLocalTransform().UniformScale(0.175);
-	auto test_skel = lara.GetComponentByType<SkeletonComponent>();
-	if (test_skel) {
-		ofstream skel_str;
-		skel_str.open("test_skeleton.dat", ofstream::binary);
-		AssetSerializer::SerializeSkeleton(skel_str, test_skel->GetSkeleton());
-		//AssetSerializer::SerializeSkeleton(skel_str, test_skel->GetSkeleton());
-		
-		skel_str.close();
-
-		ifstream istr;
-		istr.open("test_skeleton.dat", ios::in | ios::binary);
-		auto skk = AssetSerializer::ConstructSkeleton(istr, this);
-		skk->UpdateWorldTransforms();
-//		AssetSerializer::ConstructSkeleton(istr, this);
-	}
+//	auto test_skel = lara.GetComponentByType<SkeletonComponent>();
+//	if (test_skel) {
+//		ofstream skel_str;
+//		skel_str.open("test_skeleton.dat", ofstream::binary);
+//		AssetSerializer::SerializeSkeleton(skel_str, test_skel->GetSkeleton());
+//		//AssetSerializer::SerializeSkeleton(skel_str, test_skel->GetSkeleton());
+//		
+//		skel_str.close();
+//
+//		ifstream istr;
+//		istr.open("test_skeleton.dat", ios::in | ios::binary);
+//		auto skk = AssetSerializer::ConstructSkeleton(istr, this);
+//		skk->UpdateWorldTransforms();
+////		AssetSerializer::ConstructSkeleton(istr, this);
+//	}
 	/*for (auto& ch : lara.Children()) {
 		ch->GetLocalTransform().Rotate({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90.0));
 	}*/
@@ -607,42 +673,42 @@ void Scene::InitializeManual()
 //    auto teapot_unused = model->DetachComponent(*teapot_model);
 	//model->AttachNewComponent<RotateInPlaceScript>("rotate_in_place_script", Vector3(0.f, 1.f, 0.f), 90);
 
-	auto light0 = m_rootNode->AttachNewChild<PointLight>("p_light"s);
-	light0->GetLocalTransform().Translate({ 0.0f, 10.f, 15.0f });
-	light0->Attenuation = 0.f;
-	light0->Color = { 1.f, 1.f, 1.f };
-	light0->AmbientIntensity = 0.3f;
-	light0->DiffuseIntensity = 0.85f;
-	light0->Radius = 20.0f;
-	auto lightMesh = m_meshManager.CreateInstance<Cube>("point_light_mesh"s, Vector3(0.1f, 0.1f, 0.1f));
-	auto lightMaterial = m_materialManager.CreateInstance<Material>("point_light_material"s);
-	lightMaterial->SetTextureDiffuse("../textures/white.jpg"s);
-	lightMesh->SetMaterial(lightMaterial);
-	//lightMesh->Initialize();    
-	light0->AttachNewComponent<MeshRenderer>("point_light_renderer"s, lightMesh, lightMaterial);
-	//light0->AttachNewComponent<RotateAboutPointScript>("Rotate_Light_Script"s, Vector3(0.f, 7.5f, 0.f), Vector3(0.f, 1.f, 0.f), 45);
-	m_pointLights.push_back(light0);
-	//
+	//auto light0 = m_rootNode->AttachNewChild<PointLight>("p_light"s);
+	//light0->GetLocalTransform().Translate({ 0.0f, 10.f, 15.0f });
+	//light0->Attenuation = 0.f;
+	//light0->Color = { 1.f, 1.f, 1.f };
+	//light0->AmbientIntensity = 0.3f;
+	//light0->DiffuseIntensity = 0.85f;
+	//light0->Radius = 20.0f;
+	//auto lightMesh = m_meshManager.CreateInstance<Cube>("point_light_mesh"s, Vector3(0.1f, 0.1f, 0.1f));
+	//auto lightMaterial = m_materialManager.CreateInstance<Material>("point_light_material"s);
+	//lightMaterial->SetTextureDiffuse("../textures/white.jpg"s);
+	//lightMesh->SetMaterial(lightMaterial);
+	////lightMesh->Initialize();    
+	//light0->AttachNewComponent<MeshRenderer>("point_light_renderer"s, lightMesh, lightMaterial);
+	////light0->AttachNewComponent<RotateAboutPointScript>("Rotate_Light_Script"s, Vector3(0.f, 7.5f, 0.f), Vector3(0.f, 1.f, 0.f), 45);
+	//m_pointLights.push_back(light0);
+	////
 
-	auto light1 = m_rootNode->AttachNewChild<PointLight>("light1");
-	light1->GetLocalTransform().Position = { 5.f, 10.f, 5.f };
-	light1->Radius = 15.f;
-	m_pointLights.push_back(light1);
+	//auto light1 = m_rootNode->AttachNewChild<PointLight>("light1");
+	//light1->GetLocalTransform().Position = { 5.f, 10.f, 5.f };
+	//light1->Radius = 15.f;
+	//m_pointLights.push_back(light1);
 
-	auto light2 = m_rootNode->AttachNewChild<PointLight>("light2");
-	light2->GetLocalTransform().Position = { -5.f, 10.f, 5.f };
-	light2->Radius = 15.f;
-	m_pointLights.push_back(light2);
+	//auto light2 = m_rootNode->AttachNewChild<PointLight>("light2");
+	//light2->GetLocalTransform().Position = { -5.f, 10.f, 5.f };
+	//light2->Radius = 15.f;
+	//m_pointLights.push_back(light2);
 
-	auto light3 = m_rootNode->AttachNewChild<PointLight>("light3");
-	light3->GetLocalTransform().Position = { 0.f, 10.f, 10.f };
-	light3->Radius = 15.f;
-	m_pointLights.push_back(light3);
+	//auto light3 = m_rootNode->AttachNewChild<PointLight>("light3");
+	//light3->GetLocalTransform().Position = { 0.f, 10.f, 10.f };
+	//light3->Radius = 15.f;
+	//m_pointLights.push_back(light3);
 
 	auto dlight = m_rootNode->AttachNewChild<DirectionalLight>("d_light"s);
-	dlight->Direction = Normalize(Vector3(-0.5, -1.f, -0.5f));
+	dlight->Direction = Normalize(Vector3(-0.5, -0.3f, -0.5f));
 	dlight->AmbientIntensity = 0.005f;
-	dlight->Diffuseintensity = 0.2f;
+	dlight->Diffuseintensity = 0.75f;
 	m_directionalLight = dlight;
 }
 
@@ -664,7 +730,7 @@ void Scene::Initialize()
 	auto debugShader = m_shaderManager.CreateInstance<BasicShader>();
 	debugShader->SetColor(Vector4(0.f, 1.f, 0.f, 1.0f));
 	m_physicsWorld->debugDrawer->SetShader(debugShader);
-	m_physicsWorld->debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb);
+	m_physicsWorld->debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawConstraints | btIDebugDraw::DBG_DrawConstraintLimits);
 	m_physicsWorld->debugDrawer->Initialize();
 
 	InitializeManual();
@@ -674,6 +740,8 @@ void Scene::Initialize()
 	}
 	m_renderer->Initialize();
 	m_rootNode->Initialize();
+
+
 	//Serialize("../scenes/scenedata.scene");
 }
 
@@ -761,10 +829,9 @@ void Scene::Update(double dt)
 	if (skeleton_to_debug != nullptr) {
 		DebugDrawSkeleton(skeleton_to_debug, skeleton_debug_game_object_transform);
 	}
-
 }
 
-GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_point, Vector3& hit_normal)
+const btCollisionObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_point, Vector3& hit_normal)
 {
 	float winx = (2.0f * mouse_x) / m_windowWidth - 1.0f;
 	float winy = 1.0f - (2.0f * mouse_y) / m_windowHeight;
@@ -802,11 +869,12 @@ GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_po
 		hit_point = Vector3(cb.m_hitPointWorld);
 		hit_normal = Vector3(cb.m_hitNormalWorld);
 		auto object = cb.m_collisionObject;
-		auto hit_object = object->getUserPointer();
-		auto go = static_cast<GameObject*>(hit_object);
-		if (go) {
-			return go;
-		}
+		//auto hit_object = object->getUserPointer();
+		//auto go = static_cast<GameObject*>(hit_object);
+		//if (go) {
+		//	return go;
+		//}
+		return object;
 	}
 	return nullptr;
 }
@@ -814,19 +882,23 @@ GameObject* Scene::MousePickGameObject(int mouse_x, int mouse_y, Vector3& hit_po
 void Scene::MouseSelectGameObject(int x, int y)
 {
 	Vector3 hit_point, hit_normal;
-	GameObject* go = MousePickGameObject(x, y, hit_point, hit_normal);
-	if (go) {
-		if (m_selected_game_object != go && m_selected_game_object != nullptr) {
-			if (auto cc = m_selected_game_object->GetComponentByType<PhysicsCollider>()) {
-				cc->ColliderFlags ^= PhysicsCollider::DRAW_COLLISION_SHAPE;
-				cc->SetDebugColor({ 1.f, 0.f, 1.f, 0.9f });
+	auto co = MousePickGameObject(x, y, hit_point, hit_normal);
+	if (co) {
+		auto govp = co->getUserPointer();
+		if (govp != nullptr) {
+			auto go = static_cast<GameObject*>(govp);
+			if (m_selected_game_object != go && m_selected_game_object != nullptr) {
+				if (auto cc = m_selected_game_object->GetComponentByType<PhysicsCollider>()) {
+					cc->ColliderFlags ^= PhysicsCollider::DRAW_COLLISION_SHAPE;
+					cc->SetDebugColor({ 1.f, 0.f, 1.f, 0.9f });
+				}
 			}
+			if (auto col = go->GetComponentByType<PhysicsCollider>()) {
+				col->SetDebugColor({ 0.f, 1.f, 0.f, 1.f });
+				col->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
+			}
+			m_selected_game_object = go;
 		}
-		if (auto col = go->GetComponentByType<PhysicsCollider>()) {
-			col->SetDebugColor({ 0.f, 1.f, 0.f, 1.f });
-			col->ColliderFlags |= PhysicsCollider::DRAW_COLLISION_SHAPE;
-		}
-		m_selected_game_object = go;
 	}
 }
 
@@ -848,17 +920,36 @@ void Scene::MouseMoveSelectedGameObject(int xrel, int yrel)
 void Scene::ShootMouse(int x, int y)
 {
 	Vector3 hit_point, hit_normal;
-	GameObject* go = MousePickGameObject(x, y, hit_point, hit_normal);
-	if (go) {
-		if (auto cc = go->GetComponentByType<PhysicsCollider>()) {
-			btRigidBody* rb = cc->GetRigidBody();
-			//Transform t = cc->GetCurrentWorldTransform();
-			btVector3 offset = hit_point.AsBtVector3() - rb->getWorldTransform().getOrigin();
-			rb->activate();
-			rb->applyImpulse(-(hit_normal.AsBtVector3() * 100.f), offset);
+	auto co = MousePickGameObject(x, y, hit_point, hit_normal);
+	if (co != nullptr) {
+		
+		auto ccb = const_cast<btCollisionObject*>(co);
+		auto rb = static_cast<btRigidBody*>(ccb);
+		//auto govp = co->getUserPointer();
+		//auto go = static_cast<GameObject*>(govp);
+		//if (auto cc = go->GetComponentByType<PhysicsCollider>()) {
+		//	btRigidBody* rb = cc->GetRigidBody();
+		//	//Transform t = cc->GetCurrentWorldTransform();
+		btVector3 offset = hit_point.AsBtVector3() - co->getWorldTransform().getOrigin();
+		co->activate();
+		rb->applyImpulse(-(hit_normal.AsBtVector3() * 100.f), offset);
 
+		if (rb->getUserPointer() != nullptr) {
+			auto go = static_cast<GameObject*>(rb->getUserPointer());
+			if (go) printf("%s\n", go->GetName().c_str());
+			m_selected_game_object = go;
+
+			if (auto ragdoll = go->GetComponentByType<RagdollCollider>()) {
+				for (const auto& body : ragdoll->m_bodies) {
+					if (body.second.get() == rb) {
+						printf("%s\n", body.first.c_str());
+					}
+				}
+			}
 		}
+
 	}
+
 }
 
 void Scene::Awake()

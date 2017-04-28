@@ -16,9 +16,12 @@ class Shader;
 class Skeleton;
 
 struct DebugVertex {
-	Vector3 Position;
+	btVector3 Position;
 	Vector4 Color;
 };
+
+#define VERTEX_CAPACITY 50000
+#define INDEX_CAPACITY 80000
 
 class PhysicsDebugDrawer : public btIDebugDraw
 {
@@ -31,8 +34,13 @@ private:
 	uint vao;
 	Matrix4 mvpMatrix;
 	Shader* debugShader;
-	std::vector<DebugVertex> m_verts;
-	std::vector<uint> m_indices;
+	int usedVerts = 0;
+	int usedIndices = 0;
+	
+	DebugVertex m_verts[VERTEX_CAPACITY];
+	uint m_indices[INDEX_CAPACITY];
+	//std::vector<DebugVertex> m_verts;
+	//std::vector<uint> m_indices;
 
 public:
 
@@ -66,8 +74,10 @@ public:
 	void Draw();
 
 	void Reset() {
-		m_verts.clear();
-		m_indices.clear();
+		//m_verts.clear();
+		//m_indices.clear();
+		usedVerts = 0;
+		usedIndices = 0;
 	}
 
 	PhysicsDebugDrawer(Scene* scene)
@@ -81,11 +91,11 @@ public:
 
 	void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) override {}
 
-	void reportErrorWarning(const char* warningString) override { }
+	void reportErrorWarning(const char* warningString) override { 
+		printf("%s\n", warningString);
+	}
 
 	virtual void draw3dText(const btVector3& location, const char* textString) {}
-
-
 
 
 };

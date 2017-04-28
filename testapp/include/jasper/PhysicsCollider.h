@@ -6,7 +6,7 @@
 #include "Transform.h"
 #include <memory>
 #include <type_traits>
-
+#include <unordered_map>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
 
@@ -27,7 +27,8 @@ enum class PHYSICS_COLLIDER_TYPE
     Sphere,
     Compound,
     StaticTriangleMesh,
-	Ghost
+	Ghost,
+	Ragdoll
 };
 
 
@@ -37,7 +38,7 @@ public:
 
     const static unsigned DRAW_COLLISION_SHAPE = 0x01;
 
-
+	explicit PhysicsCollider(const std::string& name, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, const Mesh* mesh, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, const Vector3& halfExtents, PhysicsWorld* world);
     explicit PhysicsCollider(std::string name, std::unique_ptr<btCollisionShape> shape, PhysicsWorld* world);
@@ -115,6 +116,19 @@ protected:
 
 
 };
+
+//class Skeleton;
+//
+//class RagdollCollider : public PhysicsCollider {
+//
+//public:
+//	PHYSICS_COLLIDER_TYPE GetColliderType() const override {
+//		return PHYSICS_COLLIDER_TYPE::Ragdoll;
+//	}
+//
+//	RagdollCollider(const std::string& name, const Skeleton* skeleton);
+//
+//};
 
 class GhostCollider : public PhysicsCollider {
 public: 
@@ -246,22 +260,98 @@ public:
 
 };
 
-class RagdollCollider :
-	public PhysicsCollider {
+class BoneData;
 
-	using ShapeList = std::vector<std::unique_ptr<btCollisionShape>>;
-	using BodyList = std::vector<std::unique_ptr<btRigidBody>>;
-	using MotionStateList = std::vector<std::unique_ptr<btDefaultMotionState>>;
+class RagdollCapsuleShape : public btCapsuleShape {
 public:
+	RagdollCapsuleShape(float radius, float height, BoneData* parentBone, BoneData* childBone);
 	
-	RagdollCollider(const std::string& name, ShapeList& hulls, PhysicsWorld* world);
+	BoneData* ParentBone() const {
+		return m_parentBone;
+	}
+
+	BoneData* ChildBone() const {
+		return m_childBone;
+	}
+
+	Vector3 AxisOfAlignment() const {
+		return m_alignedAxis;
+	}
+
+	void SetAxisOfAlignment(const Vector3& axis) {
+		m_alignedAxis = axis;
+	}
+
+	void SetOrientation(const Quaternion& q) {
+		m_orientation = q;
+	}
+
+	Quaternion GetOrientation() const {
+		return m_orientation;
+	}
+
+	Quaternion& GetOrientation() {
+		return m_orientation;
+	}
+
+	void SetMotionState(btDefaultMotionState* ms) {
+		m_motionState = ms;
+	}
+
+	void SetRigidBody(btRigidBody* rb) {
+		m_rigidBody = rb;
+	}
+
+	btDefaultMotionState* GetMotionState() const {
+		return m_motionState;
+	}
+
+	btRigidBody* GetRigidBody() const {
+		return m_rigidBody;
+	}
+
+private:
+	BoneData* m_parentBone = nullptr;
+	BoneData* m_childBone = nullptr;
+	Vector3 m_alignedAxis;
+	Quaternion m_orientation;
+	RagdollCapsuleShape* m_parentShape = nullptr;
+	btRigidBody* m_rigidBody = nullptr;
+	btDefaultMotionState* m_motionState = nullptr;
+};
+
+class RagdollCollider: public PhysicsCollider {
+
+	using ShapeList = std::unordered_map<std::string, std::unique_ptr<btCollisionShape>>;
+	using BodyList = std::unordered_map<std::string, std::unique_ptr<btRigidBody>>;
+	using MotionStateList = std::unordered_map<std::string, std::unique_ptr<btDefaultMotionState>>;
+	using ConstraintList = std::unordered_map<std::string, std::unique_ptr<btTypedConstraint>>;
+	using MassList = std::unordered_map<std::string, float>;
+public:
+
+	enum BodyParts {
+
+	};
+	
+	//RagdollCollider(const std::string& name, ShapeList& hulls, PhysicsWorld* world);
+	RagdollCollider(const std::string& name, PhysicsWorld* world);
 
 	void Awake() override;
 	void Update(double dt) override;
+	void Destroy() override;
+	void ToggleEnabled(bool enabled) override;
+	bool ShowGui() override;
 
 	ShapeList m_hulls;
 	BodyList m_bodies;
 	MotionStateList m_motionStates;
+	ConstraintList m_constraints;
+
+	ShapeList m_temp_shapes;
+	BodyList m_temp_bodies;
+	MotionStateList m_temp_motionStates;
+	MassList m_masses;
+
 
 };
 

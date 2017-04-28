@@ -26,7 +26,7 @@ void PhysicsWorld::Initialize()
     m_world = make_unique<btDiscreteDynamicsWorld>(m_collisionDispatcher.get(), m_broadphase.get(), m_solver.get(), m_collisionConfig.get());
     m_world->setGravity( { 0.0f, -9.81f, 0.0f });
     debugDrawer = make_unique<PhysicsDebugDrawer>(scene);
-    debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    debugDrawer->setDebugMode(btIDebugDraw::DBG_FastWireframe);
     m_world->setDebugDrawer(debugDrawer.get());
 }
 
@@ -47,6 +47,16 @@ void PhysicsWorld::DeleteRigidBody(btRigidBody* rb){
     }
     delete rb->getMotionState();
     delete rb;    
+}
+
+void PhysicsWorld::RemoveConstraint(btTypedConstraint * con)
+{
+	m_world->removeConstraint(con);
+}
+
+void PhysicsWorld::AddConstraint(btTypedConstraint * con)
+{
+	m_world->addConstraint(con);
 }
 
 void PhysicsWorld::Destroy()
@@ -99,6 +109,23 @@ void PhysicsWorld::AddCollider(PhysicsCollider* collider)
     m_world->addRigidBody(rb);
     m_shapes.push_back(collider->GetCollisionShape());
     m_bodies.push_back(collider->GetRigidBody());
+}
+
+void PhysicsWorld::AddRagdoll(RagdollCollider * ragdoll)
+{
+	for (const auto& body : ragdoll->m_bodies) {
+		if (body.second) {
+			m_world->addRigidBody(body.second.get());
+
+			m_bodies.push_back(body.second.get());
+		}
+	}
+	for (const auto& shape : ragdoll->m_hulls) {
+		m_shapes.push_back(shape.second.get());
+	}
+	for (const auto& constraint : ragdoll->m_constraints) {
+		m_world->addConstraint(constraint.second.get(), true);
+	}
 }
 
 

@@ -12,6 +12,7 @@
 #include "Scriptable.h"
 #include <AnimationSystem.h>
 #include <memory>
+#include <experimental/filesystem>
 
 
 namespace Jasper
@@ -20,6 +21,25 @@ namespace AssetSerializer
 {
 
 using namespace std;
+
+namespace fs = std::experimental::filesystem;
+
+std::vector<std::string> GetFileNamesByExtension(const std::string & path, const std::string & extension)
+{
+	std::vector<std::string> ret;
+	for (auto& p : fs::directory_iterator(path)) {
+		ret.push_back(p.path().string());
+	}
+	return ret;
+}
+
+std::vector<std::string> GetDirectoryContents(const std::string& path) {
+	std::vector<std::string> ret;
+	for (auto& p : fs::directory_iterator(path)) {
+		ret.push_back(p.path().string());
+	}
+	return ret;
+}
 
 void WriteString(std::ofstream& ofs, const std::string& s) {
 	size_t sz = s.size();
@@ -166,6 +186,18 @@ Quaternion ReadQuaternion(std::ifstream& ifs) {
 	return q;
 }
 
+void ReadBaseComponentData(std::ifstream& ifs, std::string* name, ComponentType* cmpType) {
+	*name = ReadString(ifs);
+	ifs.read(CharPtr(cmpType), sizeof(cmpType));
+}
+
+void WriteBaseComponentData(std::ofstream & ofs, const Component * cmp)
+{
+	WriteString(ofs, cmp->GetName());
+	auto ct = cmp->GetComponentType();
+	ofs.write(ConstCharPtr(&ct), sizeof(ct));
+}
+
 void SerializeMesh(ofstream& ofs, const Mesh* mesh) {
 	// each mesh will write the following to the stream
 	// 1) Count of Positions
@@ -176,6 +208,7 @@ void SerializeMesh(ofstream& ofs, const Mesh* mesh) {
 
 	// write mesh name
 	WriteString(ofs, mesh->GetName());
+	WriteString(ofs, mesh->GetMaterialName());
 
 	/*const int posc = mesh->Positions.size();
 	const int texc = mesh->TexCoords.size();
@@ -207,6 +240,39 @@ void SerializeMesh(ofstream& ofs, const Mesh* mesh) {
 	//printf("%010x \n", pos);
 
 
+}
+
+void DeserializeMesh(std::ifstream & ifs, Mesh * mesh)
+{
+	string name = ReadString(ifs);
+	mesh->SetName(name);
+
+	string materialName = ReadString(ifs);
+	mesh->SetMaterialName(materialName);
+
+	/*const int posc = mesh->Positions.size();
+	const int texc = mesh->TexCoords.size();
+	const int norc = mesh->Normals.size();
+	const int tanc = meddash->Tangents.size();
+	const int bitanc = mesh->Bitangents.size();
+	const int indc = mesh->Indices.size();
+	const int weightc = mesh->BoneWeights.size();*/
+	// write positions
+	/*ofs.write(ConstCharPtr(&posc), sizeof(posc));
+	ofs.write(ConstCharPtr(&(mesh->Positions[0])), sizeof(Vector3) * posc);*/
+	ReadVector(ifs, mesh->Positions);
+	// write normals
+	ReadVector(ifs, mesh->Normals);
+	// write tex coords
+	ReadVector(ifs, mesh->TexCoords);
+	// write tangents
+	ReadVector(ifs, mesh->Tangents);
+	// write bitans
+	ReadVector(ifs, mesh->Bitangents);
+	// write bone weights
+	ReadVector(ifs, mesh->BoneWeights);
+	// write indices
+	ReadVector(ifs, mesh->Indices);
 }
 
 void ConstructMesh(std::ifstream& ifs, Scene* scene) {
@@ -271,6 +337,8 @@ void ConstructMesh(std::ifstream& ifs, Scene* scene) {
 
 		ReadVector(ifs, m->BoneWeights);
 
+		ReadVector(ifs, m->Indices);
+
 		/*int bc;
 		ifs.read(CharPtr(&bc), sizeof(bc));
 		for (int i = 0; i < bc; ++i) {
@@ -279,13 +347,13 @@ void ConstructMesh(std::ifstream& ifs, Scene* scene) {
 			m->Bitangents.push_back(b);
 		}*/
 
-		int indc;
+		/*int indc;
 		ifs.read(CharPtr(&indc), sizeof(indc));
 		for (int i = 0; i < indc; ++i) {
 			uint idx;
 			ifs.read(CharPtr(&idx), sizeof(idx));
 			m->Indices.push_back(idx);
-		}
+		}*/
 
 		std::streampos pos = ifs.tellg();
 		std::cout << pos << std::endl;
@@ -381,6 +449,54 @@ void SerializeMaterial(std::ofstream& ofs, const Material* mat) {
 		WriteBool(ofs, isCubeMap);
 	}
 
+}
+
+void DeserializeMaterial(std::ifstream & ifs, Material * mat)
+{
+	string name = ReadString(ifs);
+	mat->SetName(name);
+	mat->Flags = ReadUint(ifs);
+	//ofs.write(ConstCharPtr(mat->Ambient.AsFloatPtr()), sizeof(Vector3));
+	mat->Ambient = ReadVector3(ifs);
+	//ofs.write(ConstCharPtr(mat->Diffuse.AsFloatPtr()), sizeof(Vector3));
+	mat->Diffuse = ReadVector3(ifs);
+	//ofs.write(ConstCharPtr(mat->Specular.AsFloatPtr()), sizeof(Vector3));
+	mat->Specular = ReadVector3(ifs);
+	//ofs.write(ConstCharPtr(&(mat->Shine)), sizeof(float));
+	mat->Shine = ReadFloat(ifs);
+
+	//const string shaderName = mat->GetShaderName();
+	//const size_t shaderNameLength = shaderName.size();
+	//ofs.write(ConstCharPtr(&shaderNameLength), sizeof(shaderNameLength));
+	//ofs.write(shaderName.c_str(), sizeof(char) * shaderNameLength);	
+
+	//const bool hasDiffuseMap = mat->GetTextureDiffuseMap() != nullptr;
+	//const bool hasNormalMap = mat->GetTextureNormalMap() != nullptr;
+	//const bool hasSpecularMap = mat->GetTextureSpecularMap() != nullptr;
+	bool hasDiffuseMap = ReadBool(ifs);
+	if (hasDiffuseMap) {
+		string diffuse = ReadString(ifs);
+		mat->SetTextureDiffuse(diffuse);
+	}
+	bool hasNormalMap = ReadBool(ifs);	
+	if (hasNormalMap) {
+		string normal = ReadString(ifs);
+		mat->SetTextureNormalMap(normal);
+	}
+
+	bool hasSpecularMap = ReadBool(ifs);
+	if (hasSpecularMap) {
+		string specular = ReadString(ifs);
+		mat->SetTextureSpecularMap(specular);
+	}
+	bool isCubeMap = ReadBool(ifs);
+	if (isCubeMap) {			
+		size_t numFiles = ReadSize_t(ifs);				
+		for (size_t i = 0; i < numFiles; ++i) {
+			string file = ReadString(ifs);
+
+		}
+	}	
 }
 
 void ConstructMaterial(std::ifstream& ifs, Scene* scene) {
@@ -514,7 +630,7 @@ void ConstructShader(std::ifstream& ifs, Scene* scene) {
 	}
 }
 
-void ConstructMeshRenderer(std::ifstream& ifs, string name, GameObject* go, Scene* scene) {
+void DeserializeAndAttachMeshRendererComponent(std::ifstream& ifs, string name, GameObject* go, Scene* scene) {
 	size_t meshnamesize, matnamesize;
 
 	ifs.read(CharPtr(&meshnamesize), sizeof(meshnamesize));
@@ -535,7 +651,7 @@ void ConstructMeshRenderer(std::ifstream& ifs, string name, GameObject* go, Scen
 	auto mesh = scene->GetMeshCache().GetResourceByName(meshname);
 	auto material = scene->GetMaterialCache().GetResourceByName(matname);
 	if (!mesh) {
-		printf("Mesh referenced in MeshRenderer constuction from file is noy in the cache.\n");
+		printf("Mesh referenced in MeshRenderer constuction from file is not in the cache.\n");
 	}
 	if (!material) {
 		printf("Material referenced in MeshRenderer constuction from file is not in the cache.\n");
@@ -544,22 +660,23 @@ void ConstructMeshRenderer(std::ifstream& ifs, string name, GameObject* go, Scen
 	go->AttachNewComponent<MeshRenderer>(name, mesh, material);
 }
 
-void ConstructSkyboxRenderer(std::ifstream& ifs, string name, GameObject* go, Scene* scene) {
-	size_t meshnamesize, matnamesize;
+void DeserializeAndAttachSkyboxRendererComponent(std::ifstream& ifs, string name, GameObject* go, Scene* scene) {
 
-	ifs.read(CharPtr(&meshnamesize), sizeof(meshnamesize));
+	string meshname = ReadString(ifs);
+	/*ifs.read(CharPtr(&meshnamesize), sizeof(meshnamesize));
 	char* meshnamebuff = new char[meshnamesize + 1];
 	ifs.read(meshnamebuff, meshnamesize);
 	meshnamebuff[meshnamesize] = '\0';
 	string meshname = string(meshnamebuff);
-	delete[] meshnamebuff;
+	delete[] meshnamebuff;*/
 
-	ifs.read(CharPtr(&matnamesize), sizeof(matnamesize));
+	string matname = ReadString(ifs);
+	/*ifs.read(CharPtr(&matnamesize), sizeof(matnamesize));
 	char* matnamebuff = new char[matnamesize + 1];
 	ifs.read(matnamebuff, matnamesize);
 	matnamebuff[matnamesize] = '\0';
 	string matname = string(matnamebuff);
-	delete[] matnamebuff;
+	delete[] matnamebuff;*/
 
 	// now that we have the material and mesh names we can get them from the cache
 	auto mesh = scene->GetMeshCache().GetResourceByName(meshname);
@@ -574,17 +691,20 @@ void ConstructSkyboxRenderer(std::ifstream& ifs, string name, GameObject* go, Sc
 	go->AttachNewComponent<SkyboxRenderer>(name, mesh, material);
 }
 
-void ConstructPhysicsCollider(std::ifstream& ifs, string name, GameObject* go, Scene* scene) {
+void DeserializeAndAttachPhysicsColliderComponent(std::ifstream& ifs, string name, GameObject* go, Scene* scene) {
 
 	const auto world = scene->GetPhysicsWorld();
 	PHYSICS_COLLIDER_TYPE type;
 	ifs.read(CharPtr(&type), sizeof(type));
-	float mass, restitution, friction;
-	ifs.read(CharPtr(&mass), sizeof(mass));
-	ifs.read(CharPtr(&restitution), sizeof(restitution));
-	ifs.read(CharPtr(&friction), sizeof(friction));
-	Vector3 halfextents;
-	ifs.read(CharPtr(halfextents.AsFloatPtr()), sizeof(halfextents));
+	float mass = ReadFloat(ifs);
+	float restitution = ReadFloat(ifs);
+	float friction = ReadFloat(ifs);
+	//float mass, restitution, friction;
+	//ifs.read(CharPtr(&mass), sizeof(mass));
+	//ifs.read(CharPtr(&restitution), sizeof(restitution));
+	//ifs.read(CharPtr(&friction), sizeof(friction));
+	Vector3 halfextents = ReadVector3(ifs);
+	//ifs.read(CharPtr(halfextents.AsFloatPtr()), sizeof(halfextents));
 	PhysicsCollider* collider;
 	switch (type) {
 	case PHYSICS_COLLIDER_TYPE::Box:
@@ -599,11 +719,14 @@ void ConstructPhysicsCollider(std::ifstream& ifs, string name, GameObject* go, S
 		collider->Restitution = restitution;
 		collider->Friction = friction;
 		break;
+	case PHYSICS_COLLIDER_TYPE::Sphere:
+		collider = go->AttachNewComponent<SphereCollider>(name, halfextents, world);
+		break;
 	case PHYSICS_COLLIDER_TYPE::Plane:
-		Vector3 normal;
-		float constant;
-		ifs.read(CharPtr(normal.AsFloatPtr()), sizeof(normal));
-		ifs.read(CharPtr(&constant), sizeof(constant));
+		Vector3 normal = ReadVector3(ifs);
+		float constant = ReadFloat(ifs);
+		//ifs.read(CharPtr(normal.AsFloatPtr()), sizeof(normal));
+		//ifs.read(CharPtr(&constant), sizeof(constant));
 		collider = go->AttachNewComponent<PlaneCollider>(name, normal, constant, world);
 		collider->Mass = mass;
 		collider->Restitution = restitution;
@@ -639,6 +762,41 @@ void SerializeSkeleton(std::ofstream & ofs, const Skeleton * skeleton)
 		AssetSerializer::WriteTransform(ofs, bnn->NodeTransform);
 		AssetSerializer::WriteTransform(ofs, bnn->BoneOffsetTransform);
 		AssetSerializer::WriteString(ofs, bnn->Name);
+	}
+}
+
+void DeserializeSkeleton(std::ifstream & ifs, Skeleton * skeleton)
+{
+	
+	string name = ReadString(ifs);
+	skeleton->SetName(name);
+	int cc = ReadInt(ifs);
+	for (int i = 0; i < cc; ++i) {
+		unique_ptr<BoneData> bd = make_unique<BoneData>();
+		bd->Id = ReadInt(ifs);
+		//AssetSerializer::WriteInt(ofs, bnn->Id);
+		bd->ParentID = ReadInt(ifs);
+		//AssetSerializer::WriteInt(ofs, bnn->ParentID);
+		bd->NodeTransform = ReadTransform(ifs);
+		//AssetSerializer::WriteTransform(ofs, bnn->NodeTransform);
+		bd->BoneOffsetTransform = ReadTransform(ifs);
+		//AssetSerializer::WriteTransform(ofs, bnn->BoneOffsetTransform);
+		bd->Name = ReadString(ifs);
+		//AssetSerializer::WriteString(ofs, bnn->Name);
+		skeleton->Bones.emplace_back(move(bd));
+	}
+	for (const auto& b : skeleton->Bones) {
+		b->skeleton = skeleton;
+		if (b->ParentID == -1) {
+			b->Parent = nullptr;
+			skeleton->RootBone = b.get();
+		}
+		else {
+			auto parentBone = skeleton->Bones[b->ParentID].get();
+			b->Parent = parentBone;
+			parentBone->Children.push_back(b->Id);
+		}
+		skeleton->m_boneMap[b->Name] = b->Id;
 	}
 }
 
@@ -686,6 +844,113 @@ Skeleton* ConstructSkeleton(std::ifstream & ifs, Scene * scene)
 	}
 	return sk;
 }
+
+void SerializeAnimationComponent(std::ofstream& ofs, const AnimationComponent* anim) {
+	WriteBaseComponentData(ofs, anim);
+	// the name of the skeleton component this applies to.
+	WriteString(ofs, anim->GetSkeleton()->GetName());
+	// write the number of animations
+	WriteSize_t(ofs, anim->GetAnimations().size());
+
+	for (const auto& a : anim->GetAnimations()) {
+		// Write Index
+		WriteString(ofs, a.Name);
+		WriteInt(ofs, a.Index);
+		WriteInt(ofs, a.TicksPerSecond);
+		WriteFloat(ofs, a.Duration);
+		WriteVector(ofs, a.Keyframes);
+		WriteSize_t(ofs, a.BoneAnimations.size());
+		for (const auto& ba : a.BoneAnimations) {
+			WriteInt(ofs, ba.BoneIndex);
+			WriteString(ofs, ba.Name);
+			WriteVector(ofs, ba.RotationKeyframes);
+			WriteVector(ofs, ba.PositionKeyframes);
+			WriteVector(ofs, ba.ScaleKeyframes);
+		}				
+	}
+}
+
+
+
+void SerializeSkeletonComponent(std::ofstream & ofs, const SkeletonComponent * sk)
+{
+	sk->Serialize(ofs);
+
+}
+
+void DeserializeAndAttachSkeletonComponent(std::ifstream & ifs, GameObject * go)
+{
+}
+
+void SerializeAnimation(std::ofstream & ofs, const Animation * anim)
+{
+	WriteString(ofs, anim->Name);
+	WriteInt(ofs, anim->Index);
+	WriteFloat(ofs, anim->TicksPerSecond);
+	WriteFloat(ofs, anim->Duration);
+	WriteVector(ofs, anim->Keyframes);
+	WriteSize_t(ofs, anim->BoneAnimations.size());
+	for (const auto& ba : anim->BoneAnimations) {
+		WriteInt(ofs, ba.BoneIndex);
+		WriteString(ofs, ba.Name);
+		WriteVector(ofs, ba.RotationKeyframes);
+		WriteVector(ofs, ba.PositionKeyframes);
+		WriteVector(ofs, ba.ScaleKeyframes);
+	}
+}
+
+void DeserializeAnimation(std::ifstream& ifs, Animation* anim) {
+	anim->Name = ReadString(ifs);
+	anim->Index = ReadInt(ifs);
+	anim->TicksPerSecond = ReadFloat(ifs);
+	anim->Duration = ReadFloat(ifs);
+	ReadVector(ifs, anim->Keyframes);
+	size_t bacount = ReadSize_t(ifs);
+	for (int i = 0; i < bacount; ++i) {
+		BoneAnimation ba;
+		ba.BoneIndex = ReadInt(ifs);
+		ba.Name = ReadString(ifs);
+		ReadVector(ifs, ba.RotationKeyframes);
+		ReadVector(ifs, ba.PositionKeyframes);
+		ReadVector(ifs, ba.ScaleKeyframes);
+		anim->BoneAnimations.emplace_back(move(ba));
+	}
+}
+
+void DeserializeAndAttachAnimationComponent(std::ifstream& ifs, string name, GameObject* go) {	
+	string skeleton_name = ReadString(ifs);
+	size_t numAnims = ReadSize_t(ifs);
+	auto animcmp = go->AttachNewComponent<AnimationComponent>(name);
+	for (int i = 0; i < numAnims; ++i) {
+		Animation a;
+		a.Name = ReadString(ifs);
+		a.Index = ReadInt(ifs);
+		a.TicksPerSecond = ReadInt(ifs);
+		a.Duration = ReadFloat(ifs);
+		ReadVector(ifs, a.Keyframes);
+		size_t boneanimcount = ReadSize_t(ifs);
+		for (int i = 0; i < boneanimcount; ++i) {
+			BoneAnimation ba;
+			ba.BoneIndex = ReadInt(ifs);
+			ba.Name = ReadString(ifs);
+			ReadVector(ifs, ba.RotationKeyframes);
+			ReadVector(ifs, ba.PositionKeyframes);
+			ReadVector(ifs, ba.ScaleKeyframes);
+			a.BoneAnimations.emplace_back(move(ba));
+		}
+		animcmp->AddAnimation(move(a));		
+	}
+}
+
+void SerializeGameObjectAsAsset(std::ofstream& ofs, const GameObject* go) {
+	WriteString(ofs, go->GetName());
+
+
+}
+
+
+
+
 
 }
 

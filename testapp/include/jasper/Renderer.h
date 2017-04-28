@@ -40,6 +40,7 @@ public:
 	void RenderSkeleton(Skeleton* skel);
 
     void RegisterGameObject(GameObject* obj);
+	void ProcessSingleGameObject(GameObject* obj);
     void UnregisterGameObject(GameObject* obj);
 
 

@@ -44,31 +44,31 @@ void Renderer::Initialize()
 
 
     m_animatedShader = m_scene->GetShaderCache().GetResourceByName("animated_lit_shader");
-    m_lightingPassShader = (DirectionalLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
-    m_pointLightPassShader = (PointLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("pointlightpass_shader"s));
-    m_pointLightPassShader->SetScreenSize(Vector2(m_windowWidth, m_windowHeight));
-    auto fsquadmat = m_scene->GetMaterialCache().CreateInstance<Material>("fs_quad_mat");
-    m_fullScreenQuad = make_unique<Quad>("dl_pass_quad"s, Vector2(1.0, 1.0), Quad::AxisAlignment::XY);
-    m_fullScreenQuad->SetMaterial(fsquadmat);
-    m_fullScreenQuad->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_P);
-    m_fullScreenQuad->Initialize();
+    //m_lightingPassShader = (DirectionalLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
+    //m_pointLightPassShader = (PointLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("pointlightpass_shader"s));
+    //m_pointLightPassShader->SetScreenSize(Vector2(m_windowWidth, m_windowHeight));
+    //auto fsquadmat = m_scene->GetMaterialCache().CreateInstance<Material>("fs_quad_mat");
+    //m_fullScreenQuad = make_unique<Quad>("dl_pass_quad"s, Vector2(1.0, 1.0), Quad::AxisAlignment::XY);
+    //m_fullScreenQuad->SetMaterial(fsquadmat);
+    //m_fullScreenQuad->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_P);
+    //m_fullScreenQuad->Initialize();
 
-    m_gBuffer = make_unique<GBuffer>();
-    m_gBuffer->Initialize(m_windowWidth, m_windowHeight);
+    //m_gBuffer = make_unique<GBuffer>();
+    //m_gBuffer->Initialize(m_windowWidth, m_windowHeight);
 
-    m_geometryPassShader = m_scene->GetShaderCache().GetResourceByName("geometry_pass_shader"s);
+    //m_geometryPassShader = m_scene->GetShaderCache().GetResourceByName("geometry_pass_shader"s);
     m_forwardLitShader = m_scene->GetShaderCache().GetResourceByName("lit_shader");
     m_skyboxShader = m_scene->GetShaderCache().GetResourceByName("skybox_shader");
     m_debugShader = m_scene->GetShaderCache().GetResourceByName("basic_shader");
-    m_stencilPassShader = m_scene->GetShaderCache().GetResourceByName("deferred_stencil_pass");
+    //m_stencilPassShader = m_scene->GetShaderCache().GetResourceByName("deferred_stencil_pass");
     auto skyboxMesh = m_scene->GetMeshCache().GetResourceByName("skybox_cube_mesh");
     skyboxMesh->InitializeForRendering(m_skyboxShader);
-    m_fullScreenQuad->InitializeForRendering(m_lightingPassShader);
-    m_lightSphere = make_unique<Sphere>("point_light_sphere", 1.0f);
-    m_lightSphere->SetMaterial(fsquadmat);
-    m_lightSphere->Initialize();
-    m_lightSphere->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_P);
-    m_lightSphere->InitializeForRendering(m_pointLightPassShader);
+   // m_fullScreenQuad->InitializeForRendering(m_lightingPassShader);
+    //m_lightSphere = make_unique<Sphere>("point_light_sphere", 1.0f);
+    //m_lightSphere->SetMaterial(fsquadmat);
+    //m_lightSphere->Initialize();
+    //m_lightSphere->SetVertexFormat(Mesh::VERTEX_FORMAT::Vertex_P);
+    //m_lightSphere->InitializeForRendering(m_pointLightPassShader);
     m_forwardLitShader = m_scene->GetShaderCache().GetResourceByName("Lit_Shader");
     ProcessGameObject(root);
     SortByMaterial();
@@ -140,6 +140,9 @@ void Renderer::CullGameObjects()
 				if (TestFrustum(frustum, t.Position, half)) {
 					m_renderersToRender.push_back(mr);
 				}
+			}
+			else {
+				m_renderersToRender.push_back(mr);
 			}
         } else {
             m_renderersToRender.push_back(mr);
@@ -262,10 +265,14 @@ void Renderer::RenderScene()
         const auto modelMatrix = transform.TransformMatrix();
         const auto normMatrix = modelMatrix.NormalMatrix();
         shader->SetMatrixUniforms(modelMatrix, m_viewMatrix, m_projectionMatrix, normMatrix);
-        const auto pl = m_scene->GetPointLights()[1];
-        
-        shader->SetPointLightUniforms(pl);
+		if (m_scene->GetPointLights().size() > 0) {
+			const auto pl = m_scene->GetPointLights()[1];
+			shader->SetPointLightUniforms(pl);
+		}
 
+		if (auto dlight = m_scene->GetDirectionalLight()) {
+			shader->SetDirectionalLightUniforms(dlight);
+		}
         mr->Render();
 
         shader->Release();
@@ -591,6 +598,27 @@ void Renderer::RegisterGameObject(GameObject* obj)
             m_renderers.insert(end(m_renderers), begin(renderers), end(renderers));
         }
     }
+}
+
+void Renderer::ProcessSingleGameObject(GameObject * obj)
+{
+	const auto mrs = obj->GetComponentsByType<MeshRenderer>();
+	for (const auto mr : mrs) {
+		auto mesh = mr->GetMesh();
+		if (0) {
+			mesh->InitializeForRendering(m_geometryPassShader);
+		}
+		else {
+			if (mesh->HasBones()) {
+				mesh->InitializeForRendering(m_animatedShader);
+			}
+			else {
+				mesh->InitializeForRendering(m_forwardLitShader);
+
+			}
+		}
+		RegisterGameObject(obj);
+	}
 }
 
 void Renderer::UnregisterGameObject(GameObject* obj)

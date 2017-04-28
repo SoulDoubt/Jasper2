@@ -6,6 +6,7 @@
 #include "Material.h"
 #include <AssetSerializer.h>
 #include "AnimationSystem.h"
+#include <imgui.h>
 
 #include "ForsythIndexOptimizer.h"
 
@@ -13,6 +14,14 @@ namespace Jasper
 {
 using namespace std;
 
+
+bool Mesh::HasBones() const
+{
+	if (m_skeleton) {
+		return m_skeleton->Bones.size() > 0;
+	}
+	return false;
+}
 
 Mesh::Mesh(const std::string& name)
 	:m_vertexBuffer(GLBuffer::BufferType::VERTEX),
@@ -26,6 +35,7 @@ Mesh::Mesh(const std::string& name)
 	//Initialize();
 	//CalculateExtents();
 	Color = { 0.f, 0.f, 0.f, 0.f };
+	m_skeleton = nullptr;
 }
 
 
@@ -179,7 +189,7 @@ void Mesh::InitializeForRendering(Shader* shader)
 		shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)offsetof(Vertex_PNU, TexCoords), 2, sizeof(Vertex_PNU));
 		delete[] verts;
 	}
-	break;
+									break;
 	case VERTEX_FORMAT::Vertex_PNU_ANIM: {
 		assert(Positions.size() == Normals.size() && Positions.size() == TexCoords.size());
 		Vertex_PNU_ANIM* verts = new Vertex_PNU_ANIM[Positions.size()];
@@ -191,23 +201,23 @@ void Mesh::InitializeForRendering(Shader* shader)
 			verts[i] = v;
 		}
 		auto skel = this->m_skeleton;
-		for (auto& vbw : this->BoneWeights) {			
+		for (auto& vbw : this->BoneWeights) {
 			const auto b = skel->Bones[vbw.BoneID].get();
 			//for (const VertexBoneWeight& w : b->Weights) {
-				if (vbw.Index < Positions.size()) {
-					Vertex_PNU_ANIM& v = verts[vbw.Index];
-					int idx = v.GetNextAvailableBoneIndex();
-					if (idx < 4) {
-						v.Bones[idx] = vbw.BoneID;
-						v.Weights[idx] = vbw.Weight;
-					}
-					else {
-						printf("Weight for bone %s out greater than 4", b->Name.c_str());
-					}
+			if (vbw.Index < Positions.size()) {
+				Vertex_PNU_ANIM& v = verts[vbw.Index];
+				int idx = v.GetNextAvailableBoneIndex();
+				if (idx < 4) {
+					v.Bones[idx] = vbw.BoneID;
+					v.Weights[idx] = vbw.Weight;
 				}
 				else {
-					printf("Bone weight index our of range. %s\n", this->GetName().data());
+					printf("Weight for bone %s out greater than 4", b->Name.c_str());
 				}
+			}
+			else {
+				printf("Bone weight index our of range. %s\n", this->GetName().data());
+			}
 
 			//}
 			//delete skel;
@@ -388,6 +398,21 @@ void Mesh::InitializeForRendering(Shader* shader)
 	GLERRORCHECK;
 }
 
+std::string Mesh::GetMaterialName() const {
+	if (m_materialName == "") {
+		if (this->GetMaterial()) {
+			return this->GetMaterial()->GetName();
+		}
+	}
+	return m_materialName;
+}
+
+void Mesh::SetMaterial(Material * m)
+{
+	m_material = m;
+	m_materialName = m->GetName();
+}
+
 void Mesh::Initialize()
 {
 	GLERRORCHECK;
@@ -395,7 +420,11 @@ void Mesh::Initialize()
 
 	//m_mesh->Initialize();
 	// gather mesh data and create GL Buffers and such for future rendering...
-	assert(m_material);
+	if (m_material == nullptr) {
+
+	}
+
+
 	//assert(m_mesh);
 
 	// create a VAO first
@@ -588,9 +617,69 @@ void Mesh::AddTriangle(const Tri& t)
 	Indices.push_back(t.c);
 }
 
+bool MeshComponent::ShowGui()
+{
+	ImGui::Text("VAO: %d", this->VaoID());
+	ImGui::Text("VBO: %d", this->VertexBufferID());
+	ImGui::Text("IBO: %d", this->IndexBufferID());
+	ImGui::Text("Vertices: %d", this->NumVertices());
+	ImGui::Text("Triangles: %d", this->NumTriangles());
+	return false;
+}
+
+int MeshComponent::VaoID()
+{
+	if (m_mesh) {
+		return m_mesh->VaoID();
+	}
+	return -1;
+}
+
+int MeshComponent::VertexBufferID()
+{
+	if (m_mesh) {
+		return m_mesh->VertexBuffer().BufferID();
+	}
+	return -1;
+}
+
+int MeshComponent::IndexBufferID()
+{
+	if (m_mesh) {
+		return m_mesh->IndexBuffer().BufferID();
+	}
+	return -1;
+}
+
+int MeshComponent::NumVertices()
+{
+	if (m_mesh) {
+		return m_mesh->Positions.size();
+	}
+	return -1;
+}
+
+int MeshComponent::NumTriangles()
+{
+	if (m_mesh) {
+		return m_mesh->Indices.size() / 3;
+	}
+	return -1;
+}
+
 void MeshComponent::Serialize(std::ofstream & ofs) const
 {
 
+}
+
+void MeshComponent::Initialize()
+{
+	m_mesh->Initialize();
+}
+
+Terrain::Terrain(const std::string & name)
+	: Mesh(name)
+{
 }
 
 } // namespace Jasper

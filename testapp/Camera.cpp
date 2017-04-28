@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include "PhysicsWorld.h"
 #include "Scene.h"
+#include <InputSystem.h>
 
 
 namespace Jasper
@@ -91,6 +92,54 @@ void Camera::Awake()
 }
 
 void Camera::Update(double dt){
+	auto& input = InputSystem::GetInstance();
+	float speed = 7.5f;
+	float rotSpeed = 120.0f;
+	float moveBy = speed * dt;
+	float rotBy = rotSpeed * dt;
+
+	if (input.MOVING_FORWARD) {
+		Translate({ 0.0f, 0.0f, -moveBy });
+	}
+	if (input.MOVING_BACKWARD) {
+		Translate({ 0.0f, 0.0f, moveBy });
+	}
+	if (input.STRAFING_LEFT) {
+		Translate({ -moveBy, 0.0f, 0.0f });
+	}
+	if (input.STRAFING_RIGHT) {
+		Translate({ moveBy, 0.0f, 0.0f });
+	}
+	if (input.ROTATING_LEFT) {
+		Rotate(0.0f, 0.0f, rotBy);
+	}
+	if (input.ROTATING_RIGHT) {
+		Rotate(0.0f, 0.0f, -rotBy);
+	}
+	if (input.ROTATING_UP) {
+		Rotate(rotBy, 0.0f, 0.0f);
+	}
+	if (input.ROTATING_DOWN) {
+		Rotate(-rotBy, 0.0f, 0.0f);
+	}
+	if (input.MOUSE_MOVE) {
+		if (input.MOUSE_XREL < 0) {			
+			float degrees = -input.MOUSE_XREL * input.MouseSensitivity;
+			Rotate(0.f, 0.f, degrees);
+		}
+		if (input.MOUSE_XREL > 0) {
+			float degrees = input.MOUSE_XREL * input.MouseSensitivity;
+			Rotate(0.f, 0.f, -degrees);
+		}
+		if (input.MOUSE_YREL < 0) {
+			float degrees = -input.MOUSE_YREL * input.MouseSensitivity;
+			Rotate(degrees, 0.f, 0.f);			
+		}
+		if (input.MOUSE_YREL > 0) {
+			float degrees = input.MOUSE_YREL * input.MouseSensitivity;
+			Rotate(-degrees, 0.f, 0.f);
+		}
+	}
     UpdateViewMatrix();
     UpdateFrustum();
 }

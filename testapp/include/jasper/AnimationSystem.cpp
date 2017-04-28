@@ -4,6 +4,7 @@
 #include <Scene.h>
 #include <imgui.h>
 #include <AssetSerializer.h>
+#include <algorithm>
 
 namespace Jasper
 {
@@ -14,9 +15,9 @@ using namespace std::chrono;
 Matrix4 aiMatrix4x4ToMatrix4(const aiMatrix4x4& mm)
 {
 	return Matrix4(
-		Vector4(mm.a1, mm.a2, mm.a3, mm.a4), 
-		Vector4(mm.b1, mm.b2, mm.b3, mm.b4), 
-		Vector4(mm.c1, mm.c2, mm.c3, mm.c4), 
+		Vector4(mm.a1, mm.a2, mm.a3, mm.a4),
+		Vector4(mm.b1, mm.b2, mm.b3, mm.b4),
+		Vector4(mm.c1, mm.c2, mm.c3, mm.c4),
 		Vector4(mm.d1, mm.d2, mm.d3, mm.d4)
 	);
 }
@@ -52,6 +53,19 @@ Vector3 aiVector3ToVector3(const aiVector3D & v)
 
 
 
+void Skeleton::SetPhysicsControl(bool p)
+{
+	this->m_physicsControlled = p;
+	for (auto& b : Bones) {
+		b->PhysicsControlled = p;
+	}
+}
+
+bool Skeleton::IsPhysicsControlled() const
+{
+	return false;
+}
+
 BoneData* Skeleton::GetBone(const std::string & name)
 {
 	auto it = m_boneMap.find(name);
@@ -61,7 +75,7 @@ BoneData* Skeleton::GetBone(const std::string & name)
 	return nullptr;
 }
 
-BoneData* BoneData::getParentBone() const {	
+BoneData* BoneData::getParentBone() const {
 	return Parent;
 }
 
@@ -96,9 +110,9 @@ ImporterSceneNode* Skeleton::GetRootBoneNode()
 				while (rbp != nullptr) {
 					t = rbp->NodeTransform * t;
 					rbp = rbp->Parent;
-				}				
+				}
 				this->GlobalInverseTransform = t.Inverted();
-				rootBone->NodeTransform = t;				
+				rootBone->NodeTransform = t;
 			}
 			else {
 				this->GlobalInverseTransform = rootBoneNode->NodeTransform.Inverted();
@@ -124,9 +138,8 @@ void SkeletonComponent::Update(double dt)
 	go->GetScene()->skeleton_debug_game_object_transform = go->GetWorldTransform();
 }
 
-void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
+void ShowBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
 	using namespace ImGui;
-	//if (TreeNode(bd->Name.c_str())) {
 
 	Transform& t = bd->NodeTransform;
 	Vector3 pos = t.Position;
@@ -138,73 +151,31 @@ void SetBoneTransformGui(BoneData* bd, Skeleton* skeleton) {
 	bool rotation_updates = false;
 	bool position_updates = false;
 	bool scale_updates = false;
-	if (ImGui::SliderAngle("Nt Roll", &roll)) {
+	if (ImGui::SliderAngle("Roll", &roll)) {
 		rotation_updates = true;
 	}
-	if (ImGui::SliderAngle("Nt Pitch", &pitch)) {
+	if (ImGui::SliderAngle("Pitch", &pitch)) {
 		rotation_updates = true;
 	}
-	if (ImGui::SliderAngle("Nt Yaw", &yaw)) {
+	if (ImGui::SliderAngle("Yaw", &yaw)) {
 		rotation_updates = true;
 	}
-	/*if (ImGui::InputFloat4("Nt Rot:", rot.AsFloatPtr())) {
-		t.Orientation = rot;
-	}*/
-	/*if (ImGui::DragFloat3("Nt Pos:", pos.AsFloatPtr())) {
-		t.Position = pos;
-	}*/
-	if (ImGui::InputFloat3("Nt Scale:", scale.AsFloatPtr())) {
+	if (ImGui::InputFloat3("Scale:", scale.AsFloatPtr())) {
 		t.Scale = scale;
 		scale_updates = true;
 	}
-
 	if (ImGui::InputFloat3("Position", pos.AsFloatPtr())) {
 		t.Position = pos;
 		position_updates = true;
 	}
 
-
-	/*Transform& ot = bd->BoneOffsetTransform;
-	Vector3 opos = ot.Position;
-	float oroll = ot.Orientation.Roll();
-	float opitch = ot.Orientation.Pitch();
-	float oyaw = ot.Orientation.Yaw();
-	bool orotation_updates = false;
-	if (ImGui::SliderAngle("Offset Roll", &oroll)) {
-		orotation_updates = true;
-	}
-	if (ImGui::SliderAngle("Offset Pitch", &opitch)) {
-		rotation_updates = true;
-	}
-	if (ImGui::SliderAngle("Offset Yaw", &oyaw)) {
-		rotation_updates = true;
-	}
-	if (ImGui::DragFloat3("Offset Pos:", opos.AsFloatPtr())) {
-		ot.Position = opos;
-	}
-
-	if (orotation_updates) {
-		Quaternion oq = Quaternion(opitch, oroll, oyaw);
-		ot.Orientation = oq;
-	}*/
-
 	if (rotation_updates) {
 		Quaternion q = Quaternion(pitch, roll, yaw);
-		t.Orientation = q;
-		bd->skeleton->UpdateWorldTransforms();
+		t.Orientation = q;		
 	}
 
-	if (position_updates || scale_updates) {
+	if (position_updates || scale_updates || rotation_updates) {
 		bd->skeleton->UpdateWorldTransforms();
-	}
-
-	for (int child : bd->Children) {
-		if (TreeNode(skeleton->Bones[child]->Name.c_str())) {
-			SetBoneTransformGui(skeleton->Bones[child].get(), skeleton);
-			TreePop();
-		}
-		//	}
-		//	TreePop();
 	}
 }
 
@@ -213,16 +184,19 @@ bool SkeletonComponent::ShowGui()
 	using namespace ImGui;
 
 	static int frameNumber;
-	ImGui::InputInt("Frame:", &frameNumber);
-	if (ImGui::Button("Save Pose as Animation Frame")) {
-		SaveAnimationFrame(frameNumber);
+	vector<string> bonenames;
+	bonenames.reserve(m_skeleton->Bones.size());
+	for (const auto& b : m_skeleton->Bones) {
+		bonenames.push_back(b->Name);
 	}
+	static int selected_bone = 0;
+	ListBox("Bones", &selected_bone, bonenames);
+	ImGui::Separator();
+	ShowBoneTransformGui(m_skeleton->Bones[selected_bone].get(), m_skeleton);	
 
-	auto rootBone = m_skeleton->RootBone;
-
-	SetBoneTransformGui(rootBone, m_skeleton);
-
-
+	if (ImGui::Button("Mirror Pose")) {
+		this->MirrorPose();
+	}
 	return false;
 }
 
@@ -251,8 +225,45 @@ void SkeletonComponent::SaveAnimationFrame(int frame)
 {
 	auto go = this->GetGameObject();
 	AnimationComponent* animComponent = go->GetComponentByType<AnimationComponent>();
-	
-	
+
+
+}
+
+void SkeletonComponent::MirrorPose()
+{
+	// get all the right side bones
+	std::vector<BoneData*> rsbs;
+	for (auto& bone : m_skeleton->Bones) {
+		if (bone->Name[0] == 'r') {
+			rsbs.push_back(bone.get());
+		}
+	}
+
+	// get all the left side bones
+	std::vector<BoneData*> lsbs;
+	for (auto& bone : m_skeleton->Bones) {
+		if (bone->Name[0] == 'l') {
+			lsbs.push_back(bone.get());
+		}
+	}
+
+	// for each bone on the right side, find the corresponding bone
+	// on the left side...
+	for (auto rsb : rsbs) {
+		auto correspondingLeftSide = find_if(lsbs.begin(), lsbs.end(), [&](BoneData* bd) {
+			return bd->Name.substr(1, string::npos) == rsb->Name.substr(1, string::npos);
+		});
+		if (correspondingLeftSide != lsbs.end()) {
+			BoneData* lsb = *correspondingLeftSide;
+			printf("found match: %s matches %s\n", rsb->Name.c_str(), lsb->Name.c_str());
+			float pit = rsb->NodeTransform.Orientation.Pitch();
+			float rol = rsb->NodeTransform.Orientation.Roll();
+			float yaw = rsb->NodeTransform.Orientation.Yaw();
+
+			lsb->NodeTransform.Orientation = Quaternion(-pit, -rol, -yaw);
+		}
+	}
+	m_skeleton->UpdateWorldTransforms();
 }
 
 Transform BoneData::GetSkinningTransform() {
@@ -261,19 +272,26 @@ Transform BoneData::GetSkinningTransform() {
 
 
 Transform BoneData::GetWorldTransform() {
-	
+
 	return this->WorldTransform;
+}
+
+void BoneData::SetWorldTransform(const Transform & t)
+{
+	this->WorldTransform = t;
 }
 
 void BoneData::UpdateWorldTransform()
 {
-	Transform result = NodeTransform;
-	auto pb = getParentBone();
-	while (pb != nullptr) {
-		result = pb->NodeTransform * result;
-		pb = pb->getParentBone();
+	if (!PhysicsControlled) {
+		Transform result = NodeTransform;
+		auto pb = getParentBone();
+		while (pb != nullptr) {
+			result = pb->NodeTransform * result;
+			pb = pb->getParentBone();
+		}
+		this->WorldTransform = result;
 	}
-	this->WorldTransform = result;
 }
 
 
@@ -311,25 +329,117 @@ void AnimationComponent::Update(double dt)
 		auto animDtms = duration_cast<microseconds>(currentTime - PlaybackStartTime);
 		auto animDt = (double)animDtms.count();
 		animDt /= 1000000;
-		float tps = currentAnim.TicksPerSecond != 0 ? currentAnim.TicksPerSecond : 24.0f;
-		tps = tps; // slowing down for debugging
-		double animTotalDurationSeconds = currentAnim.Duration / currentAnim.TicksPerSecond;
-		double dtTicks = animDt * tps;
-		if (dtTicks >= currentAnim.Duration) {
-			PlaybackStartTime = currentTime;
-			return;
-		}
-		double animTime = fmod(dtTicks, currentAnim.Duration);
-		//int rootBoneID = m_skeleton->m_boneMap[m_skeleton->RootBoneName];
-		auto rootBone = m_skeleton->RootBone;
-		UpdateSkeleton(rootBone, animTime, Transform());
-	}
-	/*else {
-		for (auto& bone : m_skeleton->Bones) {
-			bone->RenderTransform = bone->GetWorldTransform().Inverted() * bone->BoneOffsetTransform;
-		}
-	}*/
 
+		
+		float tps = currentAnim.TicksPerSecond != 0 ? currentAnim.TicksPerSecond : 24.0f;
+		//tps = tps; // slowing down for debugging		
+		// we are this many frames into the animation
+		double dtFrames = animDt * tps;
+		if (dtFrames > currentAnim.Duration) {
+			if (m_loop) {
+				PlaybackStartTime = currentTime;
+			}
+			else {
+				StopPlayback();
+				return;
+			}
+			
+		}
+
+		auto prevNext = GetPreviousAndNextKeyframes(dtFrames);
+		int prevFrame = prevNext[0];
+		int nextFrame = prevNext[1];
+		for (auto& boneAnim : currentAnim.BoneAnimations) {			
+			UpdateBoneAnimation(boneAnim, prevFrame, nextFrame, dtFrames);
+		}
+		m_skeleton->UpdateWorldTransforms();	
+	}	
+}
+
+void AnimationComponent::UpdateBoneAnimation(Jasper::BoneAnimation & boneAnim, int prevFrame, int nextFrame, double dtFrames)
+{	
+	Quaternion poseRotation, nextRotation, previousRotation;
+	Vector3 posePosition, nextPosition, previousPosition;
+	Vector3 poseScale, nextScale, previousScale;
+	
+	float prevTime, nextTime;
+
+	double ddd, ddx, pct;
+
+	if (boneAnim.PositionKeyframes.size() > 1) {
+		previousPosition = boneAnim.PositionKeyframes[prevFrame].Value;
+		prevTime = boneAnim.PositionKeyframes[prevFrame].Time;
+		nextPosition = boneAnim.PositionKeyframes[nextFrame].Value;
+		nextTime = boneAnim.PositionKeyframes[nextFrame].Time;
+		ddd = nextTime - prevTime;
+		ddx = dtFrames - prevTime;
+		if (ddd > 0) {
+			pct = ddx / ddd;
+		}
+		else {
+			pct = 0; // I guess??? Seems to work.
+		}
+		posePosition = Lerp(previousPosition, nextPosition, pct);
+	}
+	else {
+		posePosition = boneAnim.PositionKeyframes[0].Value;
+	}
+
+	if (boneAnim.RotationKeyframes.size() > 1) {
+		previousRotation = boneAnim.RotationKeyframes[prevFrame].Value;
+		prevTime = boneAnim.RotationKeyframes[prevFrame].Time;
+		nextRotation = boneAnim.RotationKeyframes[nextFrame].Value;
+		nextTime = boneAnim.RotationKeyframes[nextFrame].Time;
+		ddd = nextTime - prevTime;
+		ddx = dtFrames - prevTime;
+		if (ddd > 0) {
+			pct = ddx / ddd;
+		}
+		else {
+			pct = 0; // I guess??? Seems to work.
+		}
+		poseRotation = Interpolate(previousRotation, nextRotation, pct);
+	}
+	else {
+		poseRotation = boneAnim.RotationKeyframes[0].Value;
+	}
+	if (boneAnim.ScaleKeyframes.size() > 1) {
+		previousScale = boneAnim.ScaleKeyframes[prevFrame].Value;
+		prevTime = boneAnim.ScaleKeyframes[prevFrame].Time;
+		nextScale = boneAnim.ScaleKeyframes[nextFrame].Value;
+		nextTime = boneAnim.ScaleKeyframes[nextFrame].Time;
+		ddd = nextTime - prevTime;
+		ddx = dtFrames - prevTime;
+		if (ddd > 0) {
+			pct = ddx / ddd;
+		}
+		else {
+			pct = 0; // I guess??? Seems to work.
+		}
+		poseScale = Lerp(previousScale, nextScale, pct);
+	}
+	else {
+		poseScale = boneAnim.ScaleKeyframes[0].Value;
+	}
+
+
+	m_skeleton->Bones[boneAnim.BoneIndex]->NodeTransform = Transform(posePosition, poseRotation, poseScale);
+}
+
+std::vector<int> AnimationComponent::GetPreviousAndNextKeyframes(double dt)
+{
+	auto& anim = m_animations[m_currentAnimationIndex];
+	int previousFrame = 0;
+	int nextFrame = 0;
+	for (int i = 1; i < anim.Keyframes.size(); ++i) {
+		nextFrame = i;
+		if ((float)anim.Keyframes[i] > dt) {
+			break;
+		}
+		previousFrame = i;
+	}
+
+	return std::vector<int>({previousFrame, nextFrame});
 }
 
 void AnimationComponent::Awake()
@@ -349,74 +459,118 @@ void AnimationComponent::UpdateSkeleton(BoneData* rootBone, double animTime, con
 		}
 
 		auto& bone = skeleton->Bones[boneAnim.BoneIndex];
+		// these are the parametars we are heading towards...
 		int rotIndex = boneAnim.FindRotationKeyframe(animTime, m_lastPlayedRotation);
 		int posIndex = boneAnim.FindPositionKeyframe(animTime, m_lastPlayedPosition);
 		int scaleIndex = boneAnim.FindScaleKeyframe(animTime, m_lastPlayedScale);
 
-		int nextRot = (rotIndex + 1) % boneAnim.RotationKeyframes.size();
-		int nextPos = (posIndex + 1) % boneAnim.PositionKeyframes.size();
-		int nextSca = (scaleIndex + 1) % boneAnim.ScaleKeyframes.size();
+		double toTime = boneAnim.RotationKeyframes[rotIndex].Time;
+		Quaternion toRotation = boneAnim.RotationKeyframes[rotIndex].Value;
+		Vector3 toPosition = boneAnim.PositionKeyframes[posIndex].Value;
+		Vector3 toScale = boneAnim.ScaleKeyframes[scaleIndex].Value;
 
-		const auto& currentRotation = boneAnim.RotationKeyframes[rotIndex];
-		const auto& currentPosition = boneAnim.PositionKeyframes[posIndex];
-		const auto& currentScale = boneAnim.ScaleKeyframes[scaleIndex];
 
-		const auto& nextRotation = boneAnim.RotationKeyframes[nextRot];
-		const auto& nextPosition = boneAnim.PositionKeyframes[nextPos];
-		const auto& nextScale = boneAnim.ScaleKeyframes[nextSca];
-		//bone->UpdateWorldTransform();
-		//Transform worldTransform = bone->;
-		Transform nodeTransform = bone->NodeTransform;
-		//Transform nodeTransform = bone->ToParentSpace();
+		// we need the provious frames to know where to start.
+		int prevRotIndex = rotIndex - 1;
+		int prevPosIndex = posIndex - 1;
+		int prevScaIndex = scaleIndex - 1;
 
-		float rotDelta = nextRotation.Time - currentRotation.Time;
-		float posDelta = nextPosition.Time - currentPosition.Time;
-		float scaleDelta = nextScale.Time - currentScale.Time;
-		float rotPct = rotDelta > 0.f ? (animTime / rotDelta) / 100.0f : 0.f;
-		float posPct = posDelta > 0.f ? (animTime / posDelta) / 100.0f : 0.f;
-		float sclPct = scaleDelta > 0.f ? (animTime / scaleDelta) / 100.0f : 0.f;
+		Quaternion fromRotation = rootBone->NodeTransform.Orientation;
+		Vector3 fromPosition = rootBone->NodeTransform.Position;
+		Vector3 fromScale = rootBone->NodeTransform.Scale;
+		double fromTime = 0;
+		if (prevRotIndex > 0) {
+			fromRotation = boneAnim.RotationKeyframes[prevRotIndex].Value;
+			fromTime = boneAnim.RotationKeyframes[prevRotIndex].Time;
+		}
+		if (prevPosIndex > 0) {
+			fromPosition = boneAnim.PositionKeyframes[prevPosIndex].Value;
+		}
+		if (prevScaIndex > 0) {
+			fromScale = boneAnim.ScaleKeyframes[prevScaIndex].Value;
+		}
 
-		//Transform animBoneTransform;// = rootBone->BoneTransform;
-		//Quaternion rotq = animRotation.Value;
-		Quaternion rotq = Interpolate(currentRotation.Value, nextRotation.Value, rotPct);
-		Vector3    posq = Lerp(currentPosition.Value, nextPosition.Value, posPct);
-		Vector3    sclq = Lerp(currentScale.Value, nextScale.Value, sclPct);
+		// now, how far are we between the 2 frames
+		double tickDiff = toTime - fromTime;
+		double ddd = animTime;
+		if (animTime - tickDiff > 0) {
+			ddd = animTime - tickDiff;
+		}
+		double pct = ddd / tickDiff;
+		if (pct > 0) {
+			Quaternion rotResult = Interpolate(fromRotation, toRotation, pct);
 
-		//animBoneTransform.Orientation = rotq;
+			rootBone->NodeTransform.Orientation = rotResult;
+			rootBone->UpdateWorldTransform();
+		}
 
-		//nodeTransform.Orientation = animRotation.Value;
-		//nodeTransform.Position = animPosition.Value;
-		//nodeTransform.Scale = animScale.Value;
-		nodeTransform.Orientation = rotq;// nextRotation.Value;
-		nodeTransform.Position = posq;
-		nodeTransform.Scale = sclq;
 
-		m_lastPlayedPosition = m_lastPlayedPosition > 0 ? nextPos - 1 : 0;
-		m_lastPlayedRotation = m_lastPlayedRotation > 0 ? nextRot - 1 : 0;
-		m_lastPlayedScale = m_lastPlayedScale > 0 ? nextSca - 1 : 0;
+		//int nextRot = (rotIndex + 1) % boneAnim.RotationKeyframes.size();
+		//int nextPos = (posIndex + 1) % boneAnim.PositionKeyframes.size();
+		//int nextSca = (scaleIndex + 1) % boneAnim.ScaleKeyframes.size();
 
-		//nodeTransform = bone->InverseBindTransform * nodeTransform;
+		//if (nextRot > 0 || nextPos > 0 || nextSca > 0) {
+		//	const auto& currentRotation = boneAnim.RotationKeyframes[rotIndex];
+		//	const auto& currentPosition = boneAnim.PositionKeyframes[posIndex];
+		//	const auto& currentScale = boneAnim.ScaleKeyframes[scaleIndex];
 
-		//if (isRootBone) {
-			//nodeTransform.Position += bone->NodeTransform.Position;
-			//nodeTransform.Orientation -= bone->NodeTransform.Orientation;
-		//}
-		//bone->TransformationTransform = parentTransform * nodeTransform;
-		Transform nt = nodeTransform; // Transform(animPosition.Value, animRotation.Value, animScale.Value);
-		bone->NodeTransform = nt;// nodeTransform;
-		bone->UpdateWorldTransform();
+		//	const auto& nextRotation = boneAnim.RotationKeyframes[nextRot];
+		//	const auto& nextPosition = boneAnim.PositionKeyframes[nextPos];
+		//	const auto& nextScale = boneAnim.ScaleKeyframes[nextSca];
+		//	//bone->UpdateWorldTransform();
+		//	//Transform worldTransform = bone->;
+		//	Transform nodeTransform = bone->NodeTransform;
+		//	//Transform nodeTransform = bone->ToParentSpace();
 
-		//Transform globalTransform = parentTransform * nodeTransform;
+		//	float rotDelta = nextRotation.Time - currentRotation.Time;
+		//	float posDelta = nextPosition.Time - currentPosition.Time;
+		//	float scaleDelta = nextScale.Time - currentScale.Time;
+		//	float rotPct = rotDelta > 0.f ? (animTime / rotDelta) / 100.0f : 0.f;
+		//	float posPct = posDelta > 0.f ? (animTime / posDelta) / 100.0f : 0.f;
+		//	float sclPct = scaleDelta > 0.f ? (animTime / scaleDelta) / 100.0f : 0.f;
 
-		//rootBone->RenderTransform =  m_skeleton->GlobalInverseTransform *  globalTransform * rootBone->BoneOffsetTransform;
-		//Transform globalTransform = parentTransform * animBoneTransform;
+		//	//Transform animBoneTransform;// = rootBone->BoneTransform;
+		//	//Quaternion rotq = animRotation.Value;
+		//	Quaternion rotq = Interpolate(currentRotation.Value, nextRotation.Value, rotPct);
+		//	Vector3    posq = Lerp(currentPosition.Value, nextPosition.Value, posPct);
+		//	Vector3    sclq = Lerp(currentScale.Value, nextScale.Value, sclPct);
 
-		//rootBone->SkinningTransform = rootBone->InverseBindTransform * globalTransform * animBoneTransform;
+		//	//animBoneTransform.Orientation = rotq;
+
+		//	//nodeTransform.Orientation = animRotation.Value;
+		//	//nodeTransform.Position = animPosition.Value;
+		//	//nodeTransform.Scale = animScale.Value;
+		//	nodeTransform.Orientation = rotq;// nextRotation.Value;
+		//	nodeTransform.Position = posq;
+		//	nodeTransform.Scale = sclq;
+
+		//	m_lastPlayedPosition = m_lastPlayedPosition > 0 ? nextPos - 1 : 0;
+		//	m_lastPlayedRotation = m_lastPlayedRotation > 0 ? nextRot - 1 : 0;
+		//	m_lastPlayedScale = m_lastPlayedScale > 0 ? nextSca - 1 : 0;
+
+		//	//nodeTransform = bone->InverseBindTransform * nodeTransform;
+
+		//	//if (isRootBone) {
+		//		//nodeTransform.Position += bone->NodeTransform.Position;
+		//		//nodeTransform.Orientation -= bone->NodeTransform.Orientation;
+		//	//}
+		//	//bone->TransformationTransform = parentTransform * nodeTransform;
+		//	Transform nt = nodeTransform; // Transform(animPosition.Value, animRotation.Value, animScale.Value);
+		//	bone->NodeTransform = nt;// nodeTransform;
+		//	bone->UpdateWorldTransform();
+
+			//Transform globalTransform = parentTransform * nodeTransform;
+
+			//rootBone->RenderTransform =  m_skeleton->GlobalInverseTransform *  globalTransform * rootBone->BoneOffsetTransform;
+			//Transform globalTransform = parentTransform * animBoneTransform;
+
+			//rootBone->SkinningTransform = rootBone->InverseBindTransform * globalTransform * animBoneTransform;
 
 		for (int i : rootBone->Children) {
 			BoneData* childBone = m_skeleton->Bones[i].get();
 			UpdateSkeleton(childBone, animTime, Transform());
 		}
+
 	}
 }
 
@@ -426,31 +580,230 @@ bool AnimationComponent::ShowGui()
 	using namespace ImGui;
 	Component::ShowGui();
 	//ImGui::Text("Animations Defined: %d", this->m_animations.size());
-	int selected_animation;
+	static int selected_animation;
 	vector<string> animnames;
-	animnames.push_back("None");
 	for (const auto& an : this->GetAnimations()) {
 		animnames.push_back(an.Name);
 	}
-	if (Combo("Animations", &selected_animation, animnames)) {
-
-	}
+	
 	static char buffer[128];
-	ImGui::InputText("New Animation Name:", buffer, 128);
+	ImGui::InputText("New Animation", buffer, 128);
+	ImGui::SameLine();
 	if (ImGui::Button("New")) {
 		Animation new_anim;
 		new_anim.Name = buffer;
+		
 		AddAnimation(move(new_anim));
 	}
+	if (Combo("Animations", &selected_animation, animnames)) {
+		m_edit_animation = selected_animation;
+	}
+	ImGui::Separator();
 
-	if (Button("Start")) {
-		this->PlayAnimation(0);
+	if (m_edit_animation > -1) {
+
+		auto& edit_animation = m_animations[m_edit_animation];
+		ImGui::InputFloat("Duration", &(edit_animation.Duration));
+		ImGui::InputFloat("TPS", &(edit_animation.TicksPerSecond));
+		static int new_frame_number = 0;
+		ImGui::InputInt("", &new_frame_number);
+		ImGui::SameLine();
+		if (ImGui::Button("Add Keyframe")) {
+			AddKeyframe(new_frame_number);
+		}
+		if (m_edit_animation > -1) {
+			std::vector<string> kfnames;
+			kfnames.reserve(this->GetAnimations()[m_edit_animation].Keyframes.size());
+			static int selected_keyframe = 0;
+			for (int i : this->GetAnimations()[m_edit_animation].Keyframes) {
+				string fname = "Keyframe: " + to_string(i);
+				kfnames.emplace_back("Keyframe: " + to_string(i));
+			}
+			if (ListBox("Keyframes", &selected_keyframe, kfnames)) {
+				PoseSkeleton(m_edit_animation, this->GetAnimations()[m_edit_animation].Keyframes[selected_keyframe]);
+			}
+			if (SmallButton("Update")) {
+				int fn = this->GetAnimations()[m_edit_animation].Keyframes[selected_keyframe];
+				UpdateKeyframe(fn);
+			}
+			ImGui::SameLine();
+			if (SmallButton("Delete")) {
+				int fn = this->GetAnimations()[m_edit_animation].Keyframes[selected_keyframe];
+				DeleteKeyframe(fn);
+			}
+		}
+
+		ImGui::Separator();
+
+		if (Button("Start")) {
+			this->PlayAnimation(m_edit_animation);
+		}
+		ImGui::SameLine();
+		if (Button("Stop")) {
+			this->StopPlayback();
+		}
+		ImGui::SameLine();
+		static bool loop = true;
+		if (ImGui::Checkbox("Loop", &loop)) {
+			SetLooping(loop);
+		}
+		ImGui::Text("Save animation as:");
 	}
-	if (Button("Stop")) {
-		this->StopPlayback();
+
+	static vector<string> anims = AssetSerializer::GetFileNamesByExtension("../animations/", "anim");
+	static int selected_anim_file_idx = -1;
+	ListBox("Animations", &selected_anim_file_idx, anims);
+
+	if (ImGui::Button("Load")) {
+		if (selected_anim_file_idx > -1) {
+			string pathToLoad = anims[selected_anim_file_idx];
+			ifstream ifs;
+			ifs.open(pathToLoad, ios::in | ios::binary);
+			Animation a;
+			AssetSerializer::DeserializeAnimation(ifs, &a);
+			sort(a.Keyframes.begin(), a.Keyframes.end());
+			this->m_animations.emplace_back(move(a));
+		}
 	}
+
+	if (ImGui::Button("Save")) {
+		ofstream ofs;
+		string fname = "../animations/" + GetGameObject()->GetName() + "_" + m_animations[m_edit_animation].Name + ".anim";
+		ofs.open(fname, ios::out | ios::binary);
+		AssetSerializer::SerializeAnimation(ofs, &(m_animations[m_edit_animation]));
+	}
+
 
 	return false;
+}
+
+void AnimationComponent::PoseSkeleton(int animIndex, int framenumber)
+{
+	assert(animIndex > -1);
+	Animation& anim = this->GetAnimations()[animIndex];
+	auto skel = this->GetSkeleton();
+
+	for (BoneAnimation& ba : anim.BoneAnimations) {
+		auto& bone = this->GetSkeleton()->Bones[ba.BoneIndex];
+		auto& rkf = ba.RotationKeyframes[ba.GetRotationKeyframeByTime((float)framenumber)];
+		auto& pkf = ba.PositionKeyframes[ba.GetPositionKeyframeByTime((float)framenumber)];
+		auto& skf = ba.ScaleKeyframes[ba.GetScaleKeyframeByTime((float)framenumber)];
+
+		bone->NodeTransform.Orientation = rkf.Value;
+		bone->NodeTransform.Position = pkf.Value;
+		bone->NodeTransform.Scale = skf.Value;
+	}
+	this->GetSkeleton()->UpdateWorldTransforms();
+
+}
+
+void AnimationComponent::AddKeyframe(int framenumber)
+{
+	if (m_edit_animation > -1) {
+		assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
+		Animation& anim = this->m_animations[m_edit_animation];
+		anim.Keyframes.push_back(framenumber);
+		sort(anim.Keyframes.begin(), anim.Keyframes.end());
+		if ((float)framenumber > anim.Duration) {
+			anim.Duration = (float)framenumber;
+			anim.Ticks = (float)framenumber;
+		}
+		for (auto& bone : m_skeleton->Bones) {
+			BoneAnimation* ba = anim.GetBoneAnimationByBoneIndex(bone->Id);
+			if (ba == nullptr) {
+				// insert a new animation for this bone
+				BoneAnimation boneAnim;
+				boneAnim.BoneIndex = bone->Id;
+				boneAnim.Name = bone->Name;
+				boneAnim.PositionKeyframes.push_back(PositionKeyframe((float)framenumber, bone->NodeTransform.Position));
+				boneAnim.RotationKeyframes.push_back(RotationKeyframe((float)framenumber, bone->NodeTransform.Orientation));
+				boneAnim.ScaleKeyframes.push_back(ScaleKeyframe((float)framenumber, bone->NodeTransform.Scale));
+				anim.BoneAnimations.emplace_back(boneAnim);
+			}
+			else {
+				//ba->BoneIndex = bone->Id;
+				//ba->Name = bone->Name;
+				int pkf = ba->GetPositionKeyframeByTime((float)framenumber);
+				if (pkf == -1) {
+					ba->PositionKeyframes.push_back(PositionKeyframe((float)framenumber, bone->NodeTransform.Position));
+				}
+				else {
+					auto& pk = ba->PositionKeyframes[pkf];
+					pk.Value = bone->NodeTransform.Position;
+				}
+				int rkf = ba->GetRotationKeyframeByTime((float)framenumber);
+				if (rkf == -1) {
+					ba->RotationKeyframes.push_back(RotationKeyframe((float)framenumber, bone->NodeTransform.Orientation));
+				}
+				else {
+					auto& rk = ba->RotationKeyframes[rkf];
+					rk.Value = bone->NodeTransform.Orientation;
+				}
+				int skf = ba->GetScaleKeyframeByTime((float)framenumber);
+				if (skf == -1) {
+					ba->ScaleKeyframes.push_back(ScaleKeyframe((float)framenumber, bone->NodeTransform.Scale));
+				}
+				else {
+					auto& sk = ba->ScaleKeyframes[skf];
+					sk.Value = bone->NodeTransform.Scale;
+				}
+			}
+		}
+		int x = 0;
+
+	}
+}
+
+void AnimationComponent::UpdateKeyframe(int framenumber)
+{
+	if (m_edit_animation > -1) {
+		assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
+		Animation& anim = this->m_animations[m_edit_animation];
+		for (auto& bone : m_skeleton->Bones) {
+			BoneAnimation* ba = anim.GetBoneAnimationByBoneIndex(bone->Id);
+			if (ba != nullptr) {
+
+				int pkf = ba->GetPositionKeyframeByTime((float)framenumber);
+				auto& pk = ba->PositionKeyframes[pkf];
+				pk.Value = bone->NodeTransform.Position;
+
+				int rkf = ba->GetRotationKeyframeByTime((float)framenumber);
+				auto& rk = ba->RotationKeyframes[rkf];
+				rk.Value = bone->NodeTransform.Orientation;
+
+				int skf = ba->GetScaleKeyframeByTime((float)framenumber);
+				auto& sk = ba->ScaleKeyframes[skf];
+				sk.Value = bone->NodeTransform.Scale;
+
+			}
+		}
+	}
+}
+
+void AnimationComponent::DeleteKeyframe(int framenumber)
+{
+	if (m_edit_animation > -1) {
+		assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
+		Animation& anim = this->m_animations[m_edit_animation];
+		for (auto& bone : m_skeleton->Bones) {
+			BoneAnimation* ba = anim.GetBoneAnimationByBoneIndex(bone->Id);
+			if (ba != nullptr) {
+				ba->PositionKeyframes.erase(std::remove_if(ba->PositionKeyframes.begin(), ba->PositionKeyframes.end(), [&](PositionKeyframe& pkf) {
+					return pkf.Time == float(framenumber);
+				}));
+				ba->RotationKeyframes.erase(std::remove_if(ba->RotationKeyframes.begin(), ba->RotationKeyframes.end(), [&](RotationKeyframe& pkf) {
+					return pkf.Time == float(framenumber);
+				}));
+
+				ba->ScaleKeyframes.erase(std::remove_if(ba->ScaleKeyframes.begin(), ba->ScaleKeyframes.end(), [&](ScaleKeyframe& pkf) {
+					return pkf.Time == float(framenumber);
+				}));
+			}
+		}
+		anim.Keyframes.erase(std::remove_if(anim.Keyframes.begin(), anim.Keyframes.end(), [&](int kf) {
+			return kf == framenumber;
+		}));
+	}
 }
 
 void AnimationComponent::PlayAnimation(int index)
@@ -477,6 +830,8 @@ void AnimationComponent::StopPlayback()
 
 
 
+
+
 int BoneAnimation::FindRotationKeyframe(float time, int startIndex)
 {
 	for (int i = startIndex; i < RotationKeyframes.size(); ++i) {
@@ -487,6 +842,8 @@ int BoneAnimation::FindRotationKeyframe(float time, int startIndex)
 	}
 	return 0;
 }
+
+
 
 int BoneAnimation::FindPositionKeyframe(float time, int startIndex)
 {
@@ -508,5 +865,49 @@ int BoneAnimation::FindScaleKeyframe(float time, int startIndex)
 	return 0;
 }
 
+int BoneAnimation::GetRotationKeyframeByTime(float time)
+{
+	for (int i = 0; i < RotationKeyframes.size(); ++i) {
+		auto& rkf = RotationKeyframes[i];
+		if (rkf.Time == time) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int BoneAnimation::GetPositionKeyframeByTime(float time)
+{
+	for (int i = 0; i < PositionKeyframes.size(); ++i) {
+		auto& pkf = PositionKeyframes[i];
+		if (pkf.Time == time) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+int BoneAnimation::GetScaleKeyframeByTime(float time)
+{
+	for (int i = 0; i < ScaleKeyframes.size(); ++i) {
+		auto& skf = ScaleKeyframes[i];
+		if (skf.Time == time) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+BoneAnimation* Animation::GetBoneAnimationByBoneIndex(int idx)
+{
+	for (int i = 0; i < static_cast<int>(BoneAnimations.size()); ++i) {
+		auto& ba = BoneAnimations[i];
+		if (ba.BoneIndex == idx) {
+			return &ba;
+		}
+	}
+	return nullptr;
+}
 
 } // Jasper

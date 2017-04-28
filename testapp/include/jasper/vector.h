@@ -103,6 +103,7 @@ struct Vector3 {
 	float Length() const;
 	float LengthSquared() const;
 	void Normalize();
+
 	Vector3 Normalized() const;
 
 	btVector3 AsBtVector3() const {
@@ -338,11 +339,11 @@ inline Vector3 Slerp(Vector3 start, Vector3 end, float percent)
 	// Acos(dot) returns the angle between start and end,
 	// And multiplying that by percent returns the angle between
 	// start and the final result.
-	float theta = std::acos(dot)*percent;
-	Vector3 RelativeVec = end - start*dot;
+	float theta = std::acos(dot) * percent;
+	Vector3 RelativeVec = end - start * dot;
 	RelativeVec.Normalize();     // Orthonormal basis
 								 // The final result.
-	return ((start*std::cos(theta)) + (RelativeVec*std::sin(theta)));
+	return ((start * std::cos(theta)) + (RelativeVec * std::sin(theta)));
 }
 inline Vector3 SmoothStep(const Vector3& a, const Vector3& b, const float pct)
 {

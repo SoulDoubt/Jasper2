@@ -23,7 +23,9 @@ enum class ComponentType{
 	Mesh,
     PhysicsCollider,
     SkyboxRenderer,        
-    ScriptComponent
+    ScriptComponent,
+	AnimationComponent,
+	SkeletonComponent
 };
 
 class ComponentManager {
@@ -64,9 +66,7 @@ public:
     virtual bool ShowGui();
     virtual void Serialize(std::ofstream& ofs) const;
 
-    virtual ComponentType GetComponentType() const {
-        return ComponentType::None;
-    }
+	virtual ComponentType GetComponentType() const = 0;
 
 
 

@@ -54,7 +54,7 @@ public:
         return m_skeleton;
     }
 
-    void CreateRagdollCollider(Scene* scene, GameObject* go);
+    std::unique_ptr<RagdollCollider> CreateRagdollCollider(Scene* scene);
 
 	ImporterSceneNode* ImporterSceneRoot() { return m_importerSceneRoot.get(); }
 
@@ -81,6 +81,7 @@ public:
 	}
 
 	void CreateImporterSceneGraph(aiNode* node);
+	void CreateChildHulls(BoneData* parentBone, btCollisionShape* parentShape, Skeleton* skeleton, RagdollCollider* ragdoll);
 
 	void BuildSceneRecursive(ImporterSceneNode* node, ImporterSceneNode* parent) {
 		node->Parent = parent;
@@ -90,6 +91,7 @@ public:
 	}
 
 	void SaveToAssetFile(const std::string& filename);
+	void LoadFromAssetFile(const std::string& filename, Scene* scene);
 	
 	//ImporterSceneNode* GetRootBoneNode(SkeletonComponent* skeleton);
 
@@ -130,9 +132,11 @@ public:
     uint TriCount = 0;
     uint VertCount = 0;
 
-    void SaveToAssetFile(const std::string& filename);
+    void SaveToAssetFile(const std::string& modelName, const std::string& filename);
+	void LoadFromAssetFile(const std::string& modelName, const std::string& filename);
 	void CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes, Skeleton* skeleton);
 	void LoadModel(const std::string& filename, const std::string& name);
+	void SetYUp(const std::string& name);
 
 	void LoadXmlModel(const std::string& filename, const std::string& name);
 
@@ -146,6 +150,7 @@ public:
 	std::unique_ptr<ColladaMesh> BuildTriangleListMesh(tinyxml2::XMLNode* meshNode);
 	Material* BuildXmlMaterial(tinyxml2::XMLNode* materialNode, tinyxml2::XMLNode* effectsLibNode, tinyxml2::XMLNode* imagesLibNode);
 	Skeleton* BuildXmlSkeleton(tinyxml2::XMLNode* rootNode);
+	//void CreateBone(aiBone * bone, Jasper::Mesh * m, Jasper::Skeleton * sk, Jasper::ModelData * model_data);
 
 private:
     std::string m_name;
@@ -162,6 +167,7 @@ private:
 
     void ProcessAiSceneNode(const aiScene* aiscene, aiNode* ainode, const std::string& directory, ModelData* model_data);
     void ProcessAiMesh(const aiMesh* aimesh, const aiScene* aiscene, const std::string& directory, ModelData* model_data);
+	void CreateBone(aiBone * bone, Jasper::Mesh * m, Jasper::Skeleton * sk, Jasper::ModelData * model_data);
     void ConvexDecompose(Mesh* mesh, std::vector<std::unique_ptr<btConvexHullShape>>& shapes, Scene* scene);
 	void BuildSkeleton(Skeleton* skel);
 	void BuildSkeletonRecursive(ImporterSceneNode* node, Skeleton* skel);

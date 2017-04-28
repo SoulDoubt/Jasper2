@@ -22,6 +22,9 @@
 
 #include <cstring>
 
+#include <BulletCollision\CollisionShapes\btShapeHull.h>
+#include <StringFunctions.h>
+
 
 
 //#include "VHACD.h"
@@ -62,20 +65,6 @@ aiNode* FindAiNode(aiNode* root, const string& name)
 	return nullptr;
 }
 
-
-//void ModelLoader::BuildSkeleton(Skeleton * skel)
-//{	
-//	BuildSkeletonRecursive(&ImporterSceneRoot, skel);
-//}
-//
-//void ModelLoader::BuildSkeletonRecursive(ImporterSceneNode * node, Skeleton * skel)
-//{
-//	if (node->isUsedBone) {
-//		int id = skel->Bones.size();
-//		auto bone = make_unique<BoneData>();
-//		
-//	}
-//}
 
 ModelLoader::ModelLoader(Scene* scene)
 	: m_scene(scene)
@@ -162,14 +151,14 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 			go->AttachNewComponent<MeshComponent>(mesh->GetName(), mesh);
 			go->AttachNewComponent<MeshRenderer>(mesh->GetName() + "_renderer", mesh, mat);
 		}
-		if (generateCollider) {
+		if (generateCollider && modeldata->GetSkeleton() == nullptr) {
 			unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
 			go->AttachComponent(move(collider));
 		}
 		else if (generateCollider && modeldata->GetSkeleton()/*)->Bones.size() > 0*/) {
-			modeldata->CreateRagdollCollider(m_scene, go.get());
+			auto collider = modeldata->CreateRagdollCollider(m_scene);
 			//unique_ptr<PhysicsCollider> collider = GenerateSinglePhysicsCollider(modeldata, m_scene, PHYSICS_COLLIDER_TYPE::Box);
-			//go->AttachComponent(move(collider));
+			go->AttachComponent(move(collider));
 		}
 		if (modeldata->Animator) {
 			go->AttachComponent(move(modeldata->Animator));
@@ -182,66 +171,139 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 		}
 		//child->SetLocalTransform(modeldata->GetSkeleton()->GlobalInverseTransform);
 	}
-	
-	modeldata->SaveToAssetFile(modeldata->GetName() + ".asset");
+
+	//modeldata->SaveToAssetFile(modeldata->GetName() + ".asset");
 	//go->AttachChild(move(child));
 	return move(go);
 }
 
 
-void CreateChildHulls(BoneData* rootBone, Skeleton* skeleton, vector<unique_ptr<btCollisionShape>>& hulls)
+void ModelData::CreateChildHulls(BoneData* parentBone, btCollisionShape* parentShape, Skeleton* skeleton, RagdollCollider* ragdoll)
 {
-	for (size_t j = 0; j < rootBone->Children.size(); j++) {
-		//unique_ptr<btCollisionShape> hull = make_unique<btConvexHullShape>(nullptr, 0);
-		//auto h = static_cast<btConvexHullShape*>(hull.get());
-		//BoneData* bone = skeleton->Bones[rootBone->Children[j]].get();
-		//std::sort(rootBone->Weights.begin(), rootBone->Weights.end());
-		//std::sort(bone->Weights.begin(), bone->Weights.end());
-		//vector<VertexBoneWeight> uniqueChildWeights;
+	if (FindInString("weight", parentBone->Name)) {
+		return;
+	}
+	if (parentBone->ParentID == -1) {
+		// we want to put a small sphere here...
+		Vector3 pos = parentBone->GetWorldTransform().Position;
+		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(0.01f, 0.005f, nullptr, parentBone);
+		auto capsp = caps.get();
+		capsp->setUserPointer(parentBone);
+		ragdoll->m_hulls[parentBone->Name] = move(caps);
+	}
 
-		//std::set_difference(bone->Weights.begin(), bone->Weights.end(), rootBone->Weights.begin(), rootBone->Weights.end(), std::inserter(uniqueChildWeights, uniqueChildWeights.begin()));
-		//for (size_t i = 0; i < uniqueChildWeights.size(); ++i) {
-		//	VertexBoneWeight& vb = uniqueChildWeights[i];
-		//	//if (vb.Weight >= 0.75f) {
-		//		Vector3 position = vb.mesh->Positions[vb.Index];
-		//		h->addPoint(position.AsBtVector3());
-		//	//}
+	for (size_t j = 0; j < parentBone->Children.size(); j++) {
+		const auto& childBone = skeleton->Bones[parentBone->Children[j]];
+		parentBone->UpdateWorldTransform();
+		if (FindInString("weight", childBone->Name)) {
+			return;
+		}
+		childBone->UpdateWorldTransform();
+		Vector3 from = parentBone->GetWorldTransform().Position;
+		Vector3 to = childBone->GetWorldTransform().Position;
+		Vector3 diff = from - to;
+		//Vector3 halfPoint = diff / 2;
+		float dist = Length(diff);
+		//printf("Bone Distance: %s -> %s = %f\n", parentBone->Name.c_str(), childBone->Name.c_str(), dist);
+		float radius = dist / 4;
+		// must correct for the fact that a btCapsuleShape
+		// has a height proprety of height + 2 * radius
+		dist -= radius * 1.f;
+		dist = dist * 0.75f;
+		radius = dist / 5;
+
+		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentBone, childBone.get());
+		auto capsp = caps.get();
+		capsp->setUserPointer(parentBone);
+		ragdoll->m_hulls[parentBone->Name] = move(caps);
+
+		if (childBone->Children.size() == 0) {
+			printf("%s is the end of the line.\n", childBone->Name.c_str());
+			// need to create a collider here for the bone
+			// it needs to be offset by some amount and some other stuff
+			std::vector<Vector3> verts;
+			for (const auto mesh : m_meshes) {
+				int boneIndex = childBone->Id;
+				for (const auto& bw : mesh->BoneWeights) {
+					if (bw.BoneID == boneIndex && bw.Weight > 0.75f) {
+						verts.push_back(mesh->Positions[bw.Index]);
+					}
+				}
+			}
+			auto maxExtents = CalculateMaxExtents(verts);
+			Vector3 cdiff = maxExtents - childBone->GetWorldTransform().Position;
+			float cdist = Length(cdiff);
+			unique_ptr<btCollisionShape> ccaps = make_unique<RagdollCapsuleShape>(1.0 / 4, 1.0, parentBone, childBone.get());
+			auto ccapsp = ccaps.get();
+			ccaps->setUserPointer(childBone.get());
+			ragdoll->m_hulls[childBone->Name] = move(ccaps);
+
+		}
+
+
+		//if ((parentBone->Parent != nullptr) && (parentShape != nullptr)) {
+		//	// make the constraint
+
+		//	//btHingeConstraint* c = new 
 		//}
-		//hull->setUserPointer(rootBone);
-		//hulls.emplace_back(move(hull));
-		//CreateChildHulls(bone, skeleton, hulls);
+
+		if (!FindInString("hand"s, childBone->Name)) {
+			CreateChildHulls(childBone.get(), capsp, skeleton, ragdoll);
+		}
 	}
 }
 
-void ModelData::CreateRagdollCollider(Scene* scene, GameObject* go)
-{
-	vector<unique_ptr<btCollisionShape>> hulls;
-	BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
-	auto meshes = go->GetComponentsByType<MeshComponent>();
+void CreateRagdollHulls(BoneData* joint, Skeleton* skeleton, RagdollCollider* ragdoll) {
+	// each bone in the sekeleton represents a point in space 
+	// that connects the bones. They are more properly called joints.
+	// the actual bones are the space that lies between the parent and child bone
 
-	/*int vertCount = static_cast<int>(rootBone->Weights.size());
-	vector<Vector3> boneVerts(vertCount);
-	unique_ptr<btCollisionShape> hullShape = make_unique<btConvexHullShape>(nullptr, 0);
-	hullShape->setUserPointer(rootBone);
-	auto hs = static_cast<btConvexHullShape*>(hullShape.get());
-	for (int i = 0; i < vertCount; ++i) {
-		VertexBoneWeight& vb = rootBone->Weights[i];
-		if (vb.Weight > 0.75f) {
-			Vector3 position = vb.mesh->Positions[vb.Index];
-			hs->addPoint(position.AsBtVector3());
-		}
+	// ensure that the world trandforms of all bones is up to date
+
+	if (joint->ParentID == -1) {
+		// this is the root of the skeleton
+		//unique_ptr<btCollisionShape> rootShape = make_unique<RagdollCapsuleShape>()
+		unique_ptr<btCollisionShape> rootShape = make_unique<RagdollCapsuleShape>(0.02f, 0.01f, nullptr, joint);
+		joint->m_collisionShape = static_cast<RagdollCapsuleShape*>(rootShape.get());
+		rootShape->setUserPointer(joint);
+		ragdoll->m_hulls[joint->Name] = move(rootShape);
 	}
-	hulls.emplace_back(move(hullShape));
-	CreateChildHulls(rootBone, m_skeleton, hulls);*/
+	else {
+		// we want to construct a shape that spans the difference
+		// between the joint's position and its parents'.
+		const auto& parentJoint = skeleton->Bones[joint->ParentID];
+		string name = joint->Name;
+		Vector3 jointDiff = parentJoint->GetWorldTransform().Position - joint->GetWorldTransform().Position;
+		float dist = Length(jointDiff);
+		float radius = dist / 4.f;
+		dist -= radius;
+		dist *= 0.75f;
+		radius = dist / 4.5f;
+		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentJoint.get(), joint);
+		joint->m_collisionShape = static_cast<RagdollCapsuleShape*>(caps.get());
+		caps->setUserPointer(joint);
+		ragdoll->m_hulls[name] = move(caps);
+	}
+	for (const auto& cchid : joint->Children) {
+		const auto& ch = skeleton->Bones[cchid];
+		CreateRagdollHulls(ch.get(), skeleton, ragdoll);
+	}
 
+}
 
+unique_ptr<RagdollCollider> ModelData::CreateRagdollCollider(Scene* scene)
+{
+	auto ragdoll = make_unique<RagdollCollider>(this->GetName() + "_ragdoll", scene->GetPhysicsWorld());
+	m_skeleton->UpdateWorldTransforms();
+	BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
 
-	unique_ptr<CompoundCollider> collider = make_unique<CompoundCollider>(rootBone->Name + "_collider"s, hulls, scene->GetPhysicsWorld());
-	collider->Mass = 50.f;
-	go->AttachComponent(std::move(collider));
+	//CreateChildHulls(rootBone, nullptr, m_skeleton, ragdoll.get());
+	CreateRagdollHulls(rootBone, m_skeleton, ragdoll.get());
+	//unique_ptr<RagdollCollider> collider = make_unique<RagdollCollider>(this->m_name + "_collider"s, hulls, scene->GetPhysicsWorld());
+	//collider->Mass = 50.f;
+
 	printf("Created Ragdoll.\n");
-
-
+	return(move(ragdoll));
 }
 
 bool FileExists(const std::string& name)
@@ -264,14 +326,14 @@ void BuildBoneHierarchy(ImporterSceneNode* rootNode, Skeleton* skeleton) {
 	for (auto& childNode : rootNode->Children) {
 		auto childBoneIter = skeleton->m_boneMap.find(childNode.Name);
 		if (childBoneIter == skeleton->m_boneMap.end()) {
-			printf("Missing bone: %s, skipping...\n", childNode.Name.data());		
+			printf("Missing bone: %s, skipping...\n", childNode.Name.data());
 		}
 		else {
 			int childId = childBoneIter->second;
 			bone->Children.push_back(childId);
 			auto& childBone = skeleton->Bones.at(childId);
 			childBone->ParentID = bone->Id;
-			childBone->Parent = bone.get();			
+			childBone->Parent = bone.get();
 			BuildBoneHierarchy(childBone->INode, skeleton);
 		}
 	}
@@ -282,18 +344,18 @@ void ModelData::CreateImporterSceneGraph(aiNode* rootNode) {
 	BuildSceneRecursive(m_importerSceneRoot.get(), nullptr);
 }
 
-void SetYUp(ModelData* md){
+void SetYUp(ModelData* md) {
 	Transform rot;
 	rot.Orientation = Quaternion::FromAxisAndAngle({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90.f));
-	/*for (auto mesh : md->GetMeshes()) {
+	for (auto mesh : md->GetMeshes()) {
 		for (auto& v : mesh->Positions) {
 			v = rot * v;
 		}
-	}*/
-	/*if (md->GetSkeleton()) {
+	}
+	if (md->GetSkeleton()) {
 		auto skel = md->GetSkeleton();
-		skel->RootBone->NodeTransform = rot * skel->RootBone->NodeTransform;		
-	}*/
+		skel->RootBone->NodeTransform = rot * skel->RootBone->NodeTransform;
+	}
 }
 
 void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes, Skeleton* skeleton)
@@ -334,6 +396,13 @@ void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes, Skeleton*
 	}
 }
 
+bool ContainsKeyframe(const vector<int>& frames, int i) {
+	if (find(frames.begin(), frames.end(), i) != frames.end()) {
+		return true;
+	}
+	return false;
+}
+
 void ModelLoader::LoadModel(const std::string& filename, const std::string& name)
 {
 	m_processedMeshCount = 0;
@@ -356,6 +425,9 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 
 	ModelData* model_data = m_scene->GetModelCache().CreateInstance<ModelData>(m_name);
 	string directory = filename.substr(0, filename.find_last_of("/"));
+	if (directory == filename) {
+		directory = filename.substr(0, filename.find_last_of("\\"));
+	}
 
 	// ensure that we have a local copy of the assimp scene before mesh processing
 	model_data->CreateImporterSceneGraph(scene->mRootNode);
@@ -364,13 +436,13 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 
 	auto& meshes = model_data->GetMeshes();
 	size_t sz = meshes.size();
-	printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());		
+	printf("Loaded %d meshes in model: %s\n", sz, m_name.c_str());
 
 	// recurse the isn graph and find any bones that are are used in this model...
 
 
 	if (model_data->GetSkeleton() != nullptr/*->Bones.size() > 0*/) {
-	
+
 		Skeleton* skeleton = model_data->GetSkeleton();
 
 		skeleton->GlobalInverseTransform = model_data->ImporterSceneRoot()->NodeTransform;
@@ -438,6 +510,57 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 							sk.Value = aiVector3ToVector3(ais.mValue);
 							boneAnim.ScaleKeyframes.emplace_back(sk);
 						}
+						// for this system, for now, we need all the 
+						// keyframee collections to match in size
+						// figure out which is largest
+						int largest = -1;
+						int rots = static_cast<int>(boneAnim.RotationKeyframes.size());
+						int poss = static_cast<int>(boneAnim.PositionKeyframes.size());
+						int scss = static_cast<int>(boneAnim.ScaleKeyframes.size());
+						if (rots > largest)
+							largest = rots;
+						if (poss > largest)
+							largest = poss;
+						if (scss > largest)
+							largest = scss;
+
+						// now we need to know which collection has the largest size
+						if (rots == largest) {
+							// apply corrections to other collections using the rotations
+							// as the basis
+							for (int j = 0; j < rots; ++j) {
+								const auto& rotk = boneAnim.RotationKeyframes[j];
+								if (!ContainsKeyframe(anim.Keyframes, (int)rotk.Time)) {
+									anim.Keyframes.push_back((int)rotk.Time);
+								}
+								if (poss < largest) {
+									auto posk = boneAnim.GetPositionKeyframeByTime(rotk.Time);
+									if (posk == -1) {
+										auto val = boneAnim.PositionKeyframes[poss - 1].Value;
+										boneAnim.PositionKeyframes.push_back({ rotk.Time, val });
+									}
+
+
+								}
+								else if (scss < largest) {
+									auto scak = boneAnim.GetScaleKeyframeByTime(rotk.Time);
+									if (scak == -1) {
+										auto val = boneAnim.ScaleKeyframes[scss - 1].Value;
+										boneAnim.ScaleKeyframes.push_back({ rotk.Time, val });
+									}
+								}
+
+							}
+						}
+
+						else if (poss == largest) {
+							// fill out the rotation keyframes
+							int x = 0;
+						}
+						else if (scss < largest) {
+							int y = 0;
+							// fill out the scalings
+						}
 						anim.BoneAnimations.emplace_back(boneAnim);
 					}
 
@@ -460,13 +583,13 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 			t.Orientation *= q;// *t.Orientation;
 			boneToMove->NodeTransform = t;
 			boneToMove2->NodeTransform = t;
-			
+
 			//boneToMove->EvaluateSubtree();
 		}
 
 
 	}
-	SetYUp(model_data);
+	//SetYUp(model_data);
 
 	for (auto& mesh : model_data->GetMeshes()) {
 
@@ -474,6 +597,28 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 	}
 
 
+}
+
+void ModelLoader::SetYUp(const std::string & name)
+{
+	auto model_data = m_scene->GetModelCache().GetResourceByName(name);
+	if (model_data != nullptr) {
+		Quaternion q = Quaternion::FromAxisAndAngle({ 1.f, 0.f, 0.f }, DEG_TO_RAD(-90));
+		for (auto& mesh : model_data->GetMeshes()) {
+			for (auto& p : mesh->Positions) {
+				p = p * q;
+			}
+			for (auto& n : mesh->Normals) {
+				n = n * q;
+			}
+		}
+		if (model_data->GetSkeleton()) {
+			Quaternion bq = Quaternion::FromAxisAndAngle({ 0.f, 1.f, 0.f }, DEG_TO_RAD(90));
+			for (auto& bone : model_data->GetSkeleton()->Bones) {
+				bone->NodeTransform.Position = bone->NodeTransform.Position * bq;
+			}
+		}
+	}
 }
 
 vector<tinyxml2::XMLNode*> GetChildren(tinyxml2::XMLNode* parent) {
@@ -689,7 +834,7 @@ unique_ptr<ColladaMesh> ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshN
 	//vector<Vector2> texCoords;
 	colladaMesh->TexCoords.reserve(floats.size() / 2);
 	for (int i = 0; i < texcoordCount / 2; ++i) {
-		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };		
+		Vector2 p = { floats[i * 2], floats[i * 2 + 1] };
 		colladaMesh->TexCoords.emplace_back(p);
 	};
 
@@ -713,7 +858,7 @@ unique_ptr<ColladaMesh> ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshN
 		int ti = ints[i * inputCount + 2];
 		colladaMesh->PositionIndices.emplace_back((uint32_t)pi);
 		colladaMesh->NormalIndices.emplace_back((uint32_t)ni);
-		colladaMesh->TexCoordIndices.emplace_back((uint32_t)ti);				
+		colladaMesh->TexCoordIndices.emplace_back((uint32_t)ti);
 
 		//Vector3 p = positions[pi];
 		//Vector3 n = normals[ni];
@@ -726,14 +871,14 @@ unique_ptr<ColladaMesh> ModelLoader::BuildPolylistMesh(tinyxml2::XMLNode * meshN
 		//mesh->Indices.push_back(i);
 		//dupCount++;
 	}
-	
+
 	//auto mat = m_scene->GetMaterialCache().CreateInstance<Material>("stupid_material");
 	//mat->Diffuse = { 1.f, 0.f, 1.f };
 	//mat->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 	//mesh->SetMaterial(mat);
 	//mesh->CalculateTangentSpace();
 	//mesh->CalculateExtents();
-	
+
 	return move(colladaMesh);
 	//return nullptr;
 }
@@ -794,7 +939,7 @@ unique_ptr<ColladaMesh> ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * m
 		float nf = stof(fs);
 		floats.emplace_back(nf);
 	}
-	colladaMesh->Normals.reserve(floats.size() / 3);	
+	colladaMesh->Normals.reserve(floats.size() / 3);
 	for (int i = 0; i < normalCount / 3; ++i) {
 		Vector3 p = { floats[i * 3], floats[i * 3 + 1], floats[i * 3 + 2] };
 		colladaMesh->Normals.emplace_back(p);
@@ -833,7 +978,7 @@ unique_ptr<ColladaMesh> ModelLoader::BuildTriangleListMesh(tinyxml2::XMLNode * m
 		colladaMesh->PositionIndices.reserve(ints.size());
 		colladaMesh->TexCoordIndices.reserve(ints.size());
 		for (int i = 0; i < ints.size() / inputCount; ++i) {
-			
+
 			int pi = ints[i * inputCount];
 			colladaMesh->PositionIndices.push_back(ints[i * inputCount]);
 			colladaMesh->NormalIndices.push_back(ints[i * inputCount]);
@@ -968,12 +1113,12 @@ Skeleton* ModelLoader::BuildXmlSkeleton(tinyxml2::XMLNode * rootNode)
 			}
 		}
 	}
-	
+
 	return skeleton;
 }
 
 ColladaSkin BuildXMLSkin(tinyxml2::XMLNode* node) {
-	auto skinNode = GetChildNode(GetChildNode(node, "controller"), "skin");	
+	auto skinNode = GetChildNode(GetChildNode(node, "controller"), "skin");
 	auto weightNode = GetChildNode(skinNode, "vertex_weights");
 	auto jointsDataNode = GetChildNodeByNameAndAttribute(weightNode, "input", "semantic", "JOINT");
 	auto weightsDataNode = GetChildNodeByNameAndAttribute(weightNode, "input", "semantic", "WEIGHT");
@@ -1088,7 +1233,7 @@ void ModelLoader::LoadXmlModel(const std::string & filename, const std::string &
 	}
 	ColladaSkin skin = BuildXMLSkin(controllerLib);
 
-	
+
 	int x = 0;
 }
 
@@ -1184,130 +1329,138 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 			else {
 				sk = m_scene->GetSkeletonCache().CreateInstance<Skeleton>(this->m_name + "_skeleton");
 			}
-			model_data->m_skeleton = sk;			
+			model_data->m_skeleton = sk;
 			m->SetSkeleton(sk);
 			for (uint i = 0; i < aiMesh->mNumBones; ++i) {
 				aiBone* bone = aiMesh->mBones[i];
-				string bname = bone->mName.data;
-
-				auto bd = make_unique<BoneData>();
-				bd->Name = bname;
-				bd->mesh = m;
-				bd->skeleton = sk;
-				aiMatrix4x4 mm = bone->mOffsetMatrix;
-				bd->BoneOffsetTransform = aiMatrix4x4ToTransform(mm);
-				ImporterSceneNode* isn = model_data->FindImporterSceneNode(bname);
-				bd->NodeTransform = isn->NodeTransform;
-				isn->isUsedBone = true;
-				bd->INode = isn;
-				//bd->NodeTransform = isn->NodeTransform;				
-				//auto pnode = isn->Parent;
-				//while (pnode != nullptr) {
-				//	bd->NodeTransform = pnode->NodeTransform * bd->NodeTransform;	
-				//	bd->BoneTransform = pnode->NodeTransform;
-				//	pnode = pnode->Parent;
-				//}
-
-				bool newBone = false;
-				if (sk->m_boneMap.find(bname) == sk->m_boneMap.end()) {
-					bd->Id = (int)sk->Bones.size();
-					sk->m_boneMap[bname] = bd->Id;
-					m->Bones.push_back(bd->Id);
-					newBone = true;
-				}
-				else {
-					int idx = sk->m_boneMap[bname];
-					//BoneData& bdata = skeleton->Bones[idx];
-					m->Bones.push_back(idx);
-					printf("Bone already in boneMap: %s\n", bd->Name.data());
-				}
-				for (uint j = 0; j < bone->mNumWeights; ++j) {
-					auto bw = bone->mWeights[j];
-					m->BoneWeights.emplace_back(VertexBoneWeight(bd->Id, bw.mVertexId, bw.mWeight));
-				}
-				if (newBone) {
-					sk->Bones.push_back(move(bd));
-				}
+				CreateBone(bone, m, sk, model_data);
 			}
+
+			m->CalculateExtents();
+			if (!aiMesh->HasNormals()) {
+				m->CalculateFaceNormals();
+			}
+			model_data->GetMeshes().push_back(m);
+
 		}
 
-		m->CalculateExtents();
-		if (!aiMesh->HasNormals()) {
-			m->CalculateFaceNormals();
-		}
-		model_data->GetMeshes().push_back(m);
-
-	}
-
-	Material* myMaterial = nullptr;
-	if (aiMesh->mMaterialIndex >= 0) {
-		aiMaterial* mat = scene->mMaterials[aiMesh->mMaterialIndex];
-		aiString matName;
-		mat->Get(AI_MATKEY_NAME, matName);
-		printf("Found Material...%s\n", matName.C_Str());
-		Material* cachedMaterial = m_scene->GetMaterialCache().GetResourceByName(string(matName.data));
-		if (cachedMaterial) {
-			model_data->GetMaterials().push_back(cachedMaterial);
-			myMaterial = cachedMaterial;
-			m->SetMaterial(myMaterial);
-		}
-		else {
-			myMaterial = m_scene->GetMaterialCache().CreateInstance<Material>(matName.C_Str());
-			model_data->GetMaterials().push_back(myMaterial);
-			aiString texString;
-			mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &texString);
-			string textureFileName = string(texString.C_Str());
-			if (textureFileName.find(".") == string::npos) {
-				textureFileName += "_D.tga";
-			}
-			aiColor3D diffuse, ambient, specular;
-			float shine;
-			mat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
-			mat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
-			mat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
-			mat->Get(AI_MATKEY_SHININESS, shine);
-			if (shine <= 0.0f) {
-				shine = 32.0f;
-			}
-			myMaterial->Ambient = Vector3(ambient.r, ambient.g, ambient.b);
-			myMaterial->Diffuse = Vector3(diffuse.r, diffuse.g, diffuse.b);
-			myMaterial->Specular = Vector3(specular.r, specular.g, specular.b);
-			myMaterial->Shine = shine / 4.0f;
-			if (texString.length > 0) {
-				string texturePath = directory + "/" + textureFileName;
-				myMaterial->SetTextureDiffuse(texturePath);
-			}
-			// try to load a normal map
-			texString.Clear();
-			mat->GetTexture(aiTextureType::aiTextureType_NORMALS, 0, &texString);
-			if (texString.length > 0) {
-				myMaterial->SetTextureNormalMap(directory + "/" + texString.C_Str());
+		Material* myMaterial = nullptr;
+		if (aiMesh->mMaterialIndex >= 0) {
+			aiMaterial* mat = scene->mMaterials[aiMesh->mMaterialIndex];
+			aiString matName;
+			mat->Get(AI_MATKEY_NAME, matName);
+			printf("Found Material...%s\n", matName.C_Str());
+			Material* cachedMaterial = m_scene->GetMaterialCache().GetResourceByName(string(matName.data));
+			if (cachedMaterial) {
+				model_data->GetMaterials().push_back(cachedMaterial);
+				myMaterial = cachedMaterial;
+				m->SetMaterial(myMaterial);
 			}
 			else {
+				myMaterial = m_scene->GetMaterialCache().CreateInstance<Material>(matName.C_Str());
+				model_data->GetMaterials().push_back(myMaterial);
+				aiString texString;
+				mat->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &texString);
+				string textureFileName = string(texString.C_Str());
+				if (textureFileName.find(".") == string::npos) {
+					textureFileName += "_D.tga";
+				}
+				aiColor3D diffuse, ambient, specular;
+				float shine;
+				mat->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+				mat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+				mat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+				mat->Get(AI_MATKEY_SHININESS, shine);
+				if (shine <= 0.0f) {
+					shine = 32.0f;
+				}
+				myMaterial->Ambient = Vector3(ambient.r, ambient.g, ambient.b);
+				myMaterial->Diffuse = Vector3(diffuse.r, diffuse.g, diffuse.b);
+				myMaterial->Specular = Vector3(specular.r, specular.g, specular.b);
+				myMaterial->Shine = shine / 4.0f;
+				if (texString.length > 0) {
+					string texturePath = directory + "/" + textureFileName;
+					myMaterial->SetTextureDiffuse(texturePath);
+				}
+				// try to load a normal map
 				texString.Clear();
-				mat->GetTexture(aiTextureType::aiTextureType_HEIGHT, 0, &texString);
+				mat->GetTexture(aiTextureType::aiTextureType_NORMALS, 0, &texString);
 				if (texString.length > 0) {
 					myMaterial->SetTextureNormalMap(directory + "/" + texString.C_Str());
 				}
-			}
-			texString.Clear();
-			mat->GetTexture(aiTextureType::aiTextureType_SPECULAR, 0, &texString);
-			if (texString.length > 0) {
+				else {
+					texString.Clear();
+					mat->GetTexture(aiTextureType::aiTextureType_HEIGHT, 0, &texString);
+					if (texString.length > 0) {
+						myMaterial->SetTextureNormalMap(directory + "/" + texString.C_Str());
+					}
+				}
+				texString.Clear();
+				mat->GetTexture(aiTextureType::aiTextureType_SPECULAR, 0, &texString);
+				if (texString.length > 0) {
 
-				myMaterial->SetTextureSpecularMap(directory + "/" + texString.C_Str());
+					myMaterial->SetTextureSpecularMap(directory + "/" + texString.C_Str());
+				}
+				if (myMaterial->GetTextureDiffuseMap() == nullptr) {
+					myMaterial->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
+				}
+				m->SetMaterial(myMaterial);
 			}
-			if (myMaterial->GetTextureDiffuseMap() == nullptr) {
-				myMaterial->Flags &= Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
-			}
-			m->SetMaterial(myMaterial);
+
 		}
+		else {
+			int xx = 0;
+		}
+		m_processedMeshCount++;
+	}
+}
 
+void ModelLoader::CreateBone(aiBone * bone, Jasper::Mesh * m, Jasper::Skeleton * sk, Jasper::ModelData * model_data)
+{
+	string bname = bone->mName.data;
+
+	auto bd = make_unique<BoneData>();
+	bd->Name = bname;
+	bd->mesh = m;
+	bd->MeshName = m->GetName();
+	bd->skeleton = sk;
+	aiMatrix4x4 mm = bone->mOffsetMatrix;
+	bd->BoneOffsetTransform = aiMatrix4x4ToTransform(mm);
+	ImporterSceneNode* isn = model_data->FindImporterSceneNode(bname);
+	bd->NodeTransform = isn->NodeTransform;
+	bd->BindTransform = isn->NodeTransform;
+	isn->isUsedBone = true;
+	bd->INode = isn;
+	//bd->NodeTransform = isn->NodeTransform;				
+	//auto pnode = isn->Parent;
+	//while (pnode != nullptr) {
+	//	bd->NodeTransform = pnode->NodeTransform * bd->NodeTransform;	
+	//	bd->BoneTransform = pnode->NodeTransform;
+	//	pnode = pnode->Parent;
+	//}
+
+	bool newBone = false;
+	if (sk->m_boneMap.find(bname) == sk->m_boneMap.end()) {
+		bd->Id = (int)sk->Bones.size();
+		sk->m_boneMap[bname] = bd->Id;
+		m->Bones.push_back(bd->Id);
+		newBone = true;
 	}
 	else {
-		int xx = 0;
+		int idx = sk->m_boneMap[bname];
+		//BoneData& bdata = skeleton->Bones[idx];
+		m->Bones.push_back(idx);
+		printf("Bone already in boneMap: %s\n", bd->Name.data());
 	}
-	m_processedMeshCount++;
+	for (uint j = 0; j < bone->mNumWeights; ++j) {
+		auto bw = bone->mWeights[j];
+		m->BoneWeights.emplace_back(VertexBoneWeight(bd->Id, bw.mVertexId, bw.mWeight));
+	}
+	if (newBone) {
+		sk->Bones.push_back(move(bd));
+	}
 }
+
 
 //class MyCallback : public VHACD::IVHACD::IUserCallback
 //{
@@ -1449,27 +1602,27 @@ void ModelLoader::Destroy()
 //    //Component::Update(dt);
 //}
 
-void ModelLoader::SaveToAssetFile(const std::string& filename)
+void ModelLoader::SaveToAssetFile(const std::string& modelName, const std::string& filename)
 {
+	if (auto model_data = m_scene->GetModelCache().GetResourceByName(modelName)) {
+		model_data->SaveToAssetFile(filename);
+	}
+}
 
-	//    auto& meshes = m_meshManager.GetCache();
-	//    int numMeshes = meshes.size();
-	//    int numMaterials = m_materialManager.GetCache().size();
-	//
-	//    ofstream ofs;
-	//    ofs.open(filename, std::ios::binary | std::ios::out);
-	//
-	//    ofs.write(reinterpret_cast<char*>(&numMeshes), sizeof(numMeshes));
-	//
-	//    for (const auto& mesh : meshes) {
-	//        AssetSerializer::SerializeMesh(ofs, mesh.get());
-	//    }
-	//
-	//    ofs.close();
-	//
-	//
-	//}
-	//
+void ModelLoader::LoadFromAssetFile(const std::string & modelName, const std::string & filename)
+{
+	auto model_data = m_scene->GetModelCache().CreateInstance<ModelData>(modelName);
+	model_data->LoadFromAssetFile(filename, m_scene);
+	// match materials to meshes
+	for (auto ms : model_data->GetMeshes()) {
+		auto mat = find_if(model_data->GetMaterials().begin(), model_data->GetMaterials().end(), [&](Material* mm) {
+			return mm->GetName() == ms->GetMaterialName();
+		});
+		if (mat != model_data->GetMaterials().end()) {
+			ms->SetMaterial(*mat);
+		}
+	}
+	//SetYUp(modelName);
 }
 
 void ModelLoader::OutputMeshData(const string& filename)
@@ -1523,7 +1676,7 @@ void ModelLoader::OutputMeshData(const string& filename)
 
 void ModelData::SaveToAssetFile(const std::string& filename) {
 	ofstream ofs;
-	ofs.open(filename, ios::out);
+	ofs.open(filename, ios::out | ios::binary);
 	AssetSerializer::WriteString(ofs, this->m_name);
 	AssetSerializer::WriteInt(ofs, static_cast<int>(m_meshes.size()));
 	for (const auto mesh : this->m_meshes) {
@@ -1540,7 +1693,39 @@ void ModelData::SaveToAssetFile(const std::string& filename) {
 	else {
 		AssetSerializer::WriteBool(ofs, false);
 	}
-		
+	ofs.flush();
+	ofs.close();
+
+}
+
+void ModelData::LoadFromAssetFile(const std::string & filename, Scene* scene)
+{
+	ifstream ifs;
+	ifs.open(filename, ios::in | ios::binary);
+	string name = AssetSerializer::ReadString(ifs);
+	int numMeshes = AssetSerializer::ReadInt(ifs);
+	for (int i = 0; i < numMeshes; ++i) {
+		Mesh* mesh = scene->GetMeshCache().CreateInstance<Mesh>("temp_mesh_name"s);
+		AssetSerializer::DeserializeMesh(ifs, mesh);
+		this->m_meshes.push_back(mesh);
+	}
+	int numMaterials = AssetSerializer::ReadInt(ifs);
+	for (int j = 0; j < numMaterials; ++j) {
+		Material* mat = scene->GetMaterialCache().CreateInstance<Material>("temp_material_name"s);
+		AssetSerializer::DeserializeMaterial(ifs, mat);
+		this->m_materials.push_back(mat);
+	}
+	bool hasSkeleton = AssetSerializer::ReadBool(ifs);
+	if (hasSkeleton) {
+		Skeleton* skel = scene->GetSkeletonCache().CreateInstance<Skeleton>("temp_skeleton_name"s);
+		AssetSerializer::DeserializeSkeleton(ifs, skel);
+		this->m_skeleton = skel;
+		for (auto mesh : m_meshes) {
+			mesh->SetSkeleton(skel);
+		}
+	}
+	ifs.close();
+	//AssetSerializer::Con
 }
 
 

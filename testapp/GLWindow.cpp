@@ -8,7 +8,10 @@
 
 #include <typeinfo>
 #include <chrono>
-//#include <filesystem>
+#include <InputSystem.h>
+#include <filesystem>
+
+#include <thread>
 
 
 
@@ -164,6 +167,9 @@ void GLWindow::RunLoop()
 		GuiNewFrame();
 
 		SDL_Event evt;
+		auto& input = InputSystem::GetInstance();
+		input.MOUSE_XREL = 0;
+		input.MOUSE_YREL = 0;
 		while (SDL_PollEvent(&evt)) {
 			if (!ImGui::GetIO().WantCaptureMouse) {
 				if (ProcessSDLEvent(evt, m_scene.get(), dt)) {
@@ -176,7 +182,7 @@ void GLWindow::RunLoop()
 
 		}
 
-		DoMovement(m_scene.get(), dt);
+		//DoMovement(m_scene.get(), dt);
 
 		// DO ALL THE THINGS HERE!!:)
 		//ProcessInput(m_window, m_scene.get(), deltaTime);
@@ -200,9 +206,19 @@ void GLWindow::RunLoop()
 
 //GameObject* game_object_under_edit = nullptr;
 
+GameObject* game_object_to_delete = nullptr;
+
 bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
 {
 	if (ImGui::TreeNode(go->GetName().data())) {
+		if (ImGui::BeginPopupContextItem("item context menu"))
+		{
+			if (ImGui::Selectable("Delete")) {
+				game_object_to_delete = go;
+			}
+			//if (ImGui::Selectable("Set to PI")) value = 3.1415f;
+			ImGui::EndPopup();
+		}
 		m_scene->SetSelectedGameObject(go);
 		//game_object_under_edit = go;
 		for (auto& child : go->Children()) {
@@ -213,7 +229,103 @@ bool GLWindow::DrawGameObjectGuiNode(GameObject* go)
 	return false;
 }
 
-//namespace fs = std::experimental::filesystem;
+namespace fs = std::experimental::filesystem;
+
+
+
+static void ShowExampleMenuFile(Scene* scene)
+{
+	//ImGui::MenuItem("(dummy menu)", NULL, false, false);
+	//if (ImGui::MenuItem("New")) {}
+	if (ImGui::BeginMenu("Open", "Ctrl+O")) {
+		//for (auto& p : fs::directory_iterator)
+		for (auto& content : fs::directory_iterator("../models/")) {
+			if (fs::is_directory(content.path())) {
+				if (ImGui::BeginMenu(content.path().filename().string().c_str())) {
+					for (auto& con : fs::directory_iterator(content.path())) {
+												
+						if (ImGui::MenuItem(con.path().filename().string().c_str())) {
+							string ext = con.path().extension().string();
+							string name = con.path().filename().string();
+							name = name.substr(0, name.find(ext));
+							if (ext == ".jasper") {								
+								scene->LoadAssetModel(con.path().string(), name);
+							}
+							else {
+								scene->LoadModel(con.path().string(), name);							
+							}
+						}
+					}
+					ImGui::EndMenu();
+				}
+			}
+			else {
+				if (ImGui::MenuItem(content.path().filename().string().c_str())) {
+					string ext = content.path().extension().string();
+					string name = content.path().filename().string();
+					//ext = con.path().extension().string();
+					name = name.substr(0, name.find(ext));
+					if (ext == ".jasper") {
+						scene->LoadAssetModel(content.path().string(), name);
+					}
+					else {
+						scene->LoadModel(content.path().string(), name);
+					}
+				}
+			}
+		}
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Open Recent"))
+	{
+		ImGui::MenuItem("fish_hat.c");
+		ImGui::MenuItem("fish_hat.inl");
+		ImGui::MenuItem("fish_hat.h");
+		if (ImGui::BeginMenu("More.."))
+		{
+			ImGui::MenuItem("Hello");
+			ImGui::MenuItem("Sailor");
+			if (ImGui::BeginMenu("Recurse.."))
+			{
+				ShowExampleMenuFile(scene);
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenu();
+	}
+	if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+	if (ImGui::MenuItem("Save As..")) {}
+	ImGui::Separator();
+	if (ImGui::BeginMenu("Options"))
+	{
+		static bool enabled = true;
+		ImGui::MenuItem("Enabled", "", &enabled);
+		ImGui::BeginChild("child", ImVec2(0, 60), true);
+		for (int i = 0; i < 10; i++)
+			ImGui::Text("Scrolling Text %d", i);
+		ImGui::EndChild();
+		static float f = 0.5f;
+		static int n = 0;
+		ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
+		ImGui::InputFloat("Input", &f, 0.1f);
+		ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Colors"))
+	{
+		for (int i = 0; i < ImGuiCol_COUNT; i++)
+			ImGui::MenuItem(ImGui::GetStyleColName((ImGuiCol)i));
+		ImGui::EndMenu();
+	}
+	if (ImGui::BeginMenu("Disabled", false)) // Disabled
+	{
+		IM_ASSERT(0);
+	}
+	if (ImGui::MenuItem("Checked", NULL, true)) {}
+	if (ImGui::MenuItem("Quit", "Alt+F4")) {}
+}
+
 
 void GLWindow::DrawMainMenu()
 {
@@ -233,16 +345,31 @@ void GLWindow::DrawMainMenu()
 			//			}
 			ImGui::EndMenu();
 		}
+		bool show_asset_loader = false;
 		if (ImGui::BeginMenu("Assets")) {
 			if (ImGui::MenuItem("Save Selected")) {
 				if (auto go = m_scene->GetSelectedGameObject()) {
-					int x = 0;
+					ModelLoader ml(m_scene.get());
+					string nm = go->GetName();
+					ml.SaveToAssetFile(nm, "../models/" + nm + ".jasper");
 				}
+			}
+			if (ImGui::MenuItem("Load Asset")) {
+				show_asset_loader = true;
+				
 			}
 			ImGui::EndMenu();
 		}
 
 		ImGui::EndMainMenuBar();
+
+		if (show_asset_loader) {
+			ImGui::OpenPopup("Load Asset File");
+		}
+		if (ImGui::BeginPopup("Load Asset File")) {
+			ShowExampleMenuFile(m_scene.get());
+			ImGui::EndPopup();
+		}
 	}
 }
 
@@ -282,7 +409,12 @@ void GLWindow::DrawGameObjectEditor()
 
 	auto root = m_scene->GetRootNode();
 	DrawGameObjectGuiNode(root);
-
+	if (game_object_to_delete != nullptr) {
+		auto pgo = game_object_to_delete->GetParent();
+		m_scene->DeleteGameObject(game_object_to_delete, pgo);
+		game_object_to_delete = nullptr;
+		m_scene->SetSelectedGameObject(pgo);
+	}
 	ImGui::End();
 
 
@@ -729,7 +861,11 @@ bool ProcessSDLEventGui(SDL_Event* event, Scene* scene)
 
 bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 {
+	auto& input = InputSystem::GetInstance();
+	input.MOUSE_MOTION = false;
+	
 	if (evt.type == SDL_QUIT) {
+		input.QUIT_REQUESTED = true;
 		return true;
 	}
 
@@ -745,18 +881,23 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 		break;
 	case SDL_KEYDOWN:
 		if (evt.key.keysym.scancode == SDL_SCANCODE_W) {
+			input.MOVING_FORWARD = true;
 			MOVING_FORWARD = true;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_S) {
+			input.MOVING_BACKWARD = true;
 			MOVING_BACKWARD = true;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_A) {
+			input.STRAFING_LEFT = true;
 			STRAFING_LEFT = true;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_D) {
+			input.STRAFING_RIGHT = true;
 			STRAFING_RIGHT = true;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_GRAVE) {
+			input.SHOW_EDITOR ^= input.SHOW_EDITOR;
 			SHOW_GUI = !SHOW_GUI;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_P) {
@@ -765,24 +906,29 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 		break;
 	case SDL_KEYUP:
 		if (evt.key.keysym.scancode == SDL_SCANCODE_W) {
+			input.MOVING_FORWARD = false;
 			MOVING_FORWARD = false;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_S) {
+			input.MOVING_BACKWARD = false;
 			MOVING_BACKWARD = false;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_A) {
+			input.STRAFING_LEFT = false;
 			STRAFING_LEFT = false;
 		}
 		if (evt.key.keysym.scancode == SDL_SCANCODE_D) {
+			input.STRAFING_RIGHT = false;
 			STRAFING_RIGHT = false;
 		}
 		break;
 	case SDL_MOUSEBUTTONDOWN:
 		if (evt.button.button == SDL_BUTTON_RIGHT) {
+			input.MOUSE_MOVE = true;
 			MOUSE_MOVE = true;
 		}
 		if (evt.button.button == SDL_BUTTON_LEFT) {
-			if (!SHOW_GUI) {
+			if (!input.SHOW_EDITOR) {
 				scene->ShootMouse(evt.button.x, evt.button.y);
 			}
 			else {
@@ -796,11 +942,11 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 		break;
 	case SDL_MOUSEBUTTONUP:
 		if (evt.button.button == SDL_BUTTON_RIGHT) {
-			MOUSE_MOVE = false;
-			ROTATING_LEFT = false;
-			ROTATING_RIGHT = false;
-			ROTATING_UP = false;
-			ROTATING_DOWN = false;
+			input.MOUSE_MOVE = false;
+			input.ROTATING_LEFT = false;
+			input.ROTATING_RIGHT = false;
+			input.ROTATING_UP = false;
+			input.ROTATING_DOWN = false;
 		}
 		if (evt.button.button == SDL_BUTTON_LEFT) {
 			if (MOUSE_MOVE_GAME_OBJECT) {
@@ -809,21 +955,30 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 		}
 		break;
 	case SDL_MOUSEMOTION:
-		if (MOUSE_MOVE) {
+		//if (input.MOUSE_MOVE) {
+			input.MOUSE_XREL = evt.motion.xrel;
+			input.MOUSE_YREL = evt.motion.yrel;
+		//}
+		/*if (input.MOUSE_MOVE) {
+			input.MOUSE_MOTION = true;
+			input.MOUSE_XREL = evt.motion.xrel;
+			input.MOUSE_YREL = evt.motion.yrel;
+		}*/
+		/*if (input.MOUSE_MOVE) {
 			if (evt.motion.xrel < 0) {
-				RotateCameraX(scene, 0.1f, evt.motion.xrel * mouseSensitivity);
+				input.MOUSE_XREL = evt.motion.xrel;
 			}
 			if (evt.motion.xrel > 0) {
-				RotateCameraX(scene, 0.1f, evt.motion.xrel * mouseSensitivity);
+				input.MOUSE_XREL = evt.motion.xrel;
 			}
 			if (evt.motion.yrel < 0) {
-				RotateCameraY(scene, 0.1f, evt.motion.yrel * mouseSensitivity);
+				input.MOUSE_YREL = evt.motion.yrel;
 			}
 			if (evt.motion.yrel > 0) {
-				RotateCameraY(scene, 0.1f, evt.motion.yrel * mouseSensitivity);
+				input.MOUSE_YREL = evt.motion.yrel;
 			}
-		}
-		else if (MOUSE_MOVE_GAME_OBJECT) {
+		}*/
+		if (MOUSE_MOVE_GAME_OBJECT) {
 			scene->MouseMoveSelectedGameObject(evt.motion.xrel, evt.motion.yrel);
 		}
 
@@ -835,6 +990,7 @@ bool ProcessSDLEvent(SDL_Event evt, Scene* scene, double deltaTime)
 
 void DoMovement(Scene* scene, double deltaTime)
 {
+	auto& input = InputSystem::GetInstance();
 	Camera& cam = scene->GetCamera();
 	auto& player = *(scene->GetPlayer());
 	float speed = 7.5f;
@@ -843,29 +999,28 @@ void DoMovement(Scene* scene, double deltaTime)
 	float rotBy = rotSpeed * deltaTime;
 
 
-	if (MOVING_FORWARD) {
-		//player->StepPlayer(deltaTime);
+	if (input.MOVING_FORWARD) {		
 		player.Translate({ 0.0f, 0.0f, -moveBy });
 	}
-	if (MOVING_BACKWARD) {
+	if (input.MOVING_BACKWARD) {
 		player.Translate({ 0.0f, 0.0f, moveBy });
 	}
-	if (STRAFING_LEFT) {
+	if (input.STRAFING_LEFT) {
 		player.Translate({ -moveBy, 0.0f, 0.0f });
 	}
-	if (STRAFING_RIGHT) {
+	if (input.STRAFING_RIGHT) {
 		player.Translate({ moveBy, 0.0f, 0.0f });
 	}
-	if (ROTATING_LEFT) {
+	if (input.ROTATING_LEFT) {
 		player.Rotate(0.0f, 0.0f, rotBy);
 	}
-	if (ROTATING_RIGHT) {
+	if (input.ROTATING_RIGHT) {
 		player.Rotate(0.0f, 0.0f, -rotBy);
 	}
-	if (ROTATING_UP) {
+	if (input.ROTATING_UP) {
 		player.Rotate(rotBy, 0.0f, 0.0f);
 	}
-	if (ROTATING_DOWN) {
+	if (input.ROTATING_DOWN) {
 		player.Rotate(-rotBy, 0.0f, 0.0f);
 	}
 }
