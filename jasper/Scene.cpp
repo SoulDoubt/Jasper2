@@ -234,7 +234,7 @@ void Scene::LoadModel(const std::string & filename, const std::string& name)
 
 	auto attachfunc = [&ml, &name, this]() {
 		auto model_data = this->GetModelCache().GetResourceByName(name);
-		auto& mm = m_rootNode->AttachChild(move(ml.CreateModelInstance(name, name, true, false)));
+		auto& mm = m_rootNode->AttachChild(move(ml.CreateModelInstance(name, name, false, false)));
 		if (model_data->Animator != nullptr) {
 			mm.AttachComponent(move(model_data->Animator));
 		}
@@ -940,11 +940,11 @@ void Scene::ShootMouse(int x, int y)
 			m_selected_game_object = go;
 
 			if (auto ragdoll = go->GetComponentByType<RagdollCollider>()) {
-				for (const auto& body : ragdoll->m_bodies) {
+				/*for (const auto& body : ragdoll->m_bodies) {
 					if (body.second.get() == rb) {
 						printf("%s\n", body.first.c_str());
 					}
-				}
+				}*/
 			}
 		}
 

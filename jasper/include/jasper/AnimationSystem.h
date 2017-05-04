@@ -33,6 +33,17 @@ struct ImporterSceneNode {
 	ImporterSceneNode() {}
 };
 
+enum KEYFRAME_CONTENTS {
+	HAS_ROTATION = 0x1,
+	HAS_POSITION = 0x2,
+	HAS_SCALE    = 0x4
+};
+
+struct Keyframe {
+	int Index = -1;
+	uint Contents = 0x0;
+};
+
 
 
 
@@ -74,6 +85,8 @@ struct BoneData {
 	Transform GetWorldTransform();
 	void SetWorldTransform(const Transform& t);
 	void UpdateWorldTransform();
+
+	Vector3 ShapeOffset;
 
 private:
 	BoneData* getParentBone() const;
@@ -134,6 +147,8 @@ public:
 	BoneData* GetBone(const std::string& name);
 	ImporterSceneNode* GetRootBoneNode();
 
+	BoneData* FindBone(const std::string& name, const std::string& side = "");
+
 	void UpdateWorldTransforms();
 	
 
@@ -149,6 +164,7 @@ public:
 
 	void Update(double dt) override;
 	bool ShowGui() override;
+	void Initialize() override;
 
 	void Serialize(std::ofstream& ofs) const override;
 
@@ -196,6 +212,7 @@ struct BoneAnimation {
 
 	std::string Name;	
 	int BoneIndex;
+
 	std::vector<RotationKeyframe> RotationKeyframes;
 	std::vector<PositionKeyframe> PositionKeyframes;
 	std::vector<ScaleKeyframe>    ScaleKeyframes;
@@ -207,7 +224,6 @@ struct BoneAnimation {
 	int GetRotationKeyframeByTime(float time);
 	int GetPositionKeyframeByTime(float time);
 	int GetScaleKeyframeByTime(float time);
-
 
 };
 
@@ -221,7 +237,7 @@ public:
 	float Duration = 0.f;
 	int Index;
 	std::vector<BoneAnimation> BoneAnimations;
-	std::vector<int> Keyframes;
+	std::vector<Keyframe> Keyframes;
 	BoneAnimation* GetBoneAnimationByBoneIndex(int idx);
 
 };
@@ -229,6 +245,7 @@ public:
 
 class AnimationComponent : public Component
 {
+	using clock = std::chrono::high_resolution_clock;
 public:
 
 	AnimationComponent(const std::string& name);
@@ -260,13 +277,13 @@ public:
 		return m_skeleton;
 	}
 
-	void PoseSkeleton(int animIndex, int framenumber);
+	void PoseSkeleton(int animIndex, const Keyframe& keyframe);
 
 	void AddKeyframe(int framenumber);
 	void UpdateKeyframe(int framenumber);
 	void DeleteKeyframe(int framenumber);
 
-	std::chrono::high_resolution_clock::time_point PlaybackStartTime;
+	clock::time_point PlaybackStartTime;
 
 	void PlayAnimation(int index);
 	void StopPlayback();

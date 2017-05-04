@@ -113,7 +113,7 @@ void PhysicsWorld::AddCollider(PhysicsCollider* collider)
 
 void PhysicsWorld::AddRagdoll(RagdollCollider * ragdoll)
 {
-	for (const auto& body : ragdoll->m_bodies) {
+	/*for (const auto& body : ragdoll->m_bodies) {
 		if (body.second) {
 			m_world->addRigidBody(body.second.get());
 
@@ -125,7 +125,7 @@ void PhysicsWorld::AddRagdoll(RagdollCollider * ragdoll)
 	}
 	for (const auto& constraint : ragdoll->m_constraints) {
 		m_world->addConstraint(constraint.second.get(), true);
-	}
+	}*/
 }
 
 

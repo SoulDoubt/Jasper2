@@ -25,6 +25,8 @@
 #include <BulletCollision\CollisionShapes\btShapeHull.h>
 #include <StringFunctions.h>
 
+#include <Ragdoll.h>
+
 
 
 //#include "VHACD.h"
@@ -180,77 +182,77 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 
 void ModelData::CreateChildHulls(BoneData* parentBone, btCollisionShape* parentShape, Skeleton* skeleton, RagdollCollider* ragdoll)
 {
-	if (FindInString("weight", parentBone->Name)) {
-		return;
-	}
-	if (parentBone->ParentID == -1) {
-		// we want to put a small sphere here...
-		Vector3 pos = parentBone->GetWorldTransform().Position;
-		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(0.01f, 0.005f, nullptr, parentBone);
-		auto capsp = caps.get();
-		capsp->setUserPointer(parentBone);
-		ragdoll->m_hulls[parentBone->Name] = move(caps);
-	}
+	//if (FindInString("weight", parentBone->Name)) {
+	//	return;
+	//}
+	//if (parentBone->ParentID == -1) {
+	//	// we want to put a small sphere here...
+	//	Vector3 pos = parentBone->GetWorldTransform().Position;
+	//	unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(0.01f, 0.005f, nullptr, parentBone);
+	//	auto capsp = caps.get();
+	//	capsp->setUserPointer(parentBone);
+	//	ragdoll->m_hulls[parentBone->Name] = move(caps);
+	//}
 
-	for (size_t j = 0; j < parentBone->Children.size(); j++) {
-		const auto& childBone = skeleton->Bones[parentBone->Children[j]];
-		parentBone->UpdateWorldTransform();
-		if (FindInString("weight", childBone->Name)) {
-			return;
-		}
-		childBone->UpdateWorldTransform();
-		Vector3 from = parentBone->GetWorldTransform().Position;
-		Vector3 to = childBone->GetWorldTransform().Position;
-		Vector3 diff = from - to;
-		//Vector3 halfPoint = diff / 2;
-		float dist = Length(diff);
-		//printf("Bone Distance: %s -> %s = %f\n", parentBone->Name.c_str(), childBone->Name.c_str(), dist);
-		float radius = dist / 4;
-		// must correct for the fact that a btCapsuleShape
-		// has a height proprety of height + 2 * radius
-		dist -= radius * 1.f;
-		dist = dist * 0.75f;
-		radius = dist / 5;
+	//for (size_t j = 0; j < parentBone->Children.size(); j++) {
+	//	const auto& childBone = skeleton->Bones[parentBone->Children[j]];
+	//	parentBone->UpdateWorldTransform();
+	//	if (FindInString("weight", childBone->Name)) {
+	//		return;
+	//	}
+	//	childBone->UpdateWorldTransform();
+	//	Vector3 from = parentBone->GetWorldTransform().Position;
+	//	Vector3 to = childBone->GetWorldTransform().Position;
+	//	Vector3 diff = from - to;
+	//	//Vector3 halfPoint = diff / 2;
+	//	float dist = Length(diff);
+	//	//printf("Bone Distance: %s -> %s = %f\n", parentBone->Name.c_str(), childBone->Name.c_str(), dist);
+	//	float radius = dist / 4;
+	//	// must correct for the fact that a btCapsuleShape
+	//	// has a height proprety of height + 2 * radius
+	//	dist -= radius * 1.f;
+	//	dist = dist * 0.75f;
+	//	radius = dist / 5;
 
-		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentBone, childBone.get());
-		auto capsp = caps.get();
-		capsp->setUserPointer(parentBone);
-		ragdoll->m_hulls[parentBone->Name] = move(caps);
+	//	unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentBone, childBone.get());
+	//	auto capsp = caps.get();
+	//	capsp->setUserPointer(parentBone);
+	//	ragdoll->m_hulls[parentBone->Name] = move(caps);
 
-		if (childBone->Children.size() == 0) {
-			printf("%s is the end of the line.\n", childBone->Name.c_str());
-			// need to create a collider here for the bone
-			// it needs to be offset by some amount and some other stuff
-			std::vector<Vector3> verts;
-			for (const auto mesh : m_meshes) {
-				int boneIndex = childBone->Id;
-				for (const auto& bw : mesh->BoneWeights) {
-					if (bw.BoneID == boneIndex && bw.Weight > 0.75f) {
-						verts.push_back(mesh->Positions[bw.Index]);
-					}
-				}
-			}
-			auto maxExtents = CalculateMaxExtents(verts);
-			Vector3 cdiff = maxExtents - childBone->GetWorldTransform().Position;
-			float cdist = Length(cdiff);
-			unique_ptr<btCollisionShape> ccaps = make_unique<RagdollCapsuleShape>(1.0 / 4, 1.0, parentBone, childBone.get());
-			auto ccapsp = ccaps.get();
-			ccaps->setUserPointer(childBone.get());
-			ragdoll->m_hulls[childBone->Name] = move(ccaps);
+	//	if (childBone->Children.size() == 0) {
+	//		printf("%s is the end of the line.\n", childBone->Name.c_str());
+	//		// need to create a collider here for the bone
+	//		// it needs to be offset by some amount and some other stuff
+	//		std::vector<Vector3> verts;
+	//		for (const auto mesh : m_meshes) {
+	//			int boneIndex = childBone->Id;
+	//			for (const auto& bw : mesh->BoneWeights) {
+	//				if (bw.BoneID == boneIndex && bw.Weight > 0.75f) {
+	//					verts.push_back(mesh->Positions[bw.Index]);
+	//				}
+	//			}
+	//		}
+	//		auto maxExtents = CalculateMaxExtents(verts);
+	//		Vector3 cdiff = maxExtents - childBone->GetWorldTransform().Position;
+	//		float cdist = Length(cdiff);
+	//		unique_ptr<btCollisionShape> ccaps = make_unique<RagdollCapsuleShape>(1.0 / 4, 1.0, parentBone, childBone.get());
+	//		auto ccapsp = ccaps.get();
+	//		ccaps->setUserPointer(childBone.get());
+	//		ragdoll->m_hulls[childBone->Name] = move(ccaps);
 
-		}
+	//	}
 
 
-		//if ((parentBone->Parent != nullptr) && (parentShape != nullptr)) {
-		//	// make the constraint
+	//	//if ((parentBone->Parent != nullptr) && (parentShape != nullptr)) {
+	//	//	// make the constraint
 
-		//	//btHingeConstraint* c = new 
-		//}
+	//	//	//btHingeConstraint* c = new 
+	//	//}
 
-		if (!FindInString("hand"s, childBone->Name)) {
-			CreateChildHulls(childBone.get(), capsp, skeleton, ragdoll);
-		}
-	}
+	//	if (!FindInString("hand"s, childBone->Name)) {
+	//		CreateChildHulls(childBone.get(), capsp, skeleton, ragdoll);
+	//	}
+	//}
 }
 
 void CreateRagdollHulls(BoneData* joint, Skeleton* skeleton, RagdollCollider* ragdoll) {
@@ -260,45 +262,20 @@ void CreateRagdollHulls(BoneData* joint, Skeleton* skeleton, RagdollCollider* ra
 
 	// ensure that the world trandforms of all bones is up to date
 
-	if (joint->ParentID == -1) {
-		// this is the root of the skeleton
-		//unique_ptr<btCollisionShape> rootShape = make_unique<RagdollCapsuleShape>()
-		unique_ptr<btCollisionShape> rootShape = make_unique<RagdollCapsuleShape>(0.02f, 0.01f, nullptr, joint);
-		joint->m_collisionShape = static_cast<RagdollCapsuleShape*>(rootShape.get());
-		rootShape->setUserPointer(joint);
-		ragdoll->m_hulls[joint->Name] = move(rootShape);
-	}
-	else {
-		// we want to construct a shape that spans the difference
-		// between the joint's position and its parents'.
-		const auto& parentJoint = skeleton->Bones[joint->ParentID];
-		string name = joint->Name;
-		Vector3 jointDiff = parentJoint->GetWorldTransform().Position - joint->GetWorldTransform().Position;
-		float dist = Length(jointDiff);
-		float radius = dist / 4.f;
-		dist -= radius;
-		dist *= 0.75f;
-		radius = dist / 4.5f;
-		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentJoint.get(), joint);
-		joint->m_collisionShape = static_cast<RagdollCapsuleShape*>(caps.get());
-		caps->setUserPointer(joint);
-		ragdoll->m_hulls[name] = move(caps);
-	}
-	for (const auto& cchid : joint->Children) {
-		const auto& ch = skeleton->Bones[cchid];
-		CreateRagdollHulls(ch.get(), skeleton, ragdoll);
-	}
+	//
 
 }
 
 unique_ptr<RagdollCollider> ModelData::CreateRagdollCollider(Scene* scene)
 {
-	auto ragdoll = make_unique<RagdollCollider>(this->GetName() + "_ragdoll", scene->GetPhysicsWorld());
-	m_skeleton->UpdateWorldTransforms();
-	BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
+	auto ragdoll = make_unique<RagdollCollider>(this->GetName() + "_ragdoll", m_skeleton, scene->GetPhysicsWorld());
+	//m_skeleton->UpdateWorldTransforms();
+	//Ragdoll rd("myRagdoll", m_skeleton, scene->GetPhysicsWorld());
+	//rd.Initialize();
+	//BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
 
 	//CreateChildHulls(rootBone, nullptr, m_skeleton, ragdoll.get());
-	CreateRagdollHulls(rootBone, m_skeleton, ragdoll.get());
+	//CreateRagdollHulls(rootBone, m_skeleton, ragdoll.get());
 	//unique_ptr<RagdollCollider> collider = make_unique<RagdollCollider>(this->m_name + "_collider"s, hulls, scene->GetPhysicsWorld());
 	//collider->Mass = 50.f;
 
@@ -396,11 +373,21 @@ void ModelLoader::CenterOnOrigin(std::vector<Jasper::Mesh *> & meshes, Skeleton*
 	}
 }
 
-bool ContainsKeyframe(const vector<int>& frames, int i) {
-	if (find(frames.begin(), frames.end(), i) != frames.end()) {
-		return true;
+void AddKeyframe(vector<Keyframe>& frames, int i, KEYFRAME_CONTENTS con) {
+	printf("Calling AddKeyFrame with index %d\n", i);
+	auto it = find_if(frames.begin(), frames.end(), [&](const Keyframe& kf) {
+		return kf.Index == i;
+	});
+	if (it != frames.end())
+	{
+		(*it).Contents |= con;
 	}
-	return false;
+	else{
+		Keyframe kf;
+		kf.Index = i;
+		kf.Contents |= con;
+		frames.push_back(kf);
+	}
 }
 
 void ModelLoader::LoadModel(const std::string& filename, const std::string& name)
@@ -476,6 +463,17 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 				anim.TicksPerSecond = aiAnim->mTicksPerSecond;
 				anim.Duration = aiAnim->mDuration;
 				anim.BoneAnimations.reserve(aiAnim->mNumChannels);
+				float timeCorrectionFactor = 1.f;
+				// correct for ticks being less than 24 fps
+				if (anim.Name == "") {
+					anim.Name = "Animation" + to_string(i);
+				}
+				if (anim.TicksPerSecond < 24.f) {
+					timeCorrectionFactor = 24.f / anim.TicksPerSecond;
+					anim.Ticks *= timeCorrectionFactor;
+					anim.Duration = anim.Ticks;
+				}
+
 				for (int j = 0; j < aiAnim->mNumChannels; ++j) {
 					auto channel = aiAnim->mChannels[j];
 					if (skeleton->m_boneMap.find(channel->mNodeName.data) != skeleton->m_boneMap.end()) {
@@ -490,7 +488,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 						for (int k = 0; k < channel->mNumRotationKeys; ++k) {
 							auto airot = channel->mRotationKeys[k];
 							RotationKeyframe rk;
-							rk.Time = (float)airot.mTime;
+							rk.Time = (float)airot.mTime * timeCorrectionFactor;
 							rk.Value = aiQuaternionToQuatenrion(airot.mValue);
 							boneAnim.RotationKeyframes.emplace_back(rk);
 						}
@@ -498,7 +496,7 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 						for (int k = 0; k < channel->mNumPositionKeys; ++k) {
 							auto aipos = channel->mPositionKeys[k];
 							PositionKeyframe pk;
-							pk.Time = (float)aipos.mTime;
+							pk.Time = (float)aipos.mTime * timeCorrectionFactor;
 							pk.Value = aiVector3ToVector3(aipos.mValue);
 							boneAnim.PositionKeyframes.emplace_back(pk);
 						}
@@ -506,86 +504,39 @@ void ModelLoader::LoadModel(const std::string& filename, const std::string& name
 						for (int k = 0; k < channel->mNumScalingKeys; ++k) {
 							auto ais = channel->mScalingKeys[k];
 							ScaleKeyframe sk;
-							sk.Time = (float)ais.mTime;
+							sk.Time = (float)ais.mTime * timeCorrectionFactor;
 							sk.Value = aiVector3ToVector3(ais.mValue);
 							boneAnim.ScaleKeyframes.emplace_back(sk);
 						}
-						// for this system, for now, we need all the 
-						// keyframee collections to match in size
-						// figure out which is largest
-						int largest = -1;
-						int rots = static_cast<int>(boneAnim.RotationKeyframes.size());
-						int poss = static_cast<int>(boneAnim.PositionKeyframes.size());
-						int scss = static_cast<int>(boneAnim.ScaleKeyframes.size());
-						if (rots > largest)
-							largest = rots;
-						if (poss > largest)
-							largest = poss;
-						if (scss > largest)
-							largest = scss;
-
-						// now we need to know which collection has the largest size
-						if (rots == largest) {
-							// apply corrections to other collections using the rotations
-							// as the basis
-							for (int j = 0; j < rots; ++j) {
-								const auto& rotk = boneAnim.RotationKeyframes[j];
-								if (!ContainsKeyframe(anim.Keyframes, (int)rotk.Time)) {
-									anim.Keyframes.push_back((int)rotk.Time);
-								}
-								if (poss < largest) {
-									auto posk = boneAnim.GetPositionKeyframeByTime(rotk.Time);
-									if (posk == -1) {
-										auto val = boneAnim.PositionKeyframes[poss - 1].Value;
-										boneAnim.PositionKeyframes.push_back({ rotk.Time, val });
-									}
-
-
-								}
-								else if (scss < largest) {
-									auto scak = boneAnim.GetScaleKeyframeByTime(rotk.Time);
-									if (scak == -1) {
-										auto val = boneAnim.ScaleKeyframes[scss - 1].Value;
-										boneAnim.ScaleKeyframes.push_back({ rotk.Time, val });
-									}
-								}
-
-							}
+						// now for each keyframe in each of the 3 arrays
+						// we need to create a meta-keyframe
+						for (const auto& rkf : boneAnim.RotationKeyframes) {
+							AddKeyframe(anim.Keyframes, (int)rkf.Time, KEYFRAME_CONTENTS::HAS_ROTATION);
 						}
+						for (const auto& pkf : boneAnim.PositionKeyframes) {
+							AddKeyframe(anim.Keyframes, (int)pkf.Time, KEYFRAME_CONTENTS::HAS_POSITION);
+						}
+						for (const auto& skf : boneAnim.ScaleKeyframes) {
+							AddKeyframe(anim.Keyframes, (int)skf.Time, KEYFRAME_CONTENTS::HAS_SCALE);
+						}
+					
 
-						else if (poss == largest) {
-							// fill out the rotation keyframes
-							int x = 0;
-						}
-						else if (scss < largest) {
-							int y = 0;
-							// fill out the scalings
-						}
+						//for (boneAnim.RotationKeyframes)
+						
 						anim.BoneAnimations.emplace_back(boneAnim);
 					}
 
 				}
 
+
 				printf("Found animation named: %s", aiAnim->mName.data);
+				anim.Name = aiAnim->mName.data;
 				anim.Index = (int)model_data->Animator->GetAnimations().size();
 				model_data->Animator->AddAnimation(move(anim));
 			}
 		}
 
-		if (0) {
-			int boneIdToMove = skeleton->m_boneMap["lShoulder_0_"];
-			int boneid2 = skeleton->m_boneMap["lUpperArm_0_"];
-			BoneData* boneToMove = skeleton->Bones[boneIdToMove].get();
-			BoneData* boneToMove2 = skeleton->Bones[boneid2].get();
-			//boneToMove.BoneOffsetMatrix.Translate(Vector3(0.25f, 0.f, 0.f));
-			Quaternion q = Quaternion::FromAxisAndAngle(Vector3(0.f, 1.f, 0.f), DEG_TO_RAD(45));
-			Transform t = boneToMove->NodeTransform;
-			t.Orientation *= q;// *t.Orientation;
-			boneToMove->NodeTransform = t;
-			boneToMove2->NodeTransform = t;
-
-			//boneToMove->EvaluateSubtree();
-		}
+		
 
 
 	}

@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <Ragdoll.h>
 
 
 
@@ -329,12 +330,10 @@ class RagdollCollider: public PhysicsCollider {
 	using MassList = std::unordered_map<std::string, float>;
 public:
 
-	enum BodyParts {
-
-	};
+	
 	
 	//RagdollCollider(const std::string& name, ShapeList& hulls, PhysicsWorld* world);
-	RagdollCollider(const std::string& name, PhysicsWorld* world);
+	RagdollCollider(const std::string& name, Skeleton* skeleton, PhysicsWorld* world);
 
 	void Awake() override;
 	void Update(double dt) override;
@@ -342,15 +341,17 @@ public:
 	void ToggleEnabled(bool enabled) override;
 	bool ShowGui() override;
 
-	ShapeList m_hulls;
-	BodyList m_bodies;
-	MotionStateList m_motionStates;
-	ConstraintList m_constraints;
+	//ShapeList m_hulls;
+	//BodyList m_bodies;
+	//MotionStateList m_motionStates;
+	//ConstraintList m_constraints;
 
-	ShapeList m_temp_shapes;
-	BodyList m_temp_bodies;
-	MotionStateList m_temp_motionStates;
-	MassList m_masses;
+	//ShapeList m_temp_shapes;
+	//BodyList m_temp_bodies;
+	//MotionStateList m_temp_motionStates;
+	//MassList m_masses;
+
+	Ragdoll m_ragdoll;
 
 
 };

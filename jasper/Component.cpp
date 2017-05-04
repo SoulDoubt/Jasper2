@@ -6,6 +6,7 @@ namespace Jasper
 {
 
 Component::~Component() {
+	Destroy();
 }
 
 void Component::Initialize() {

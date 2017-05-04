@@ -31,6 +31,9 @@ enum class GameObjectType
 
 class GameObject
 {
+	using clock = std::chrono::high_resolution_clock;
+	using GameObjectList = std::vector<std::unique_ptr<GameObject>>;
+	using ComponentList = std::vector<std::unique_ptr<Component>>;
 public:
 
 	//GameObject();
@@ -50,18 +53,17 @@ public:
 	std::string GetTag() const;
 	void SetTag(const std::string tag);
 
-	const std::vector<std::unique_ptr<GameObject>>& Children() const;
+	const GameObjectList& Children() const;
 
-	std::vector<std::unique_ptr<GameObject>>& Children() {
+	GameObjectList& Children() {
 		return m_children;
 	}
 
-	std::vector<std::unique_ptr<Component>>& Components();
+	ComponentList& Components();
 
-	const std::vector<std::unique_ptr<Component>>& Components() const {
+	const ComponentList& Components() const {
 		return m_components;
 	}
-
 
 	Transform GetLocalTransform() const;
 
@@ -78,7 +80,7 @@ public:
     }
 	
 
-	std::chrono::high_resolution_clock::time_point GetTimeAwakened() const {
+	clock::time_point GetTimeAwakened() const {
 		return TimeAwakened;
 	}
 
@@ -149,7 +151,7 @@ public:
 		return m_parent;
 	}
     
-    std::chrono::high_resolution_clock::time_point TimeAwakened;
+    clock::time_point TimeAwakened;
 
 private:
 	std::string m_name;
@@ -184,13 +186,6 @@ protected:
 
 
 };
-//
-//inline GameObject::GameObject() : m_components(), m_children() {
-//	m_name = "Unnamed Game object";
-//	m_tag = "";
-//	m_parent = nullptr;
-//	//Initialize();
-//}
 
 inline void GameObject::LateUpdateCurrent() {
 	for (auto& cmp : m_components) {
