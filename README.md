@@ -17,3 +17,8 @@ Features:
 <img width="959" alt="jasper0" src="https://cloud.githubusercontent.com/assets/420803/25712223/1341922c-30bf-11e7-929d-cb351d158202.png">
 Skeletal Animation Pose Editor.
 
+<img width="959" alt="jasper1" src="https://cloud.githubusercontent.com/assets/420803/25712803/99423bf0-30c0-11e7-810a-c7cc35da98e4.png">
+Material Editing.
+
+
+
