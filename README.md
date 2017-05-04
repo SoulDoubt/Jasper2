@@ -23,6 +23,10 @@ Skeletal Animation Pose Editor.
 Material Editing.
 <img width="959" alt="jasper1" src="https://cloud.githubusercontent.com/assets/420803/25712803/99423bf0-30c0-11e7-810a-c7cc35da98e4.png">
 
+Makes use of:
+- [Assimp - The Open Asset Import Library](http://assimp.sourceforge.net/)
+- [Bullet Physics](http://bulletphysics.org/wordpress/)
+- [Dear ImGui](https://github.com/ocornut/imgui)
 
 
 
