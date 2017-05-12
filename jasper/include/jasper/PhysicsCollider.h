@@ -341,17 +341,17 @@ public:
 	void ToggleEnabled(bool enabled) override;
 	bool ShowGui() override;
 
-	//ShapeList m_hulls;
-	//BodyList m_bodies;
-	//MotionStateList m_motionStates;
-	//ConstraintList m_constraints;
+	ShapeList m_hulls;
+	BodyList m_bodies;
+	MotionStateList m_motionStates;
+	ConstraintList m_constraints;
 
 	//ShapeList m_temp_shapes;
 	//BodyList m_temp_bodies;
 	//MotionStateList m_temp_motionStates;
-	//MassList m_masses;
+	MassList m_masses;
 
-	Ragdoll m_ragdoll;
+	//Ragdoll m_ragdoll;
 
 
 };

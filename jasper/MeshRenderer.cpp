@@ -163,6 +163,8 @@ bool MeshRenderer::ShowGui()
     if (ImGui::Checkbox("Wireframe", &m_wireframe)) {
         ToggleWireframe(m_wireframe);
     }
+	//const char* matname = ;
+	ImGui::Text("Material: %s", this->m_material->GetName().c_str());
     return false;
 }
 
@@ -185,9 +187,9 @@ void MeshRenderer::Render()
     GLint poly_mode[2];
     glGetIntegerv(GL_POLYGON_MODE, poly_mode);
     glBindVertexArray(m_mesh->VaoID());
-    glPolygonMode(GL_FRONT, m_polymode1);
+    glPolygonMode(m_polymode0, m_polymode1);
     glDrawElements(GL_TRIANGLES, m_mesh->ElementCount(), GL_UNSIGNED_INT, 0);
-    glPolygonMode(GL_FRONT, poly_mode[0]);
+    glPolygonMode(poly_mode[0], poly_mode[1]);
     GLERRORCHECK;
     glBindVertexArray(0);
 

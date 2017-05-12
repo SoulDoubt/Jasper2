@@ -624,6 +624,7 @@ bool MeshComponent::ShowGui()
 	ImGui::Text("IBO: %d", this->IndexBufferID());
 	ImGui::Text("Vertices: %d", this->NumVertices());
 	ImGui::Text("Triangles: %d", this->NumTriangles());
+	
 	return false;
 }
 

@@ -234,7 +234,7 @@ void Scene::LoadModel(const std::string & filename, const std::string& name)
 
 	auto attachfunc = [&ml, &name, this]() {
 		auto model_data = this->GetModelCache().GetResourceByName(name);
-		auto& mm = m_rootNode->AttachChild(move(ml.CreateModelInstance(name, name, false, false)));
+		auto& mm = m_rootNode->AttachChild(move(ml.CreateModelInstance(name, name, true, false)));
 		if (model_data->Animator != nullptr) {
 			mm.AttachComponent(move(model_data->Animator));
 		}
@@ -421,7 +421,6 @@ void Scene::InitializeManual()
 	m_defaultMaterial->SetTextureNormalMap("../textures/tile_NormalMap.png");
 
 
-
 	m_rootNode = make_unique<GameObject>("Root_Node");
 	m_rootNode->SetScene(this);
 
@@ -480,14 +479,14 @@ void Scene::InitializeManual()
 	m_fontRenderer->SetOrthoMatrix(m_orthoMatrix);
 
 	Material* m1 = m_materialManager.CreateInstance<Material>("wall_material");
-	//m1->SetTextureDiffuse("../textures/176.JPG");
-	//m1->SetTextureNormalMap("../textures/176_norm.JPG");
+	m1->SetTextureDiffuse("../textures/154.JPG");
+	m1->SetTextureNormalMap("../textures/154_norm.JPG");
 	m1->Diffuse = { 0.85f, 0.34f, 0.05f };
 	m1->Ambient = { 0.25f, 0.25f, 0.25f };
 	m1->Specular = { 0.65f, 0.65f, 0.65f };
 	m1->Shine = 32;
 
-	m1->Flags = Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
+	//m1->Flags = Material::MATERIAL_FLAGS::USE_MATERIAL_COLOR;
 
 
 

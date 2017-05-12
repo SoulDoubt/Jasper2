@@ -50,6 +50,10 @@ public:
         return m_material;
     }
 
+	void SetMaterial(Material* m) {
+		m_material = m;
+	}
+
     NON_COPYABLE(MeshRenderer);
 
     explicit MeshRenderer(std::string name, Mesh* mesh, Material* material);

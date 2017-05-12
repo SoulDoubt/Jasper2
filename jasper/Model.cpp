@@ -182,77 +182,77 @@ std::unique_ptr<GameObject> ModelLoader::CreateModelInstance(const string& name,
 
 void ModelData::CreateChildHulls(BoneData* parentBone, btCollisionShape* parentShape, Skeleton* skeleton, RagdollCollider* ragdoll)
 {
-	//if (FindInString("weight", parentBone->Name)) {
-	//	return;
-	//}
-	//if (parentBone->ParentID == -1) {
-	//	// we want to put a small sphere here...
-	//	Vector3 pos = parentBone->GetWorldTransform().Position;
-	//	unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(0.01f, 0.005f, nullptr, parentBone);
-	//	auto capsp = caps.get();
-	//	capsp->setUserPointer(parentBone);
-	//	ragdoll->m_hulls[parentBone->Name] = move(caps);
-	//}
+	if (FindInString("weight", parentBone->Name)) {
+		return;
+	}
+	if (parentBone->ParentID == -1) {
+		// we want to put a small sphere here...
+		Vector3 pos = parentBone->GetWorldTransform().Position;
+		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(0.01f, 0.005f, nullptr, parentBone);
+		auto capsp = caps.get();
+		capsp->setUserPointer(parentBone);
+		ragdoll->m_hulls[parentBone->Name] = move(caps);
+	}
 
-	//for (size_t j = 0; j < parentBone->Children.size(); j++) {
-	//	const auto& childBone = skeleton->Bones[parentBone->Children[j]];
-	//	parentBone->UpdateWorldTransform();
-	//	if (FindInString("weight", childBone->Name)) {
-	//		return;
-	//	}
-	//	childBone->UpdateWorldTransform();
-	//	Vector3 from = parentBone->GetWorldTransform().Position;
-	//	Vector3 to = childBone->GetWorldTransform().Position;
-	//	Vector3 diff = from - to;
-	//	//Vector3 halfPoint = diff / 2;
-	//	float dist = Length(diff);
-	//	//printf("Bone Distance: %s -> %s = %f\n", parentBone->Name.c_str(), childBone->Name.c_str(), dist);
-	//	float radius = dist / 4;
-	//	// must correct for the fact that a btCapsuleShape
-	//	// has a height proprety of height + 2 * radius
-	//	dist -= radius * 1.f;
-	//	dist = dist * 0.75f;
-	//	radius = dist / 5;
+	for (size_t j = 0; j < parentBone->Children.size(); j++) {
+		const auto& childBone = skeleton->Bones[parentBone->Children[j]];
+		parentBone->UpdateWorldTransform();
+		if (FindInString("weight", childBone->Name)) {
+			return;
+		}
+		childBone->UpdateWorldTransform();
+		Vector3 from = parentBone->GetWorldTransform().Position;
+		Vector3 to = childBone->GetWorldTransform().Position;
+		Vector3 diff = from - to;
+		//Vector3 halfPoint = diff / 2;
+		float dist = Length(diff);
+		//printf("Bone Distance: %s -> %s = %f\n", parentBone->Name.c_str(), childBone->Name.c_str(), dist);
+		float radius = dist / 4;
+		// must correct for the fact that a btCapsuleShape
+		// has a height proprety of height + 2 * radius
+		dist -= radius * 1.f;
+		dist = dist * 0.75f;
+		radius = dist / 5;
 
-	//	unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentBone, childBone.get());
-	//	auto capsp = caps.get();
-	//	capsp->setUserPointer(parentBone);
-	//	ragdoll->m_hulls[parentBone->Name] = move(caps);
+		unique_ptr<btCollisionShape> caps = make_unique<RagdollCapsuleShape>(radius, dist, parentBone, childBone.get());
+		auto capsp = caps.get();
+		capsp->setUserPointer(childBone.get());
+		ragdoll->m_hulls[parentBone->Name] = move(caps);
 
-	//	if (childBone->Children.size() == 0) {
-	//		printf("%s is the end of the line.\n", childBone->Name.c_str());
-	//		// need to create a collider here for the bone
-	//		// it needs to be offset by some amount and some other stuff
-	//		std::vector<Vector3> verts;
-	//		for (const auto mesh : m_meshes) {
-	//			int boneIndex = childBone->Id;
-	//			for (const auto& bw : mesh->BoneWeights) {
-	//				if (bw.BoneID == boneIndex && bw.Weight > 0.75f) {
-	//					verts.push_back(mesh->Positions[bw.Index]);
-	//				}
-	//			}
-	//		}
-	//		auto maxExtents = CalculateMaxExtents(verts);
-	//		Vector3 cdiff = maxExtents - childBone->GetWorldTransform().Position;
-	//		float cdist = Length(cdiff);
-	//		unique_ptr<btCollisionShape> ccaps = make_unique<RagdollCapsuleShape>(1.0 / 4, 1.0, parentBone, childBone.get());
-	//		auto ccapsp = ccaps.get();
-	//		ccaps->setUserPointer(childBone.get());
-	//		ragdoll->m_hulls[childBone->Name] = move(ccaps);
+		if (childBone->Children.size() == 0) {
+			printf("%s is the end of the line.\n", childBone->Name.c_str());
+			// need to create a collider here for the bone
+			// it needs to be offset by some amount and some other stuff
+			/*std::vector<Vector3> verts;
+			for (const auto mesh : m_meshes) {
+				int boneIndex = childBone->Id;
+				for (const auto& bw : mesh->BoneWeights) {
+					if (bw.BoneID == boneIndex && bw.Weight > 0.75f) {
+						verts.push_back(mesh->Positions[bw.Index]);
+					}
+				}
+			}
+			auto maxExtents = CalculateMaxExtents(verts);
+			Vector3 cdiff = maxExtents - childBone->GetWorldTransform().Position;
+			float cdist = Length(cdiff);
+			unique_ptr<btCollisionShape> ccaps = make_unique<RagdollCapsuleShape>(1.0 / 4, 1.0, parentBone, childBone.get());
+			auto ccapsp = ccaps.get();
+			ccaps->setUserPointer(childBone.get());
+			ragdoll->m_hulls[childBone->Name] = move(ccaps);*/
 
-	//	}
+		}
 
 
-	//	//if ((parentBone->Parent != nullptr) && (parentShape != nullptr)) {
-	//	//	// make the constraint
+		//if ((parentBone->Parent != nullptr) && (parentShape != nullptr)) {
+		//	// make the constraint
 
-	//	//	//btHingeConstraint* c = new 
-	//	//}
+		//	//btHingeConstraint* c = new 
+		//}
 
-	//	if (!FindInString("hand"s, childBone->Name)) {
-	//		CreateChildHulls(childBone.get(), capsp, skeleton, ragdoll);
-	//	}
-	//}
+		if (!FindInString("hand"s, childBone->Name)) {
+			CreateChildHulls(childBone.get(), capsp, skeleton, ragdoll);
+		}
+	}
 }
 
 void CreateRagdollHulls(BoneData* joint, Skeleton* skeleton, RagdollCollider* ragdoll) {
@@ -269,12 +269,12 @@ void CreateRagdollHulls(BoneData* joint, Skeleton* skeleton, RagdollCollider* ra
 unique_ptr<RagdollCollider> ModelData::CreateRagdollCollider(Scene* scene)
 {
 	auto ragdoll = make_unique<RagdollCollider>(this->GetName() + "_ragdoll", m_skeleton, scene->GetPhysicsWorld());
-	//m_skeleton->UpdateWorldTransforms();
+	m_skeleton->UpdateWorldTransforms();
 	//Ragdoll rd("myRagdoll", m_skeleton, scene->GetPhysicsWorld());
 	//rd.Initialize();
-	//BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
+	BoneData* rootBone = m_skeleton->Bones[m_skeleton->m_boneMap[this->GetSkeleton()->RootBoneName]].get();
 
-	//CreateChildHulls(rootBone, nullptr, m_skeleton, ragdoll.get());
+	CreateChildHulls(rootBone, nullptr, m_skeleton, ragdoll.get());
 	//CreateRagdollHulls(rootBone, m_skeleton, ragdoll.get());
 	//unique_ptr<RagdollCollider> collider = make_unique<RagdollCollider>(this->m_name + "_collider"s, hulls, scene->GetPhysicsWorld());
 	//collider->Mass = 50.f;
@@ -1287,12 +1287,18 @@ void ModelLoader::ProcessAiMesh(const aiMesh* aiMesh, const aiScene* scene, cons
 				CreateBone(bone, m, sk, model_data);
 			}
 
-			m->CalculateExtents();
+			
 			if (!aiMesh->HasNormals()) {
 				m->CalculateFaceNormals();
 			}
+			m->CalculateExtents();
 			model_data->GetMeshes().push_back(m);
+			
 
+		}
+		else {
+			m->CalculateExtents();
+			model_data->GetMeshes().push_back(m);
 		}
 
 		Material* myMaterial = nullptr;

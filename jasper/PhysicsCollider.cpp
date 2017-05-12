@@ -676,99 +676,99 @@ void GhostCollider::Awake()
 
 
 RagdollCollider::RagdollCollider(const std::string & name, Skeleton* skeleton, PhysicsWorld * world)
-	:PhysicsCollider(name, world), m_ragdoll(name, skeleton, world)
+	:PhysicsCollider(name, world) //.m_ragdoll(name, skeleton, world)
 {
 }
 
 void RagdollCollider::Awake()
 {
-	m_ragdoll.Initialize();
+	//m_ragdoll.Initialize();
 
-	//auto worldTransform = GetGameObject()->GetWorldTransform();
+	auto worldTransform = GetGameObject()->GetWorldTransform();
 
-	////vector<unique_ptr<RagdollCapsuleShape>> tempShapes;
-	//
-	//for (const auto& hullpair : m_hulls) {
-	//	auto& name = hullpair.first;
-	//	auto& hull = hullpair.second;		
+	//vector<unique_ptr<RagdollCapsuleShape>> tempShapes;
 
-	//	auto rcap = static_cast<RagdollCapsuleShape*>(hull.get());
-	//	auto bone = static_cast<BoneData*>(hull->getUserPointer());
-	//	if (bone) {		
-	//		// activate physics on the sksleton
-	//		if (!bone->skeleton->IsPhysicsControlled()) {
-	//			//bone->skeleton->SetPhysicsControl(true);
-	//		}
+	for (const auto& hullpair : m_hulls) {
+		auto& name = hullpair.first;
+		auto& hull = hullpair.second;
 
-	//		auto names = split(name, ':');
+		auto rcap = static_cast<RagdollCapsuleShape*>(hull.get());
+		auto bone = static_cast<BoneData*>(hull->getUserPointer());
+		if (bone) {
+			// activate physics on the sksleton
+			if (!bone->skeleton->IsPhysicsControlled()) {
+				//bone->skeleton->SetPhysicsControl(true);
+			}
 
-	//		if (rcap->ParentBone() == nullptr) {
-	//			Transform trans = rcap->ChildBone()->GetWorldTransform();
-	//			trans = worldTransform * trans;
+			auto names = split(name, ':');
 
-	//			unique_ptr<btDefaultMotionState> ms = make_unique<btDefaultMotionState>(trans.AsBtTransform());
-	//			float mass = 10.f;
-	//			m_masses[name] = mass;
-	//			btVector3 inertia;
-	//			hull->calculateLocalInertia(mass, inertia);
-	//			btRigidBody::btRigidBodyConstructionInfo rbci(mass, ms.get(), hull.get(), inertia);
-	//			unique_ptr<btRigidBody> rb = make_unique<btRigidBody>(rbci);
-	//			rcap->SetRigidBody(rb.get());
-	//			rcap->SetMotionState(ms.get());
-	//			rb->setUserPointer(GetGameObject());				
-	//			rb->setDamping(0.05, 0.85);
-	//			rb->setDeactivationTime(0.8);
-	//			rb->setSleepingThresholds(1.6, 2.5);
-	//			m_bodies[name] = move(rb);
-	//			m_motionStates[name] = move(ms);
+			if (rcap->ParentBone() == nullptr) {
+				Transform trans = rcap->ChildBone()->GetWorldTransform();
+				trans = worldTransform * trans;
 
-	//		}
-	//		else {
-	//			auto parentBone = rcap->ParentBone();
-	//			auto childBone = rcap->ChildBone();
-	//			Transform parentBoneTransform = parentBone->GetWorldTransform();
-	//			Transform childBoneTransform = childBone->GetWorldTransform();
-	//			Vector3 midpoint = (parentBoneTransform.Position + childBoneTransform.Position) / 2.f;
-	//			
-	//			Transform trans;
-	//			//trans = childBone->GetSkinningTransform().Inverted();
-	//			trans.Position = midpoint;
+				unique_ptr<btDefaultMotionState> ms = make_unique<btDefaultMotionState>(trans.AsBtTransform());
+				float mass = 0.f;
+				m_masses[name] = mass;
+				btVector3 inertia;
+				hull->calculateLocalInertia(mass, inertia);
+				btRigidBody::btRigidBodyConstructionInfo rbci(mass, ms.get(), hull.get(), inertia);
+				unique_ptr<btRigidBody> rb = make_unique<btRigidBody>(rbci);
+				rcap->SetRigidBody(rb.get());
+				rcap->SetMotionState(ms.get());
+				rb->setUserPointer(GetGameObject());
+				rb->setDamping(0.05, 0.85);
+				rb->setDeactivationTime(0.8);
+				rb->setSleepingThresholds(1.6, 2.5);
+				m_bodies[name] = move(rb);
+				m_motionStates[name] = move(ms);
 
-	//			// the default btcapsuleshape is oriented in the world y axis
-	//			// we  need to ratate it to line up with the bone
-	//			Vector3 world_y = { 0.f, 1.f, 0.f };
-	//			
-	//			Vector3 bone_axis = Normalize(childBoneTransform.Position - parentBoneTransform.Position);
-	//			rcap->SetAxisOfAlignment(bone_axis);
-	//			// get's the axis of rotation from world_y to the bone vector
-	//			Vector3 cro = Cross(world_y, bone_axis);
-	//			// get the magnitude of the rotation
-	//			float dt = Dot(world_y, bone_axis);
-	//			dt = acos(dt);
-	//			Quaternion q = Quaternion::FromAxisAndAngle(cro, dt);
-	//			trans.Orientation = q;
-	//			rcap->SetOrientation(q);
-	//			trans = GetGameObject()->GetWorldTransform() * trans;
-	//			
-	//			unique_ptr<btDefaultMotionState> ms = make_unique<btDefaultMotionState>(trans.AsBtTransform());
-	//			
-	//			float mass = 5.f;
-	//			m_masses[name] = mass;
-	//			btVector3 inertia;
-	//			hull->calculateLocalInertia(mass, inertia);
-	//			btRigidBody::btRigidBodyConstructionInfo rbci(mass, ms.get(), hull.get(), inertia);
-	//			unique_ptr<btRigidBody> rb = make_unique<btRigidBody>(rbci);
-	//			rb->setUserPointer(GetGameObject());				
-	//			rcap->SetRigidBody(rb.get());
-	//			rcap->SetMotionState(ms.get());
-	//			m_bodies[name] = move(rb);
-	//			m_motionStates[name] = move(ms);
-	//			
-	//			int x = 0;
-	//		}
-	//	}
+			}
+			else {
+				auto parentBone = rcap->ParentBone();
+				auto childBone = rcap->ChildBone();
+				Transform parentBoneTransform = parentBone->GetWorldTransform();
+				Transform childBoneTransform = childBone->GetWorldTransform();
+				Vector3 midpoint = (parentBoneTransform.Position + childBoneTransform.Position) / 2.f;
 
-	//}
+				Transform trans;
+				//trans = childBone->GetSkinningTransform().Inverted();
+				trans.Position = midpoint;
+
+				// the default btcapsuleshape is oriented in the world y axis
+				// we  need to ratate it to line up with the bone
+				Vector3 world_y = { 0.f, 1.f, 0.f };
+
+				Vector3 bone_axis = Normalize(childBoneTransform.Position - parentBoneTransform.Position);
+				rcap->SetAxisOfAlignment(bone_axis);
+				// get's the axis of rotation from world_y to the bone vector
+				Vector3 cro = Cross(world_y, bone_axis);
+				// get the magnitude of the rotation
+				float dt = Dot(world_y, bone_axis);
+				dt = acos(dt);
+				Quaternion q = Quaternion::FromAxisAndAngle(cro, dt);
+				trans.Orientation = q;
+				rcap->SetOrientation(q);
+				trans = GetGameObject()->GetWorldTransform() * trans;
+
+				unique_ptr<btDefaultMotionState> ms = make_unique<btDefaultMotionState>(trans.AsBtTransform());
+
+				float mass = 0.f;
+				m_masses[name] = mass;
+				btVector3 inertia;
+				hull->calculateLocalInertia(mass, inertia);
+				btRigidBody::btRigidBodyConstructionInfo rbci(mass, ms.get(), hull.get(), inertia);
+				unique_ptr<btRigidBody> rb = make_unique<btRigidBody>(rbci);
+				rb->setUserPointer(GetGameObject());
+				rcap->SetRigidBody(rb.get());
+				rcap->SetMotionState(ms.get());
+				m_bodies[name] = move(rb);
+				m_motionStates[name] = move(ms);
+
+				int x = 0;
+			}
+		}
+
+	}
 
 	//for (auto& hp : m_hulls) {
 	//	if (!FindInString("joint_test", hp.first)) {
@@ -781,12 +781,12 @@ void RagdollCollider::Awake()
 	//			continue;
 	//		}
 
-	//		if (sh->ParentBone()->m_collisionShape == nullptr) {
-	//			// this is the root node in the skeleton
-	//			// basically do nothing....
-	//			continue;
+	//		//if (sh->ParentBone()->m_collisionShape == nullptr) {
+	//		//	// this is the root node in the skeleton
+	//		//	// basically do nothing....
+	//		//	continue;
 
-	//		}
+	//		//}
 
 	//		auto pbone = sh->ParentBone();
 	//		auto cbone = sh->ChildBone();
@@ -799,7 +799,7 @@ void RagdollCollider::Awake()
 	//		assert(prb && crb);
 
 	//		auto& pshape = m_hulls[pbone->Name];
-	//	
+
 	//		assert(pshape);
 	//		// the pivot point of the joint is the position of the parent bone
 	//		auto hingeTransform = pbone->GetWorldTransform();
@@ -811,7 +811,7 @@ void RagdollCollider::Awake()
 	//		btTransform pt, ct;
 	//		prb->getMotionState()->getWorldTransform(pt);
 	//		crb->getMotionState()->getWorldTransform(ct);
-	//		
+
 	//		auto ppo = Vector3(pt.inverse() * hingeTransformWorld.Position.AsBtVector3());
 	//		pbone->ShapeOffset = ppo;
 	//		auto cco = Vector3(ct.inverse() * hingeTransformWorld.Position.AsBtVector3());
@@ -829,88 +829,88 @@ void RagdollCollider::Awake()
 	//		auto phingeAxis = pshaperc->GetOrientation();
 	//		auto chingeAxis = cshaperc->GetOrientation();
 
-	//	//	Vector3 world_x = { 0, 1, 0 };
-	//	//	Vector3 pcro = Cross(world_x, paxis);
-	//	//	float pdt = Dot(world_x, paxis);
-	//	//	pdt = acos(pdt);
+	//		//	Vector3 world_x = { 0, 1, 0 };
+	//		//	Vector3 pcro = Cross(world_x, paxis);
+	//		//	float pdt = Dot(world_x, paxis);
+	//		//	pdt = acos(pdt);
 
-	//	//	Quaternion pq = Quaternion::FromAxisAndAngle(pcro, pdt);
-	//	//	auto bpq = pq.AsBtQuaternion();
+	//		//	Quaternion pq = Quaternion::FromAxisAndAngle(pcro, pdt);
+	//		//	auto bpq = pq.AsBtQuaternion();
 
-	//	//	Vector3 ccro = Cross(world_x, caxis);
-	//	//	float cdt = Dot(world_x, caxis);
-	//	//	cdt = acos(cdt);
+	//		//	Vector3 ccro = Cross(world_x, caxis);
+	//		//	float cdt = Dot(world_x, caxis);
+	//		//	cdt = acos(cdt);
 
-	//	//	Quaternion cq = Quaternion::FromAxisAndAngle(ccro, cdt);
-	//	//	auto bcq = cq.AsBtQuaternion();
+	//		//	Quaternion cq = Quaternion::FromAxisAndAngle(ccro, cdt);
+	//		//	auto bcq = cq.AsBtQuaternion();
 
 	//		pt.setOrigin(ppo.AsBtVector3());
-	//	//	//pt.setRotation(prot.AsBtQuaternion());
+	//		//	//pt.setRotation(prot.AsBtQuaternion());
 
-	//	//	pt.getBasis().setEulerZYX(pcro.x, pcro.y, pcro.z);
-	//	//	//pt.getBasis().setEulerZYX(ccro.z, ccro.y, ccro.x);
+	//		//	pt.getBasis().setEulerZYX(pcro.x, pcro.y, pcro.z);
+	//		//	//pt.getBasis().setEulerZYX(ccro.z, ccro.y, ccro.x);
 	//		ct.setOrigin(cco.AsBtVector3());
-	//	//	//ct.setRotation(crot.AsBtQuaternion());
-	//	//	ct.getBasis().setEulerZYX(ccro.x, ccro.y, ccro.z);
+	//		//	//ct.setRotation(crot.AsBtQuaternion());
+	//		//	ct.getBasis().setEulerZYX(ccro.x, ccro.y, ccro.z);
 
 
 
 
-	//	//	/* -------------------------------
-	//	//		Some Test bodies
-	//	//	*/
-	//	///*	auto cbody = make_unique<btSphereShape>(0.025f);
-	//	//	Transform cbodyt;
-	//	//	cbodyt.Position = hingeTransformWorld.Position;
-	//	//	unique_ptr<btDefaultMotionState> cbodyms = make_unique<btDefaultMotionState>(cbodyt.AsBtTransform());
-	//	//	float mass = 0.f;
-	//	//	btVector3 inertia;
-	//	//	cbody->calculateLocalInertia(mass, inertia);
-	//	//	btRigidBody::btRigidBodyConstructionInfo rbci(mass, cbodyms.get(), cbody.get(), inertia);
-	//	//	unique_ptr<btRigidBody> cbodyrb = make_unique<btRigidBody>(rbci);
-	//	//	cbodyrb->setUserPointer(GetGameObject());
+	//		//	/* -------------------------------
+	//		//		Some Test bodies
+	//		//	*/
+	//		///*	auto cbody = make_unique<btSphereShape>(0.025f);
+	//		//	Transform cbodyt;
+	//		//	cbodyt.Position = hingeTransformWorld.Position;
+	//		//	unique_ptr<btDefaultMotionState> cbodyms = make_unique<btDefaultMotionState>(cbodyt.AsBtTransform());
+	//		//	float mass = 0.f;
+	//		//	btVector3 inertia;
+	//		//	cbody->calculateLocalInertia(mass, inertia);
+	//		//	btRigidBody::btRigidBodyConstructionInfo rbci(mass, cbodyms.get(), cbody.get(), inertia);
+	//		//	unique_ptr<btRigidBody> cbodyrb = make_unique<btRigidBody>(rbci);
+	//		//	cbodyrb->setUserPointer(GetGameObject());
 
 
-	//	//	m_bodies[name + "joint_test"] = move(cbodyrb);
-	//	//	m_motionStates[name + "joint_test"] = move(cbodyms);
-	//	//	m_hulls[name + "joint_test"] = move(cbody);*/
-	//	//	//m_world->AddRigidBody(cbodyrb.get());
-	//	//	//auto cbody = make_unique<btSphereShape>()
-	//	//	//-----------------------------------------------------
-	//	//	//-----------------------------------------------------
+	//		//	m_bodies[name + "joint_test"] = move(cbodyrb);
+	//		//	m_motionStates[name + "joint_test"] = move(cbodyms);
+	//		//	m_hulls[name + "joint_test"] = move(cbody);*/
+	//		//	//m_world->AddRigidBody(cbodyrb.get());
+	//		//	//auto cbody = make_unique<btSphereShape>()
+	//		//	//-----------------------------------------------------
+	//		//	//-----------------------------------------------------
 
-	//	//	//auto& prb = m_bodies[pbone->Name];
-	//	//	//auto& crb = m_bodies[cbone->Name];
+	//		//	//auto& prb = m_bodies[pbone->Name];
+	//		//	//auto& crb = m_bodies[cbone->Name];
 
-	//	//	//btTransform pti, cti;
-	//	//	//prb->getMotionState()->getWorldTransform(pti);// .inverse();
-	//	//	//crb->getMotionState()->getWorldTransform(cti);// .inverse();
+	//		//	//btTransform pti, cti;
+	//		//	//prb->getMotionState()->getWorldTransform(pti);// .inverse();
+	//		//	//crb->getMotionState()->getWorldTransform(cti);// .inverse();
 
-	//	//	//pti = pti.inverse();
-	//	//	//cti = cti.inverse();
+	//		//	//pti = pti.inverse();
+	//		//	//cti = cti.inverse();
 
-	//	//	// now we need to multiply the world space position of the joint (parent)
-	//	//	//Vector3 worldHingePoint = worldTransform * pbone->GetWorldTransform().Position;
+	//		//	// now we need to multiply the world space position of the joint (parent)
+	//		//	//Vector3 worldHingePoint = worldTransform * pbone->GetWorldTransform().Position;
 
 
-	//	//	//worldHingePoint = pti * worldHingePoint;
+	//		//	//worldHingePoint = pti * worldHingePoint;
 
-	//	//	//Vector3 poffset, coffset;
-	//	//	//poffset = Transform(pt);// *worldHingePoint;// *Transform(pti);
-	//	//	//coffset = Transform(ct);// *worldHingePoint;
-	//	//	//pti.setOrigin(poffset.AsBtVector3());
-	//	//	//cti.setOrigin(coffset.AsBtVector3());
-	//	//	//pti.setOrigin(hingePosition.AsBtVector3());
+	//		//	//Vector3 poffset, coffset;
+	//		//	//poffset = Transform(pt);// *worldHingePoint;// *Transform(pti);
+	//		//	//coffset = Transform(ct);// *worldHingePoint;
+	//		//	//pti.setOrigin(poffset.AsBtVector3());
+	//		//	//cti.setOrigin(coffset.AsBtVector3());
+	//		//	//pti.setOrigin(hingePosition.AsBtVector3());
 	//		pt.getBasis().setEulerZYX(0, -1, 0);
 	//		ct.getBasis().setEulerYPR(0, -1, 0);
 	//		auto constraint = make_unique<btConeTwistConstraint>(*(prb.get()), *(crb.get()), pt, ct);
 	//		constraint->setLimit(M_PI_4, M_PI_4, M_PI_4);
 	//		constraint->setDbgDrawSize(0.1);
-	//		
+
 	//		m_constraints[name] = move(constraint);
 	//	}
 	//}
-	//m_world->AddRagdoll(this);
+	m_world->AddRagdoll(this);
 	ToggleEnabled(false);
 }
 
@@ -948,61 +948,65 @@ void RagdollCollider::Update(double dt)
 
 void RagdollCollider::Destroy()
 {
-	/*for (auto& body : m_bodies) {
+	for (auto& body : m_bodies) {
 		m_world->RemoveRigidBody(body.second.get());
 	}
 	for (auto& c : m_constraints) {
 		m_world->RemoveConstraint(c.second.get());
-	}*/
+	}
 }
 
 void RagdollCollider::ToggleEnabled(bool e)
 {
 	if (e) {
-		/*for (auto& conPair : m_constraints) {
+		for (auto& conPair : m_constraints) {
 			auto& con = conPair.second;
 			m_world->AddConstraint(con.get());
-		}*/
-		//for (auto& rbodyPair : m_bodies) {
-		//	const string& name = rbodyPair.first;
-		//	auto& rb = rbodyPair.second;
-		//	auto& ms = m_motionStates[name];
-		//	auto& sh = m_hulls[name];
+		}
+		for (auto& rbodyPair : m_bodies) {
+			const string& name = rbodyPair.first;
+			auto& rb = rbodyPair.second;
+			auto& ms = m_motionStates[name];
+			auto& sh = m_hulls[name];
 
-		//	float mass = m_masses[name];
-		//	btVector3 inertia;
-		//	sh->calculateLocalInertia(mass, inertia);
-		//	rb->setMassProps(mass, inertia);
-		//	
-		//	
-		//	//btTransform tr;
-		//	//ms->getWorldTransform(tr);;
-		//	//rb->setWorldTransform(tr);
-		//	//ms->setWorldTransform(tr);
-		//	//btVector3 inertia;
-		//	////sh->calculateLocalInertia(Mass, inertia);
-		//	////rb->setMassProps(Mass, inertia);
-		//	////rb->setRestitution(Restitution);
-		//	////rb->setFriction(Friction);
-		//	//m_world->AddRigidBody(rb.get());
-		//	//m_rigidBody->setActivationState(ACTIVE_TAG);
-		//	rb->activate();
-		//}
+			Transform t = GetGameObject()->GetWorldTransform();
+			btTransform btt = t.AsBtTransform();
+			btTransform mst;
+			ms->getWorldTransform(mst);
+			mst = mst * btt;
+			ms->setWorldTransform(mst);
+			float mass = m_masses[name];
+			btVector3 inertia;
+			sh->calculateLocalInertia(mass, inertia);
+			rb->setMassProps(mass, inertia);
+			
+
+			
+			//btTransform tr;
+			//ms->getWorldTransform(tr);;
+			//rb->setWorldTransform(tr);
+			//ms->setWorldTransform(tr);
+			//btVector3 inertia;
+			////sh->calculateLocalInertia(Mass, inertia);
+			////rb->setMassProps(Mass, inertia);
+			////rb->setRestitution(Restitution);
+			////rb->setFriction(Friction);
+			m_world->AddRigidBody(rb.get());
+			//m_rigidBody->setActivationState(ACTIVE_TAG);
+			rb->activate();
+		}
 	}
 	else {
-		/*for (auto& conPair : m_constraints) {
+		for (auto& conPair : m_constraints) {
 			auto& con = conPair.second;
 			m_world->RemoveConstraint(con.get());
-		}*/
-		//for (auto& rbodyPair : m_bodies) {
-		//	auto& rb = rbodyPair.second;
-		//	rb->setMassProps(0, btVector3());
-		//	//m_world->RemoveRigidBody(rb.get());
-		//}
-		//if (m_rigidBody) {
-		//	m_rigidBody->setActivationState(DISABLE_SIMULATION);
-		//m_rigidBody->
-		//}
+		}
+		for (auto& rbodyPair : m_bodies) {
+			auto& rb = rbodyPair.second;
+			//	rb->setMassProps(0, btVector3());
+			m_world->RemoveRigidBody(rb.get());
+		}
+
 	}
 	Component::ToggleEnabled(e);
 }

@@ -225,7 +225,7 @@ void Renderer::RenderScene()
 
     //const auto projMatrix = m_scene->GetCamera().GetProjectionMatrix();
     //const auto viewMatrix = m_scene->GetCamera().GetViewMatrix();
-    CullGameObjects();
+    //CullGameObjects();
     
     previousMaterial = nullptr;
     //m_forwardLitShader->Bind();
@@ -596,6 +596,7 @@ void Renderer::RegisterGameObject(GameObject* obj)
         const auto& renderers = obj->GetComponentsByType<MeshRenderer>();
         if (renderers.size() > 0) {
             m_renderers.insert(end(m_renderers), begin(renderers), end(renderers));
+			m_renderersToRender.insert(end(m_renderersToRender), begin(renderers), end(renderers));
         }
     }
 }
@@ -617,6 +618,7 @@ void Renderer::ProcessSingleGameObject(GameObject * obj)
 
 			}
 		}
+		m_renderersToRender.push_back(mr);
 		RegisterGameObject(obj);
 	}
 }

@@ -113,19 +113,19 @@ void PhysicsWorld::AddCollider(PhysicsCollider* collider)
 
 void PhysicsWorld::AddRagdoll(RagdollCollider * ragdoll)
 {
-	/*for (const auto& body : ragdoll->m_bodies) {
+	for (const auto& constraint : ragdoll->m_constraints) {
+		m_world->addConstraint(constraint.second.get(), true);
+	}
+	for (const auto& body : ragdoll->m_bodies) {
 		if (body.second) {
 			m_world->addRigidBody(body.second.get());
-
 			m_bodies.push_back(body.second.get());
 		}
 	}
 	for (const auto& shape : ragdoll->m_hulls) {
 		m_shapes.push_back(shape.second.get());
 	}
-	for (const auto& constraint : ragdoll->m_constraints) {
-		m_world->addConstraint(constraint.second.get(), true);
-	}*/
+	
 }
 
 
