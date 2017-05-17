@@ -47,91 +47,12 @@ MeshRenderer::~MeshRenderer()
 
 void MeshRenderer::Destroy()
 {
-//    m_vertexBuffer.Destroy();
-//    m_indexBuffer.Destroy();
-//    if (m_texCoordBuffer.IsCreated())
-//        m_texCoordBuffer.Destroy();
-//    if (m_normalBuffer.IsCreated())
-//        m_normalBuffer.Destroy();
-//    if (m_tangentBuffer.IsCreated())
-//        m_tangentBuffer.Destroy();
-//    if (m_bitangentBuffer.IsCreated())
-//        m_bitangentBuffer.Destroy();
-//    if (m_colorBuffer.IsCreated())
-//        m_colorBuffer.Destroy();
-//    m_mesh->DecrementRendererCount();
+
 }
 
 void MeshRenderer::Initialize()
 {
-//    GLERRORCHECK;
-//
-//    //m_mesh->Initialize();
-//    // gather mesh data and create GL Buffers and such for future rendering...
-//    assert(m_material);
-//    assert(m_mesh);
-//
-//    // create a VAO first
-//    glGenVertexArrays(1, &m_vaoID);
-//    glBindVertexArray(m_vaoID);
-//    //GLERRORCHECK;
-//
-//    m_elementCount = m_mesh->Indices.size();
-//    auto shader = m_material->GetShader();
-//    const int positionLocation = shader->PositionAttributeLocation();
-//    const int normalLocation = shader->NormalAttributeLocation();
-//    const int texLocation = shader->TexCoordAttributeLocation();
-//    const int tangentLocation = shader->TangentAttributeLocation();
-//    const int bitangentLocation = shader->BitangentAttributeLocation();
-//    const int colorLocation = shader->ColorsAttributeLocation();
-//
-//
-//    m_vertexBuffer.Create();
-//    m_vertexBuffer.Bind();
-//    m_vertexBuffer.Allocate(m_mesh->Positions.data(), m_mesh->Positions.size() * sizeof(Vector3));
-//    shader->SetAttributeArray(positionLocation, GL_FLOAT, (void*)0, 3, 0);
-//    m_indexBuffer.Create();
-//    m_indexBuffer.Bind();
-//    m_indexBuffer.Allocate(m_mesh->Indices.data(), m_mesh->Indices.size() * sizeof(GLuint));
-//    if (normalLocation > -1) {
-//        m_normalBuffer.Create();
-//        m_normalBuffer.Bind();
-//        m_normalBuffer.Allocate(m_mesh->Normals.data(), m_mesh->Normals.size() * sizeof(Vector3));
-//        shader->SetAttributeArray(normalLocation, GL_FLOAT, (void*)0, 3, 0);
-//    }
-//    if (texLocation > -1) {
-//        m_texCoordBuffer.Create();
-//        m_texCoordBuffer.Bind();
-//        m_texCoordBuffer.Allocate(m_mesh->TexCoords.data(), m_mesh->TexCoords.size() * sizeof(Vector2));
-//        shader->SetAttributeArray(texLocation, GL_FLOAT, (void*)0, 2, 0);
-//    }
-//    if (tangentLocation > -1) {
-//        m_tangentBuffer.Create();
-//        m_tangentBuffer.Bind();
-//        m_tangentBuffer.Allocate(m_mesh->Tangents.data(), m_mesh->Tangents.size() * sizeof(Vector4));
-//        shader->SetAttributeArray(tangentLocation, GL_FLOAT, (void*)0, 4, 0);
-//    }
-//    if (bitangentLocation > -1) {
-//        m_bitangentBuffer.Create();
-//        m_bitangentBuffer.Bind();
-//        m_bitangentBuffer.Allocate(m_mesh->Bitangents.data(), m_mesh->Bitangents.size() * sizeof(Vector3));
-//        shader->SetAttributeArray(bitangentLocation, GL_FLOAT, (void*)0, 3, 0);
-//    }
-//    if (m_mesh->Color != Vector4(0.f, 0.f, 0.f, 0.f)) {
-//        m_colorBuffer.Create();
-//        int cc = m_mesh->Positions.size();
-//        Vector4* colorData = new Vector4[cc];
-//        for (int i = 0; i < cc; ++i) {
-//            colorData[i] = m_mesh->Color;
-//        }
-//        m_colorBuffer.Bind();
-//        m_colorBuffer.Allocate(colorData, cc * sizeof(Vector4));
-//        delete[] colorData;
-//        shader->SetAttributeArray(colorLocation, GL_FLOAT, 0, 4, 0);
-//    }
-//
-//    glBindVertexArray(0);
-//    GLERRORCHECK;
+
 }
 
 void MeshRenderer::Awake()
