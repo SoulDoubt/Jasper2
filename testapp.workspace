@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="testapp" Database="" Version="10.0.0">
-  <Project Name="testapp" Path="testapp/testapp.project" Active="Yes"/>
+  <Project Name="testapp" Path="jasper/testapp.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="testapp" ConfigName="Debug"/>
+      <Project Name="testapp" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Environment/>
+      <Project Name="testapp" ConfigName="Release"/>
       <Project Name="testapp" ConfigName="Release"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

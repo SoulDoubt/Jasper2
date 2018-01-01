@@ -12,9 +12,6 @@
 #include "GBuffer.h"
 #include "Sphere.h"
 
-
-
-
 namespace Jasper
 {
 
@@ -40,8 +37,6 @@ void Renderer::Initialize()
 
 
     CreateShadowMapObjects();
-    
-
 
     m_animatedShader = m_scene->GetShaderCache().GetResourceByName("animated_lit_shader");
     //m_lightingPassShader = (DirectionalLightPassShader*)(m_scene->GetShaderCache().GetResourceByName("lighting_pass_shader"s));
@@ -63,7 +58,7 @@ void Renderer::Initialize()
     //m_stencilPassShader = m_scene->GetShaderCache().GetResourceByName("deferred_stencil_pass");
     auto skyboxMesh = m_scene->GetMeshCache().GetResourceByName("skybox_cube_mesh");
     skyboxMesh->InitializeForRendering(m_skyboxShader);
-   // m_fullScreenQuad->InitializeForRendering(m_lightingPassShader);
+   // m_fullScreenQuad->InitializeForRendering(m_lig
     //m_lightSphere = make_unique<Sphere>("point_light_sphere", 1.0f);
     //m_lightSphere->SetMaterial(fsquadmat);
     //m_lightSphere->Initialize();
@@ -254,7 +249,7 @@ void Renderer::RenderScene()
 			const auto& globalInverse = skeleton->GlobalInverseTransform;
             
             for (size_t i = 0; i < bones.size(); ++i){
-                const auto b = bones[i].get();								
+                const auto b = bones[i].get();
 				Transform bt = b->GetSkinningTransform();
                 shader->SetBoneTransform(i, bt.TransformMatrix());                
             }

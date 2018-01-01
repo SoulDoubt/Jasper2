@@ -1,231 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Session Name="/home/al/code/testapp/testapp.workspace">
-  <int Value="7" Name="m_selectedTab"/>
-  <wxString Value="/home/al/code/testapp/testapp.workspace" Name="m_workspaceName"/>
+<Session Name="/home/al/repos/Jasper2/testapp.workspace">
+  <int Value="9" Name="m_selectedTab"/>
+  <wxString Value="/home/al/repos/Jasper2/testapp.workspace" Name="m_workspaceName"/>
   <TabInfoArray Name="TabInfoArray">
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/GBuffer.cpp" Name="FileName"/>
-      <int Value="42" Name="FirstVisibleLine"/>
-      <int Value="43" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/GBuffer.cpp" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="2" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Renderer.cpp" Name="FileName"/>
-      <int Value="273" Name="FirstVisibleLine"/>
-      <int Value="287" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/GLWindow.cpp" Name="FileName"/>
+      <int Value="231" Name="FirstVisibleLine"/>
+      <int Value="247" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/GBuffer.h" Name="FileName"/>
-      <int Value="21" Name="FirstVisibleLine"/>
-      <int Value="46" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/include/jasper/GLWindow.h" Name="FileName"/>
+      <int Value="0" Name="FirstVisibleLine"/>
+      <int Value="6" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Shader.cpp" Name="FileName"/>
-      <int Value="234" Name="FirstVisibleLine"/>
-      <int Value="244" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/Model.cpp" Name="FileName"/>
+      <int Value="1132" Name="FirstVisibleLine"/>
+      <int Value="1149" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Shader.h" Name="FileName"/>
-      <int Value="152" Name="FirstVisibleLine"/>
-      <int Value="175" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/Scene.cpp" Name="FileName"/>
+      <int Value="699" Name="FirstVisibleLine"/>
+      <int Value="531" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Renderer.h" Name="FileName"/>
-      <int Value="70" Name="FirstVisibleLine"/>
-      <int Value="81" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/include/jasper/AssetSerializer.cpp" Name="FileName"/>
+      <int Value="261" Name="FirstVisibleLine"/>
+      <int Value="262" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Scene.cpp" Name="FileName"/>
-      <int Value="460" Name="FirstVisibleLine"/>
-      <int Value="461" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/include/jasper/AnimationSystem.cpp" Name="FileName"/>
+      <int Value="819" Name="FirstVisibleLine"/>
+      <int Value="828" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/GLWindow.cpp" Name="FileName"/>
-      <int Value="192" Name="FirstVisibleLine"/>
-      <int Value="196" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/Camera.cpp" Name="FileName"/>
+      <int Value="84" Name="FirstVisibleLine"/>
+      <int Value="94" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Mesh.cpp" Name="FileName"/>
-      <int Value="176" Name="FirstVisibleLine"/>
-      <int Value="192" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Sphere.h" Name="FileName"/>
-      <int Value="29" Name="FirstVisibleLine"/>
-      <int Value="27" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Material.h" Name="FileName"/>
-      <int Value="155" Name="FirstVisibleLine"/>
-      <int Value="163" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Texture.h" Name="FileName"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/include/jasper/InputSystem.h" Name="FileName"/>
       <int Value="9" Name="FirstVisibleLine"/>
-      <int Value="25" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Texture.cpp" Name="FileName"/>
-      <int Value="138" Name="FirstVisibleLine"/>
-      <int Value="150" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Material.cpp" Name="FileName"/>
-      <int Value="82" Name="FirstVisibleLine"/>
-      <int Value="8" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Model.h" Name="FileName"/>
-      <int Value="33" Name="FirstVisibleLine"/>
       <int Value="15" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Model.cpp" Name="FileName"/>
-      <int Value="235" Name="FirstVisibleLine"/>
-      <int Value="299" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/Renderer.cpp" Name="FileName"/>
+      <int Value="257" Name="FirstVisibleLine"/>
+      <int Value="57" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Scene.h" Name="FileName"/>
-      <int Value="177" Name="FirstVisibleLine"/>
-      <int Value="197" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/include/jasper/Material.h" Name="FileName"/>
+      <int Value="224" Name="FirstVisibleLine"/>
+      <int Value="239" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
     <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/vector.h" Name="FileName"/>
-      <int Value="214" Name="FirstVisibleLine"/>
-      <int Value="244" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Mesh.h" Name="FileName"/>
-      <int Value="377" Name="FirstVisibleLine"/>
-      <int Value="391" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Cube.h" Name="FileName"/>
-      <int Value="42" Name="FirstVisibleLine"/>
-      <int Value="10" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Cube.cpp" Name="FileName"/>
-      <int Value="137" Name="FirstVisibleLine"/>
-      <int Value="62" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Sphere.cpp" Name="FileName"/>
-      <int Value="355" Name="FirstVisibleLine"/>
-      <int Value="384" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/GLBuffer.cpp" Name="FileName"/>
-      <int Value="27" Name="FirstVisibleLine"/>
-      <int Value="17" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Common.h" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="25" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/MeshRenderer.cpp" Name="FileName"/>
-      <int Value="146" Name="FirstVisibleLine"/>
-      <int Value="197" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/Transform.cpp" Name="FileName"/>
-      <int Value="0" Name="FirstVisibleLine"/>
-      <int Value="0" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/Transform.h" Name="FileName"/>
-      <int Value="60" Name="FirstVisibleLine"/>
-      <int Value="0" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/include/jasper/GameObject.h" Name="FileName"/>
-      <int Value="342" Name="FirstVisibleLine"/>
-      <int Value="0" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/home/al/code/testapp/testapp/GameObject.cpp" Name="FileName"/>
-      <int Value="153" Name="FirstVisibleLine"/>
-      <int Value="167" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/usr/include/c++/5/bits/unordered_map.h" Name="FileName"/>
-      <int Value="613" Name="FirstVisibleLine"/>
-      <int Value="614" Name="CurrentLine"/>
-      <wxArrayString Name="Bookmarks"/>
-      <IntVector Name="CollapsedFolds"/>
-    </TabInfo>
-    <TabInfo>
-      <wxString Value="/usr/include/c++/5/bits/stl_vector.h" Name="FileName"/>
-      <int Value="647" Name="FirstVisibleLine"/>
-      <int Value="654" Name="CurrentLine"/>
+      <wxString Value="/home/al/repos/Jasper2/jasper/Shader.cpp" Name="FileName"/>
+      <int Value="69" Name="FirstVisibleLine"/>
+      <int Value="75" Name="CurrentLine"/>
       <wxArrayString Name="Bookmarks"/>
       <IntVector Name="CollapsedFolds"/>
     </TabInfo>
   </TabInfoArray>
   <SerializedObject Name="m_breakpoints">
-    <long Value="1" Name="Count"/>
+    <long Value="2" Name="Count"/>
     <SerializedObject Name="Breakpoint0">
       <wxString Value="/home/al/code/testapp/testapp/Shader.cpp" Name="file"/>
       <int Value="90" Name="lineno"/>
+      <wxString Value="" Name="function_name"/>
+      <wxString Value="" Name="memory_address"/>
+      <int Value="1" Name="bp_type"/>
+      <int Value="0" Name="watchpoint_type"/>
+      <wxString Value="" Name="watchpt_data"/>
+      <CData Name="commandlist"/>
+      <bool Value="0" Name="regex"/>
+      <bool Value="0" Name="is_temp"/>
+      <bool Value="1" Name="is_enabled"/>
+      <int Value="0" Name="ignore_number"/>
+      <wxString Value="" Name="conditions"/>
+      <int Value="0" Name="origin"/>
+    </SerializedObject>
+    <SerializedObject Name="Breakpoint1">
+      <wxString Value="/home/al/repos/Jasper2/jasper/Renderer.cpp" Name="file"/>
+      <int Value="264" Name="lineno"/>
       <wxString Value="" Name="function_name"/>
       <wxString Value="" Name="memory_address"/>
       <int Value="1" Name="bp_type"/>

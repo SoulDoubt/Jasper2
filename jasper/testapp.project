@@ -74,6 +74,8 @@
     <File Name="ParticleSystem.cpp"/>
     <File Name="ForsythIndexOptimizer.cpp"/>
     <File Name="include/jasper/AnimationSystem.cpp"/>
+    <File Name="InputSystem.cpp"/>
+    <File Name="tinyxml2.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <VirtualDirectory Name="jasper">
@@ -127,6 +129,8 @@
       <File Name="include/jasper/ForsythIndexOptimizer.h"/>
       <File Name="include/jasper/stb_dxt.h"/>
       <File Name="include/jasper/AnimationSystem.h"/>
+      <File Name="include/jasper/InputSystem.h"/>
+      <File Name="include/jasper/tinyxml2.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <Settings Type="Executable">
@@ -146,8 +150,9 @@
         <IncludePath Value="./include/jasper/"/>
         <IncludePath Value="/usr/include/bullet/"/>
         <IncludePath Value="/usr/local/include/assimp/"/>
+        <IncludePath Value="/usr/include/python3.5/"/>
       </Compiler>
-      <Linker Options="-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;-lvhacd;-pthread;-lgomp; -pg" Required="yes">
+      <Linker Options="-pg;-lGLEW;-lSDL2;-lGL;-lBulletDynamics;-lBulletCollision;-lLinearMath;-lassimp;-pthread;-lgomp;-lstdc++fs" Required="yes">
         <LibraryPath Value="/usr/local/lib/"/>
       </Linker>
       <ResourceCompiler Options="" Required="no"/>

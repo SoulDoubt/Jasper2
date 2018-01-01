@@ -743,7 +743,7 @@ void AnimationComponent::PoseSkeleton(int animIndex, const Keyframe& keyframe)
 void AnimationComponent::AddKeyframe(int framenumber)
 {
 	if (m_edit_animation > -1) {
-		assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
+		//assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
 		Animation& anim = this->m_animations[m_edit_animation];
 		anim.Keyframes.push_back(Keyframe{framenumber, 0});
 		sort(anim.Keyframes.begin(), anim.Keyframes.end(), [&](const Keyframe& a, const Keyframe& b) {
@@ -802,7 +802,7 @@ void AnimationComponent::AddKeyframe(int framenumber)
 void AnimationComponent::UpdateKeyframe(int framenumber)
 {
 	if (m_edit_animation > -1) {
-		assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
+		//assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
 		Animation& anim = this->m_animations[m_edit_animation];
 		for (auto& bone : m_skeleton->Bones) {
 			BoneAnimation* ba = anim.GetBoneAnimationByBoneIndex(bone->Id);
@@ -827,7 +827,7 @@ void AnimationComponent::UpdateKeyframe(int framenumber)
 void AnimationComponent::DeleteKeyframe(int framenumber)
 {
 	if (m_edit_animation > -1) {
-		assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
+		//assert(m_edit_animation < m_animations.size(), "Animation index out of range.");
 		Animation& anim = this->m_animations[m_edit_animation];
 		for (auto& bone : m_skeleton->Bones) {
 			BoneAnimation* ba = anim.GetBoneAnimationByBoneIndex(bone->Id);

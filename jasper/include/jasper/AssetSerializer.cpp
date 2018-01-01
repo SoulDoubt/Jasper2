@@ -260,19 +260,19 @@ void DeserializeMesh(std::ifstream & ifs, Mesh * mesh)
 	// write positions
 	/*ofs.write(ConstCharPtr(&posc), sizeof(posc));
 	ofs.write(ConstCharPtr(&(mesh->Positions[0])), sizeof(Vector3) * posc);*/
-	ReadVector(ifs, mesh->Positions);
+	//ReadVector(ifs, mesh->Positions);
 	// write normals
-	ReadVector(ifs, mesh->Normals);
+	//ReadVector(ifs, mesh->Normals);
 	// write tex coords
-	ReadVector(ifs, mesh->TexCoords);
+	//ReadVector(ifs, mesh->TexCoords);
 	// write tangents
-	ReadVector(ifs, mesh->Tangents);
+	//ReadVector(ifs, mesh->Tangents);
 	// write bitans
-	ReadVector(ifs, mesh->Bitangents);
+	//ReadVector(ifs, mesh->Bitangents);
 	// write bone weights
-	ReadVector(ifs, mesh->BoneWeights);
+	//ReadVector(ifs, mesh->BoneWeights);
 	// write indices
-	ReadVector(ifs, mesh->Indices);
+	//ReadVector(ifs, mesh->Indices);
 }
 
 void ConstructMesh(std::ifstream& ifs, Scene* scene) {

@@ -2,7 +2,7 @@
 
 All:
 	@echo "----------Building project:[ testapp - Debug ]----------"
-	@cd "testapp" && "$(MAKE)" -f  "testapp.mk"
+	@cd "jasper" && "$(MAKE)" -f  "testapp.mk"
 clean:
 	@echo "----------Cleaning project:[ testapp - Debug ]----------"
-	@cd "testapp" && "$(MAKE)" -f  "testapp.mk" clean
+	@cd "jasper" && "$(MAKE)" -f  "testapp.mk" clean

@@ -22,7 +22,7 @@
 
 #include <cstring>
 
-#include <BulletCollision\CollisionShapes\btShapeHull.h>
+#include <BulletCollision/CollisionShapes/btShapeHull.h>
 #include <StringFunctions.h>
 
 #include <Ragdoll.h>
@@ -1113,40 +1113,40 @@ ColladaSkin BuildXMLSkin(tinyxml2::XMLNode* node) {
 
 
 
-vector<std::unique_ptr<ColladaMesh>> ModelLoader::LoadColladaPython(const std::string& filename) {
-	using namespace PythonInterface;
-	std::vector<std::unique_ptr<ColladaMesh>> colladaMeshes;
-	auto& python = PythonInterpreter::GetInstance();
-	auto pyModule = python.LoadModule("load_collada"s);
-
-	if (pyModule) {
-		auto args = make_tuple("C:/Users/Al/documents/visual studio 2017/Projects/Jasper/models/C3P0/C3P0.dae");
-		auto result = python.ExecuteFunction(pyModule, "load_model"s, args);
-		if (result != nullptr) {
-			if (PyObject_HasAttrString(result, "geometries"))
-			{
-				printf("Has Geometries\n");
-				PyObject* pyGeoms = PyObject_GetAttrString(result, "geometries");
-				PythonInterface::ParseColladaGeometries(pyGeoms, colladaMeshes);
-				Py_DecRef(pyGeoms);
-			}
-			if (PyObject_HasAttrString(result, "controllers")) {
-				auto controllers = PyObject_GetAttrString(result, "controllers");
-				ParseColladaControllers(controllers, colladaMeshes);
-			}
-			Py_DecRef(result);
-		}
-	}
-	else {
-		PyErr_Print();
-	}
-
-	Py_DecRef(pyModule);
-	return colladaMeshes;
-
-
-
-}
+//vector<std::unique_ptr<ColladaMesh>> ModelLoader::LoadColladaPython(const std::string& filename) {
+//	using namespace PythonInterface;
+//	std::vector<std::unique_ptr<ColladaMesh>> colladaMeshes;
+//	auto& python = PythonInterpreter::GetInstance();
+//	auto pyModule = python.LoadModule("load_collada"s);
+//
+//	if (pyModule) {
+//		auto args = make_tuple("C:/Users/Al/documents/visual studio 2017/Projects/Jasper/models/C3P0/C3P0.dae");
+//		auto result = python.ExecuteFunction(pyModule, "load_model"s, args);
+//		if (result != nullptr) {
+//			if (PyObject_HasAttrString(result, "geometries"))
+//			{
+//				printf("Has Geometries\n");
+//				PyObject* pyGeoms = PyObject_GetAttrString(result, "geometries");
+//				PythonInterface::ParseColladaGeometries(pyGeoms, colladaMeshes);
+//				Py_DecRef(pyGeoms);
+//			}
+//			if (PyObject_HasAttrString(result, "controllers")) {
+//				auto controllers = PyObject_GetAttrString(result, "controllers");
+//				ParseColladaControllers(controllers, colladaMeshes);
+//			}
+//			Py_DecRef(result);
+//		}
+//	}
+//	else {
+//		PyErr_Print();
+//	}
+//
+//	Py_DecRef(pyModule);
+//	return colladaMeshes;
+//
+//
+//
+//}
 
 void ModelLoader::LoadXmlModel(const std::string & filename, const std::string & name)
 {
